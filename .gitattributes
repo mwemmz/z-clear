@@ -1,0 +1,16 @@
+# Normalize to LF in the repository; check out with LF everywhere.
+* text=auto eol=lf
+
+# Windows-only helper scripts keep CRLF if any are ever added.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary

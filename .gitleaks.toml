@@ -1,0 +1,19 @@
+# gitleaks configuration.
+# Extends the default ruleset and ignores placeholder-only files.
+title = "clearing-agent-platform"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Documented placeholders and generated lockfiles"
+paths = [
+  '''pnpm-lock\.yaml''',
+  '''\.env\.example''',
+  '''SECURITY\.md''',
+  '''ARCHITECTURE\.md''',
+]
+regexes = [
+  '''change_me''',
+  '''replace-with-32-byte-base64-secret''',
+]

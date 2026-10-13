@@ -1,0 +1,36 @@
+{
+  "name": "clearing-agent-platform",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Multi-tenant SaaS for Zambian clearing and forwarding agents (Phase 0 scaffold).",
+  "license": "UNLICENSED",
+  "packageManager": "pnpm@10.33.2",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "pnpm -r --if-present build",
+    "dev": "pnpm -r --parallel --if-present dev",
+    "lint": "pnpm -r --if-present lint",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "audit": "pnpm audit --audit-level high",
+    "secrets:scan": "gitleaks detect --no-banner --redact",
+    "verify": "pnpm format:check && pnpm lint && pnpm build && pnpm typecheck && pnpm test"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "@swc/core"
+    ],
+    "overrides": {
+      "tinypool": "^2.1.2"
+    }
+  }
+}
