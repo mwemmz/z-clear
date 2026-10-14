@@ -1,7 +1,9 @@
 import 'reflect-metadata';
+import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import helmet from 'helmet';
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { corsOrigins, loadEnv } from './config/env';
 import { createRootLogger, PinoNestLogger } from './common/logger/logger';
@@ -20,6 +22,7 @@ async function bootstrap(): Promise<void> {
   app.setGlobalPrefix('api/v1');
   app.use(helmet());
   app.use(compression());
+  app.use(cookieParser());
   app.use(requestIdMiddleware);
   app.useGlobalFilters(new ApiExceptionsFilter(rootLogger));
   app.enableCors({ origin: corsOrigins(env), credentials: true });

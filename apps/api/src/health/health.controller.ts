@@ -2,6 +2,7 @@ import { Controller, Get, Inject } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { APP_ENV } from '../config/config.module';
 import type { AppEnv } from '../config/env';
+import { Public } from '../modules/policy/decorators';
 
 export interface HealthResponse {
   status: 'ok';
@@ -15,6 +16,7 @@ export interface HealthResponse {
 export class HealthController {
   constructor(@Inject(APP_ENV) private readonly env: AppEnv) {}
 
+  @Public()
   @Get()
   @ApiOperation({ summary: 'Liveness and build information' })
   @ApiOkResponse({ description: 'Service is running' })

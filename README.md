@@ -52,7 +52,26 @@ pnpm audit      # dependency audit (high and above)
 pnpm secrets:scan   # gitleaks (requires gitleaks installed)
 ```
 
+## Database
+
+Migrations live in `apps/api/migrations` and run with `node-pg-migrate` against
+`DATABASE_MIGRATION_URL` (a least-privilege owner role); the app connects as a
+separate non-owner role via `DATABASE_URL` so Postgres RLS is enforced.
+
+```bash
+pnpm --filter @app/api db:migrate     # apply migrations
+pnpm --filter @app/api db:rollback    # roll back the last migration
+pnpm --filter @app/api db:create name # scaffold a new migration
+```
+
+API tests boot an ephemeral PostgreSQL automatically (no Docker needed) and run
+migrations on it; set `DATABASE_URL` to use an existing server instead.
+
 ## Status
 
-Phase 0: foundations only. No database, auth, or domain features yet. Phase 1
-begins with tenancy, authentication, RBAC, RLS, and the audit log.
+- **Phase 0:** monorepo, tooling, CI, Docker, logging, error envelope, health +
+  OpenAPI.
+- **Phase 1:** tenancy, auth (Argon2id + JWT access + rotating refresh),
+  RBAC, fail-closed Postgres RLS, append-only audit log, users + tenant
+  endpoints. TOTP is scaffolded but not enforced yet.
+- **Next:** domain modules (shipments, documents, quotes, invoices) from Phase 2.

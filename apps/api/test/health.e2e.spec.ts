@@ -20,7 +20,7 @@ describe('health (e2e)', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    await app?.close();
   });
 
   it('reports healthy and echoes a request id', async () => {

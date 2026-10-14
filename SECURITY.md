@@ -30,23 +30,30 @@ data. Full detail in `docs/ai-safety.md` (Phase 8, not built).
 
 ## Controls by area
 
-### Authentication (Phase 1)
-- Argon2id password hashing; reject known-breached passwords.
-- Short-lived access tokens; rotating refresh tokens in `httpOnly`, `Secure`,
-  `SameSite` cookies, with server-side revocation.
-- TOTP 2FA optional for `agency_owner`, required for `platform_admin`.
-- Login rate limiting with backoff. Generic errors (no account enumeration).
+### Authentication (Phase 1, shipped)
+- Argon2id password hashing. **Not yet:** known-breached-password rejection.
+- Short-lived signed JWT access tokens (15m default); opaque refresh tokens
+  stored only as SHA-256 hashes, rotated on every use, revocable server-side and
+  delivered in an `httpOnly`, `SameSite=Lax`, `Secure`-in-production cookie.
+- Account lockout after repeated failed logins; generic errors everywhere (no
+  account enumeration). Login/refresh are rate limited (`@nestjs/throttler`).
+- **Scaffolded, not enforced:** TOTP 2FA. The secret column and primitives
+  exist; enforcement (optional for `agency_owner`, required for
+  `platform_admin`) lands in a later phase.
 
-### Authorization (Phase 1)
-- Central RBAC + tenant-scope policy layer; deny by default.
-- Prevent IDOR by always scoping lookups to `(tenant_id, id)`.
-- CI test fails if any endpoint lacks a permission declaration.
+### Authorization (Phase 1, shipped)
+- Central RBAC + tenant-scope policy layer; deny by default. Every non-public
+  route must declare permissions; a build-time test fails otherwise.
+- IDOR prevention by always scoping lookups to `(tenant_id, id)`.
 
-### Tenancy isolation (Phase 1)
+### Tenancy isolation (Phase 1, shipped)
 - Two layers: application scoping on every query, plus RLS keyed to a
-  per-request `SET LOCAL app.tenant_id`.
-- Tests attempt cross-tenant reads and writes on every tenant-owned table and
-  must prove they fail.
+  per-request `SET LOCAL app.tenant_id`. Policies are fail-closed, and
+  `nullif(current_setting('app.tenant_id', true), '')` guards the empty-string
+  reset value so an unset tenant yields no rows instead of a cast error.
+- The application connects as a **non-owner** DB role, so it cannot bypass RLS.
+- Tests attempt cross-tenant reads and writes and prove they fail, and verify
+  `audit_logs` is append-only.
 
 ### Public status links (Phase 4)
 - 128-bit+ random tokens, stored **hashed**, with expiry and revocation.
@@ -96,6 +103,18 @@ data. Full detail in `docs/ai-safety.md` (Phase 8, not built).
   secrets, emails and phone numbers.
 - Health endpoint and code-generated OpenAPI.
 
+## What Phase 1 already does
+
+- Two-layer tenancy: application scoping plus fail-closed Postgres RLS, with the
+  app connecting as a non-owner role.
+- Append-only `audit_logs` enforced by a database trigger, not just convention.
+- Argon2id passwords; rotating, hash-stored, revocable refresh tokens in an
+  `httpOnly` cookie; short-lived access tokens; login lockout and rate limiting;
+  generic auth errors.
+- Central permission matrix with a deny-by-default global guard and a build-time
+  test that fails when a route omits its policy declaration.
+- End-to-end isolation and auth tests run against a real PostgreSQL.
+
 ## CI checklist (must reference these)
 
 - [ ] Format, lint, type check and tests pass (`.github/workflows/ci.yml`).
@@ -108,6 +127,9 @@ data. Full detail in `docs/ai-safety.md` (Phase 8, not built).
 
 ## Open items
 
+0. Phase 1 gaps still to close: wire breached-password checks, enforce TOTP,
+   and move login throttling from in-memory to a shared store before running
+   more than one replica.
 1. Confirm Zambian data-protection obligations (see Privacy).
 2. Confirm breach-notification duties and any sector retention rules.
 3. Decide the public-link retention window and whether clients can self-revoke.

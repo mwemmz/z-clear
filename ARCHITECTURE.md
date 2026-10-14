@@ -148,9 +148,33 @@ docs/           Supplemental docs (performance, runbook, ai-safety — later)
 
 ## Status
 
+**Phase 1 (done):** tenancy, identity, RBAC, RLS and audit.
+
+- Migrations (`node-pg-migrate`) create `tenants`, `users`, `refresh_tokens`
+  and `audit_logs`. RLS is enabled and **fail-closed** on every tenant-owned
+  table, keyed to `SET LOCAL app.tenant_id` inside a transaction
+  (`DatabaseService.withTenant`). `audit_logs` has a trigger that rejects
+  UPDATE/DELETE, so history cannot be rewritten even by the app role.
+- Auth: Argon2id passwords, short-lived signed JWT access tokens, opaque
+  rotating refresh tokens stored only as SHA-256 hashes in an `httpOnly`
+  cookie, login lockout after repeated failures, and generic errors (no account
+  enumeration). TOTP primitives are implemented and unit-testable but **not yet
+  enforced** in the login flow. Breached-password checking is not wired yet.
+- RBAC: a central permission matrix (`role -> permissions`), a single global
+  `AccessGuard`, deny by default. A build-time test fails if any route omits
+  `@Public()` or `@RequirePermissions(...)`.
+- Endpoints: `POST /auth/login|refresh|logout`, `GET /auth/me`,
+  `GET|PATCH /tenants/current`, and tenant-scoped `GET|POST|PATCH|DELETE
+  /users`, each writing an audit entry.
+- Tests run end-to-end against a real PostgreSQL (embedded for local runs, the
+  CI service otherwise) as a **non-owner** application role, so RLS is genuinely
+  enforced rather than bypassed by table ownership.
+
 **Phase 0 (done):** monorepo, tooling, CI, Docker, `.env.example`, config
 validation, structured logging with PII redaction, single error envelope,
 health + generated OpenAPI, `ARCHITECTURE.md`, `SECURITY.md`.
 
-**Not built yet:** database, migrations, auth, RLS, and all domain modules.
-Those begin in Phase 1. The `integrations/` boundary is intentionally empty.
+**Not built yet:** the domain modules (shipments, documents, files, tariffs,
+quotes, invoices, exports, notifications, public status, jobs). The
+`integrations/` boundary is intentionally empty. Phase 1's `platform_admin` is
+tenant-scoped; cross-tenant administration is a later, audited path.

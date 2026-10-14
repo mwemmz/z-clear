@@ -1,0 +1,65 @@
+import type { ColumnType } from 'kysely';
+import type { Role } from '../common/roles';
+
+/** Column with a database default: optional on insert. */
+export type Generated<T> = ColumnType<T, T | undefined, T>;
+/** Nullable column: optional on insert. */
+export type Nullable<T> = ColumnType<T | null, T | null | undefined, T | null>;
+/** Timestamp column with a database default. */
+export type Timestamp = ColumnType<Date, Date | string | undefined, Date | string>;
+
+export interface TenantsTable {
+  id: string;
+  name: string;
+  is_active: Generated<boolean>;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+  created_by: Nullable<string>;
+}
+
+export interface UsersTable {
+  id: string;
+  tenant_id: string;
+  email: string;
+  password_hash: string;
+  role: Role;
+  is_active: Generated<boolean>;
+  totp_secret: Nullable<string>;
+  totp_enabled: Generated<boolean>;
+  failed_login_attempts: Generated<number>;
+  locked_until: Nullable<Date>;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+  created_by: Nullable<string>;
+}
+
+export interface RefreshTokensTable {
+  id: string;
+  tenant_id: string;
+  user_id: string;
+  token_hash: string;
+  expires_at: Timestamp;
+  revoked_at: Nullable<Date>;
+  replaced_by: Nullable<string>;
+  created_at: Timestamp;
+}
+
+export interface AuditLogsTable {
+  id: string;
+  tenant_id: Nullable<string>;
+  actor_user_id: Nullable<string>;
+  action: string;
+  entity_type: Nullable<string>;
+  entity_id: Nullable<string>;
+  metadata: Generated<Record<string, unknown>>;
+  ip: Nullable<string>;
+  user_agent: Nullable<string>;
+  created_at: Timestamp;
+}
+
+export interface Database {
+  tenants: TenantsTable;
+  users: UsersTable;
+  refresh_tokens: RefreshTokensTable;
+  audit_logs: AuditLogsTable;
+}

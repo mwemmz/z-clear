@@ -5,6 +5,11 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    pool: 'forks',
+    fileParallelism: false,
+    globalSetup: ['test/support/global-setup.ts'],
+    testTimeout: 30_000,
+    hookTimeout: 120_000,
     include: ['src/**/*.spec.ts', 'test/**/*.spec.ts'],
     coverage: {
       provider: 'v8',
