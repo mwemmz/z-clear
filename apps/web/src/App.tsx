@@ -1,21 +1,11 @@
-import { SHIPMENT_STAGES } from '@app/shared';
-
-const STAGE_LABELS: Record<string, string> = {
-  docs_received: 'Documents received',
-  submitted: 'Submitted to customs',
-  duty_assessed: 'Duty assessed',
-  duty_paid: 'Duty paid',
-  released: 'Released',
-  in_transit: 'In transit',
-  delivered: 'Delivered',
-};
+import { SHIPMENT_STAGES, SHIPMENT_STATUS_LABELS } from '@zclear/shared';
 
 export function App() {
   return (
     <main className="shell">
       <header className="shell__header">
-        <h1>Clearing Agent Platform</h1>
-        <p className="shell__subtitle">Phase 0 scaffold</p>
+        <h1>Z Clear</h1>
+        <p className="shell__subtitle">Shipment workspace</p>
       </header>
 
       <section aria-labelledby="pipeline-heading">
@@ -23,7 +13,7 @@ export function App() {
         <ol className="pipeline">
           {SHIPMENT_STAGES.map((stage) => (
             <li key={stage} className="pipeline__item">
-              {STAGE_LABELS[stage] ?? stage}
+              {SHIPMENT_STATUS_LABELS[stage]}
             </li>
           ))}
         </ol>

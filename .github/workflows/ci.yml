@@ -66,7 +66,7 @@ jobs:
 
       # Phase 1+ : migrations must run clean on a fresh database.
       # - name: Verify migrations on a fresh database
-      #   run: pnpm --filter @app/api db:migrate:check
+      #   run: pnpm --filter @zclear/api db:migrate:check
 
   dependency-audit:
     name: Dependency audit

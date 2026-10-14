@@ -16,7 +16,7 @@ RUN pnpm install --frozen-lockfile
 
 FROM deps AS build
 COPY . .
-RUN pnpm --filter @app/shared build && pnpm --filter @app/web build
+RUN pnpm --filter @zclear/shared build && pnpm --filter @zclear/web build
 
 FROM nginx:1.27-alpine AS runtime
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf

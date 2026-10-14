@@ -7,6 +7,7 @@ import { HealthModule } from './health/health.module';
 import { AccessGuard } from './modules/policy/access.guard';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ShipmentsModule } from './modules/shipments/shipments.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
 import { UsersModule } from './modules/users/users.module';
 
@@ -27,6 +28,7 @@ import { UsersModule } from './modules/users/users.module';
     AuthModule,
     TenantsModule,
     UsersModule,
+    ShipmentsModule,
     HealthModule,
   ],
   providers: [

@@ -1,9 +1,9 @@
 {
-  "name": "@app/web",
+  "name": "@zclear/web",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Clearing Agent Platform web client (React + Vite, mobile-first).",
+  "description": "Z Clear web client (React + Vite, mobile-first).",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -13,7 +13,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@app/shared": "workspace:*",
+    "@zclear/shared": "workspace:*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

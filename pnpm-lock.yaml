@@ -41,6 +41,9 @@ importers:
       '@node-rs/argon2':
         specifier: ^2.2.2
         version: 2.2.2
+      '@zclear/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       compression:
         specifier: ^1.7.5
         version: 1.8.2
@@ -144,7 +147,7 @@ importers:
 
   apps/web:
     dependencies:
-      '@app/shared':
+      '@zclear/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       react:

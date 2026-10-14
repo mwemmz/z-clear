@@ -77,12 +77,21 @@ export async function startTestDatabase(): Promise<TestDatabase> {
     ownerUrl,
     appUrl: `postgresql://${APP_ROLE}:${APP_PASSWORD}@localhost:${port}/postgres`,
     stop: async () => {
-      await pg.stop();
       try {
-        rmSync(databaseDir, { recursive: true, force: true });
+        await pg.stop();
       } catch {
-        // Windows can hold a file handle briefly after shutdown; the temp
-        // directory is disposable, so a failed cleanup is not fatal.
+        // embedded-postgres removes its data directory on shutdown; Windows can
+        // hold a file handle briefly and make that removal throw EBUSY. The
+        // server is already stopped and the directory is disposable, so this is
+        // not fatal.
+      }
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        try {
+          rmSync(databaseDir, { recursive: true, force: true });
+          break;
+        } catch {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        }
       }
     },
   };

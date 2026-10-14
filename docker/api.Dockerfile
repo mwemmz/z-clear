@@ -16,7 +16,7 @@ RUN pnpm install --frozen-lockfile
 
 FROM deps AS build
 COPY . .
-RUN pnpm --filter @app/shared build && pnpm --filter @app/api build
+RUN pnpm --filter @zclear/shared build && pnpm --filter @zclear/api build
 
 FROM base AS runtime
 ENV NODE_ENV=production

@@ -1,8 +1,8 @@
 {
-  "name": "clearing-agent-platform",
+  "name": "z-clear",
   "version": "0.0.0",
   "private": true,
-  "description": "Multi-tenant SaaS for Zambian clearing and forwarding agents (Phase 0 scaffold).",
+  "description": "Z Clear: multi-tenant SaaS for Zambian clearing and forwarding agents.",
   "license": "UNLICENSED",
   "packageManager": "pnpm@10.33.2",
   "engines": {

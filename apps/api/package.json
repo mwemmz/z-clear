@@ -1,8 +1,8 @@
 {
-  "name": "@app/api",
+  "name": "@zclear/api",
   "version": "0.0.0",
   "private": true,
-  "description": "Clearing Agent Platform API (NestJS, modular monolith).",
+  "description": "Z Clear API (NestJS, modular monolith).",
   "scripts": {
     "build": "nest build",
     "dev": "nest start --watch",
@@ -24,6 +24,7 @@
     "@nestjs/swagger": "^11.0.3",
     "@nestjs/throttler": "^6.7.1",
     "@node-rs/argon2": "^2.2.2",
+    "@zclear/shared": "workspace:*",
     "compression": "^1.7.5",
     "cookie-parser": "^1.4.7",
     "dotenv": "^18.0.7",

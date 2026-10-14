@@ -1,4 +1,5 @@
 import type { ColumnType } from 'kysely';
+import type { ShipmentStatus, ShipmentType } from '@zclear/shared';
 import type { Role } from '../common/roles';
 
 /** Column with a database default: optional on insert. */
@@ -57,9 +58,70 @@ export interface AuditLogsTable {
   created_at: Timestamp;
 }
 
+export interface ShipmentsTable {
+  id: string;
+  tenant_id: string;
+  reference: string;
+  client_name: string;
+  client_contact: Nullable<string>;
+  type: ShipmentType;
+  stage: Generated<ShipmentStatus>;
+  hold_reason: Nullable<string>;
+  origin: Nullable<string>;
+  destination: Nullable<string>;
+  consignment: Generated<Record<string, unknown>>;
+  is_active: Generated<boolean>;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+  created_by: Nullable<string>;
+  updated_by: Nullable<string>;
+}
+
+export interface ShipmentEventsTable {
+  id: string;
+  tenant_id: string;
+  shipment_id: string;
+  from_stage: Nullable<ShipmentStatus>;
+  to_stage: ShipmentStatus;
+  note: Nullable<string>;
+  source: Generated<'manual' | 'system'>;
+  actor_user_id: Nullable<string>;
+  created_at: Timestamp;
+}
+
+export interface TariffSchedulesTable {
+  id: string;
+  code: string;
+  name: string;
+  currency: Generated<string>;
+  effective_from: Nullable<Date>;
+  effective_to: Nullable<Date>;
+  verification_status: Generated<'NEEDS_VERIFICATION' | 'VERIFIED' | 'SUPERSEDED'>;
+  source_note: Nullable<string>;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
+export interface TariffLinesTable {
+  id: string;
+  schedule_id: string;
+  hs_code: string;
+  description: string;
+  duty_rate_bp: Nullable<number>;
+  vat_rate_bp: Nullable<number>;
+  unit: Nullable<string>;
+  notes: Nullable<string>;
+  verification_status: Generated<'NEEDS_VERIFICATION' | 'VERIFIED' | 'SUPERSEDED'>;
+  created_at: Timestamp;
+}
+
 export interface Database {
   tenants: TenantsTable;
   users: UsersTable;
   refresh_tokens: RefreshTokensTable;
   audit_logs: AuditLogsTable;
+  shipments: ShipmentsTable;
+  shipment_events: ShipmentEventsTable;
+  tariff_schedules: TariffSchedulesTable;
+  tariff_lines: TariffLinesTable;
 }

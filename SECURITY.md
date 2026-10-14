@@ -1,6 +1,6 @@
 # Security
 
-Security requirements for the Clearing Agent Platform, the current posture, and
+Security requirements for Z Clear, the current posture, and
 the checks CI must reference. Controls marked **(Phase n)** are specified here
 and implemented in that phase; Phase 0 already implements the ones marked
 **(Phase 0)**.
@@ -114,6 +114,22 @@ data. Full detail in `docs/ai-safety.md` (Phase 8, not built).
 - Central permission matrix with a deny-by-default global guard and a build-time
   test that fails when a route omits its policy declaration.
 - End-to-end isolation and auth tests run against a real PostgreSQL.
+
+## What Phase 2 already does
+
+- `shipments` and `shipment_events` are tenant-owned and covered by the same
+  fail-closed RLS policies as Phase 1; isolation tests exercise the new tables.
+- The stage timeline is append-only enforced by a database trigger, so a stage
+  change can never be silently edited or erased — the audit trail for
+  repudiation is the row itself.
+- A stage change writes the shipment, its `shipment_events` row and its
+  `audit_logs` entry in one transaction with the actor id, from/to stages and
+  source, so state and history cannot diverge.
+- Stage/type input is validated against a single shared enum; unknown values and
+  unknown fields are rejected, and a hold requires a reason (also a DB
+  constraint).
+- Tariff/duty tables ship **empty** and flagged `NEEDS_VERIFICATION`; no duty,
+  VAT or fee numbers are invented, and the tables hold no tenant data.
 
 ## CI checklist (must reference these)
 

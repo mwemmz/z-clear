@@ -8,7 +8,7 @@ import type { AppEnv } from './config/env';
  */
 export function setupOpenApi(app: INestApplication, env: AppEnv): void {
   const config = new DocumentBuilder()
-    .setTitle('Clearing Agent Platform API')
+    .setTitle('Z Clear API')
     .setDescription(
       'Multi-tenant API for Zambian clearing and forwarding agents. ' +
         'Customs declarations remain in ASYCUDA World; this API handles the ' +

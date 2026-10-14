@@ -1,7 +1,7 @@
 # Architecture
 
-Clearing Agent Platform: a multi-tenant SaaS for small and mid-size clearing and
-forwarding agents in Zambia. This document describes the target architecture and
+Z Clear: a multi-tenant SaaS for small and mid-size clearing and forwarding
+agents in Zambia. This document describes the target architecture and
 what exists today. Phase 0 ships only the foundations described under "Status".
 
 ## Product boundary (read this first)
@@ -85,7 +85,7 @@ sequenceDiagram
   participant J as Job queue
 
   U->>W: One-tap stage update
-  W->>A: PATCH /api/v1/shipments/:id/stage
+  W->>A: POST /api/v1/shipments/:id/stage
   A->>A: Validate body (schema, reject unknown fields)
   A->>P: Authorize(permission, tenant scope)
   P-->>A: allow / deny (deny by default)
@@ -148,6 +148,28 @@ docs/           Supplemental docs (performance, runbook, ai-safety — later)
 
 ## Status
 
+**Phase 2 (done):** shipments and one-tap stage updates.
+
+- Migration adds `shipments`, the append-only `shipment_events` timeline, and
+  empty, versioned `tariff_schedules` / `tariff_lines` reference tables. The
+  tariff tables ship **empty** and every schedule/line defaults to
+  `NEEDS_VERIFICATION`: we never invent duty, VAT or fee numbers. Rates are
+  integer basis points and stay NULL until confirmed against current ZRA
+  sources. Tariffs are national data, so they carry no `tenant_id` and no RLS.
+- `shipments` and `shipment_events` are tenant-owned and RLS-protected with the
+  same fail-closed policy as Phase 1. `shipment_events` has an append-only
+  trigger, so the stage history cannot be rewritten by anyone.
+- Stage changes are **manual and one tap**: `POST /shipments/:id/stage` writes
+  the shipment, the timeline event and the audit entry in a *single*
+  transaction, so they can never disagree. A hold requires a reason; leaving
+  hold clears it (enforced by both a zod refinement and a DB check constraint).
+- Endpoints: tenant-scoped `GET|POST /shipments`, `GET|PATCH /shipments/:id`,
+  `POST /shipments/:id/stage`, `GET /shipments/:id/events`. New permissions
+  `shipment:read|create|update|stage`; `client_viewer` can read, staff can do
+  everything short of tenant administration.
+- Shipment stage/type enums and human labels live in `packages/shared` and are
+  imported by both API and web, so they cannot drift.
+
 **Phase 1 (done):** tenancy, identity, RBAC, RLS and audit.
 
 - Migrations (`node-pg-migrate`) create `tenants`, `users`, `refresh_tokens`
@@ -174,7 +196,7 @@ docs/           Supplemental docs (performance, runbook, ai-safety — later)
 validation, structured logging with PII redaction, single error envelope,
 health + generated OpenAPI, `ARCHITECTURE.md`, `SECURITY.md`.
 
-**Not built yet:** the domain modules (shipments, documents, files, tariffs,
-quotes, invoices, exports, notifications, public status, jobs). The
+**Not built yet:** documents, files, tariff *authoring/verification*, quotes,
+invoices, exports, notifications, public status and the job worker. The
 `integrations/` boundary is intentionally empty. Phase 1's `platform_admin` is
 tenant-scoped; cross-tenant administration is a later, audited path.

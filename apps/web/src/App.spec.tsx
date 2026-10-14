@@ -5,7 +5,7 @@ import { App } from './App';
 describe('App', () => {
   it('renders the product name', () => {
     render(<App />);
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Clearing Agent Platform');
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Z Clear');
   });
 
   it('renders the shipment pipeline stages from the shared package', () => {

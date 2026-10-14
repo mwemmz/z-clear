@@ -1,8 +1,8 @@
 {
-  "name": "@app/shared",
+  "name": "@zclear/shared",
   "version": "0.0.0",
   "private": true,
-  "description": "Shared domain types and pure helpers used by API and web.",
+  "description": "Z Clear shared domain types and pure helpers used by API and web.",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
   "types": "./dist/cjs/index.d.ts",
