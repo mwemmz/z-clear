@@ -76,6 +76,9 @@ data. Full detail in `docs/ai-safety.md` (Phase 8, not built).
 - A scan-status gate blocks download while a file is `pending`, `infected` or
   `failed`. The default scanner is a no-op (`skipped`); a real malware scanner
   is an open item.
+- Uploads and downloads carry tighter per-IP throttles (30/min and 60/min) than
+  the global 120/min default, and the multipart reader is capped at one file per
+  request.
 
 ### Input and output (Phase 0 + ongoing)
 - **(Phase 0)** Schema validation on every request; unknown fields rejected.

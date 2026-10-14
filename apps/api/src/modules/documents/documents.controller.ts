@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../common/validation/zod-validation.pipe';
@@ -86,6 +87,7 @@ export class DocumentsController {
 
   @RequirePermissions('file:create')
   @Post('documents/:id/files')
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
   @UseInterceptors(FileInterceptor('file'))
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Upload a file to a document (private object storage)' })
@@ -100,6 +102,7 @@ export class DocumentsController {
 
   @RequirePermissions('file:read')
   @Get('files/:id')
+  @Throttle({ default: { limit: 60, ttl: 60_000 } })
   @ApiOperation({ summary: 'Download a file after authorization (never public)' })
   async download(
     @Param('id', uuidParam) id: string,
