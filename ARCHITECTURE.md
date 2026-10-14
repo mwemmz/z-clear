@@ -148,6 +148,32 @@ docs/           Supplemental docs (performance, runbook, ai-safety — later)
 
 ## Status
 
+**Phase 3 (done):** document checklists and file storage.
+
+- Migration adds `documents`, `files` and `document_requirements`. The first two
+  are tenant-owned and RLS-protected with the same fail-closed policy as
+  Phase 1/2; `document_requirements` holds per-tenant checklists (config over
+  code) and ships empty — no default checklist is invented.
+- Each shipment has a checklist view (`GET /shipments/:id/documents`) that joins
+  required documents with what is attached and returns the `missing` mandatory
+  types. A document is *satisfied* when it has a file and is not `rejected`.
+- Files are stored through a `StorageProvider` interface selected by
+  `STORAGE_DRIVER`: an in-memory driver for dev/test and an S3-compatible driver
+  (R2/MinIO) for production. Keys are namespaced
+  `${tenant_id}/${shipment_id}/${file_id}`; production config refuses the
+  in-memory driver so objects are always durable and private.
+- Uploads (`POST /documents/:id/files`, multipart) are capped by
+  `MAX_UPLOAD_BYTES` and restricted to `ALLOWED_UPLOAD_TYPES`, re-validated
+  server-side after parsing. Each file row stores a `sha256` checksum, size,
+  original name and provider key.
+- Downloads (`GET /files/:id`) authorize by `(tenant_id, id)` first, then return
+  a short-lived signed URL (S3) or stream the bytes (in-memory), always as an
+  attachment with `X-Content-Type-Options: nosniff`. A scan-status gate blocks
+  files that are `pending`/`infected`/`failed`; the default scanner is a no-op
+  (`skipped`), so real malware scanning is an open item.
+- New permissions `document:read|write` and `file:read|create`; `client_viewer`
+  can read checklists and files but not create documents or upload.
+
 **Phase 2 (done):** shipments and one-tap stage updates.
 
 - Migration adds `shipments`, the append-only `shipment_events` timeline, and
@@ -188,15 +214,16 @@ docs/           Supplemental docs (performance, runbook, ai-safety — later)
 - Endpoints: `POST /auth/login|refresh|logout`, `GET /auth/me`,
   `GET|PATCH /tenants/current`, and tenant-scoped `GET|POST|PATCH|DELETE
   /users`, each writing an audit entry.
-- Tests run end-to-end against a real PostgreSQL (embedded for local runs, the
-  CI service otherwise) as a **non-owner** application role, so RLS is genuinely
+- Tests run end-to-end against a real PostgreSQL (an ephemeral instance booted
+  by the suite) as a **non-owner** application role, so RLS is genuinely
   enforced rather than bypassed by table ownership.
 
 **Phase 0 (done):** monorepo, tooling, CI, Docker, `.env.example`, config
 validation, structured logging with PII redaction, single error envelope,
 health + generated OpenAPI, `ARCHITECTURE.md`, `SECURITY.md`.
 
-**Not built yet:** documents, files, tariff *authoring/verification*, quotes,
-invoices, exports, notifications, public status and the job worker. The
+**Not built yet:** tariff *authoring/verification*, quotes, invoices, exports,
+notifications, public status and the job worker. Real malware scanning for
+uploads and any management UI for `document_requirements` are also pending. The
 `integrations/` boundary is intentionally empty. Phase 1's `platform_admin` is
 tenant-scoped; cross-tenant administration is a later, audited path.

@@ -17,22 +17,7 @@ jobs:
   build-test:
     name: Lint, typecheck, test
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: app
-          POSTGRES_PASSWORD: change_me
-          POSTGRES_DB: clearing_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U app -d clearing_test"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     env:
-      DATABASE_URL: postgresql://app:change_me@localhost:5432/clearing_test
       NODE_ENV: test
     steps:
       - uses: actions/checkout@v4
@@ -61,12 +46,11 @@ jobs:
       - name: Type check
         run: pnpm typecheck
 
+      # The API e2e suite provisions an ephemeral Postgres, runs every
+      # migration on a fresh database and drops it, so no external service
+      # is required here.
       - name: Test
         run: pnpm test
-
-      # Phase 1+ : migrations must run clean on a fresh database.
-      # - name: Verify migrations on a fresh database
-      #   run: pnpm --filter @zclear/api db:migrate:check
 
   dependency-audit:
     name: Dependency audit

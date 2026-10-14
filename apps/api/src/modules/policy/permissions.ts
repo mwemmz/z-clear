@@ -16,6 +16,10 @@ export const PERMISSIONS = [
   'shipment:create',
   'shipment:update',
   'shipment:stage',
+  'document:read',
+  'document:write',
+  'file:read',
+  'file:create',
   'self:read',
 ] as const;
 
@@ -37,6 +41,10 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'shipment:create',
     'shipment:update',
     'shipment:stage',
+    'document:read',
+    'document:write',
+    'file:read',
+    'file:create',
     'self:read',
   ],
   agent_staff: [
@@ -46,9 +54,13 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'shipment:create',
     'shipment:update',
     'shipment:stage',
+    'document:read',
+    'document:write',
+    'file:read',
+    'file:create',
     'self:read',
   ],
-  client_viewer: ['shipment:read', 'self:read'],
+  client_viewer: ['shipment:read', 'document:read', 'file:read', 'self:read'],
   platform_admin: [
     'tenant:read',
     'tenant:update',
@@ -60,6 +72,10 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'shipment:create',
     'shipment:update',
     'shipment:stage',
+    'document:read',
+    'document:write',
+    'file:read',
+    'file:create',
     'self:read',
   ],
 };

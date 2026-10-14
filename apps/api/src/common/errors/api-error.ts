@@ -5,6 +5,7 @@ export const ErrorCode = {
   NOT_FOUND: 'NOT_FOUND',
   CONFLICT: 'CONFLICT',
   RATE_LIMITED: 'RATE_LIMITED',
+  PAYLOAD_TOO_LARGE: 'PAYLOAD_TOO_LARGE',
   INTERNAL_ERROR: 'INTERNAL_ERROR',
 } as const;
 
@@ -50,6 +51,10 @@ export class ApiError extends Error {
 
   static conflict(message: string): ApiError {
     return new ApiError(ErrorCode.CONFLICT, 409, message);
+  }
+
+  static payloadTooLarge(message: string): ApiError {
+    return new ApiError(ErrorCode.PAYLOAD_TOO_LARGE, 413, message);
   }
 
   static internal(message = 'An unexpected error occurred'): ApiError {

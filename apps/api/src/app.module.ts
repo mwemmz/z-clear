@@ -4,9 +4,11 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AppConfigModule } from './config/config.module';
 import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
+import { StorageModule } from './storage/storage.module';
 import { AccessGuard } from './modules/policy/access.guard';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { DocumentsModule } from './modules/documents/documents.module';
 import { ShipmentsModule } from './modules/shipments/shipments.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
 import { UsersModule } from './modules/users/users.module';
@@ -23,12 +25,14 @@ import { UsersModule } from './modules/users/users.module';
   imports: [
     AppConfigModule,
     DatabaseModule,
+    StorageModule,
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
     AuditModule,
     AuthModule,
     TenantsModule,
     UsersModule,
     ShipmentsModule,
+    DocumentsModule,
     HealthModule,
   ],
   providers: [

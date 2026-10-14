@@ -35,6 +35,27 @@ export const envSchema = z.object({
   FEATURE_AI: booleanish.default('false'),
   FEATURE_NOTIFICATIONS: booleanish.default('false'),
 
+  // File storage. `memory` is the dev/test default; production uses an
+  // S3-compatible bucket (private only). Uploads are never public.
+  STORAGE_DRIVER: z.enum(['memory', 's3']).default('memory'),
+  MAX_UPLOAD_BYTES: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(15 * 1024 * 1024),
+  ALLOWED_UPLOAD_TYPES: z
+    .string()
+    .default(
+      'application/pdf,image/jpeg,image/png,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ),
+  SIGNED_URL_TTL_SECONDS: z.coerce.number().int().positive().max(3600).default(300),
+  S3_ENDPOINT: z.string().url().optional(),
+  S3_REGION: z.string().default('us-east-1'),
+  S3_BUCKET: z.string().optional(),
+  S3_ACCESS_KEY_ID: z.string().optional(),
+  S3_SECRET_ACCESS_KEY: z.string().optional(),
+  S3_FORCE_PATH_STYLE: booleanish.default('true'),
+
   APP_VERSION: z.string().default('0.0.0'),
 });
 
@@ -46,6 +67,12 @@ export function corsOrigins(env: AppEnv): string[] {
   return env.CORS_ALLOWLIST.split(',')
     .map((origin) => origin.trim())
     .filter((origin) => origin.length > 0);
+}
+
+export function allowedUploadTypes(env: AppEnv): string[] {
+  return env.ALLOWED_UPLOAD_TYPES.split(',')
+    .map((type) => type.trim().toLowerCase())
+    .filter((type) => type.length > 0);
 }
 
 export function loadEnv(source: NodeJS.ProcessEnv = process.env): AppEnv {
@@ -65,6 +92,15 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): AppEnv {
     }
     if (!env.DATABASE_URL) {
       problems.push('DATABASE_URL is required in production.');
+    }
+    if (env.STORAGE_DRIVER === 's3') {
+      if (!env.S3_BUCKET) problems.push('S3_BUCKET is required when STORAGE_DRIVER=s3.');
+      if (!env.S3_ACCESS_KEY_ID) {
+        problems.push('S3_ACCESS_KEY_ID is required when STORAGE_DRIVER=s3.');
+      }
+      if (!env.S3_SECRET_ACCESS_KEY) {
+        problems.push('S3_SECRET_ACCESS_KEY is required when STORAGE_DRIVER=s3.');
+      }
     }
     if (problems.length > 0) {
       throw new Error(`Invalid environment configuration:\n  - ${problems.join('\n  - ')}`);

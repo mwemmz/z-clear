@@ -62,11 +62,20 @@ data. Full detail in `docs/ai-safety.md` (Phase 8, not built).
   Never internal notes, fees, or other shipments. `noindex`; no sensitive data
   in URLs beyond the token.
 
-### Files and documents (Phase 3)
-- Private buckets; downloads via short-lived signed URLs after an authz check.
-- Type validation by content; size limits; malware scan in a background job
-  before a file is marked available.
-- Never render uploaded HTML/SVG inline.
+### Files and documents (Phase 3, shipped)
+- Private, tenant-scoped storage behind a provider interface: in-memory for
+  dev/test, S3-compatible (R2/MinIO) for production. Keys are namespaced
+  `${tenant_id}/${shipment_id}/${file_id}`; object storage is never public.
+- Uploads are size-limited and content-type allowlisted, and are re-checked
+  server-side after the multipart body is parsed. Oversize is `413`, bad type
+  is `400`.
+- Downloads are authorized first (lookup by `(tenant_id, id)`), then served via
+  a short-lived signed URL (`SIGNED_URL_TTL_SECONDS`) or an authenticated stream.
+  Responses are `Content-Disposition: attachment` with `X-Content-Type-Options:
+  nosniff`; uploaded HTML/SVG is never rendered inline.
+- A scan-status gate blocks download while a file is `pending`, `infected` or
+  `failed`. The default scanner is a no-op (`skipped`); a real malware scanner
+  is an open item.
 
 ### Input and output (Phase 0 + ongoing)
 - **(Phase 0)** Schema validation on every request; unknown fields rejected.
@@ -131,6 +140,26 @@ data. Full detail in `docs/ai-safety.md` (Phase 8, not built).
 - Tariff/duty tables ship **empty** and flagged `NEEDS_VERIFICATION`; no duty,
   VAT or fee numbers are invented, and the tables hold no tenant data.
 
+## What Phase 3 already does
+
+- `documents`, `files` and `document_requirements` are tenant-owned and covered
+  by the same fail-closed RLS policies as Phase 1/2; isolation tests exercise
+  the new tables (a second tenant sees `404` for both a shipment's checklist and
+  a file download).
+- Uploads are capped by `MAX_UPLOAD_BYTES` and restricted to
+  `ALLOWED_UPLOAD_TYPES`; the service re-validates size and type after parsing,
+  so a fabricated `Content-Type` does not bypass the allowlist.
+- Every file record stores a `sha256` checksum, size, original name and the
+  provider's storage key; checklists derive their `missing` list from a
+  satisfied document (`pending`/`uploaded`/`verified`, not `rejected`).
+- Downloads are authorized by `(tenant_id, id)` before any signed URL is minted;
+  a file whose scan status is `pending`/`infected`/`failed` cannot be downloaded.
+- Deleting a document cascades its file rows and best-effort removes the objects
+  from storage.
+- The storage driver is selected by `STORAGE_DRIVER`; production requires an
+  S3-compatible bucket (validated in config), and the in-memory driver refuses
+  to run in production.
+
 ## CI checklist (must reference these)
 
 - [ ] Format, lint, type check and tests pass (`.github/workflows/ci.yml`).
@@ -156,3 +185,12 @@ data. Full detail in `docs/ai-safety.md` (Phase 8, not built).
    must be dropped once Vitest ships a release that depends on the patched
    version. Remaining `pnpm audit` findings are dev-only (vitest, @vitest/mocker,
    js-yaml) and moderate; the CI gate is `--audit-level high`.
+5. **Real malware scanning (Phase 3):** the default `SCAN_PROVIDER` is a no-op
+   that records `skipped`. Files are therefore downloadable once uploaded.
+   A real AV scanner (e.g. ClamAV) should run as a background job before a file
+   is marked available; the gate and status model already support it.
+6. **Document requirements are unmanaged:** `document_requirements` ships empty
+   with no admin endpoints; agencies must load their checklists (config over
+   code). No default checklist is invented.
+7. **In-memory storage driver** loses objects on restart and is rejected in
+   production; only the S3-compatible driver retains files.

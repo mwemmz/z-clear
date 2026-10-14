@@ -115,6 +115,51 @@ export interface TariffLinesTable {
   created_at: Timestamp;
 }
 
+export type DocumentStatus = 'pending' | 'uploaded' | 'verified' | 'rejected';
+export type FileScanStatus = 'pending' | 'clean' | 'infected' | 'failed' | 'skipped';
+
+export interface DocumentsTable {
+  id: string;
+  tenant_id: string;
+  shipment_id: string;
+  doc_type: string;
+  label: string;
+  status: Generated<DocumentStatus>;
+  notes: Nullable<string>;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+  created_by: Nullable<string>;
+  updated_by: Nullable<string>;
+}
+
+export interface FilesTable {
+  id: string;
+  tenant_id: string;
+  shipment_id: string;
+  document_id: string;
+  storage_key: string;
+  original_name: string;
+  content_type: string;
+  size_bytes: number;
+  checksum_sha256: string;
+  scan_status: Generated<FileScanStatus>;
+  uploaded_by: Nullable<string>;
+  created_at: Timestamp;
+}
+
+export interface DocumentRequirementsTable {
+  id: string;
+  tenant_id: string;
+  shipment_type: ShipmentType;
+  doc_type: string;
+  label: string;
+  is_mandatory: Generated<boolean>;
+  sort_order: Generated<number>;
+  is_active: Generated<boolean>;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
 export interface Database {
   tenants: TenantsTable;
   users: UsersTable;
@@ -124,4 +169,7 @@ export interface Database {
   shipment_events: ShipmentEventsTable;
   tariff_schedules: TariffSchedulesTable;
   tariff_lines: TariffLinesTable;
+  documents: DocumentsTable;
+  files: FilesTable;
+  document_requirements: DocumentRequirementsTable;
 }

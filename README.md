@@ -78,4 +78,8 @@ migrations on it; set `DATABASE_URL` to use an existing server instead.
   append-only, tenant-isolated `shipment_events` timeline; empty, versioned
   tariff tables flagged `NEEDS_VERIFICATION` (no invented rates). See
   `ARCHITECTURE.md`.
-- **Next:** documents and files (Phase 3), then quotes/invoices.
+- **Phase 3:** per-shipment document checklists with required-document
+  tracking, file uploads to private, tenant-scoped storage behind a provider
+  interface (in-memory for dev/test, S3-compatible for production), short-lived
+  signed downloads, and a scan-status gate. See `ARCHITECTURE.md`.
+- **Next:** lean hardening, then quotes/invoices.
