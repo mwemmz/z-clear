@@ -163,6 +163,24 @@ data. Full detail in `docs/ai-safety.md` (Phase 8, not built).
   S3-compatible bucket (validated in config), and the in-memory driver refuses
   to run in production.
 
+## What Phase 4 already does
+
+- `quotes`, `invoices`, `payments` and `invoice_counters` are tenant-owned and
+  covered by the same fail-closed RLS policies as Phase 1–3; isolation tests
+  confirm a second tenant gets `404` for another tenant's quote and invoice.
+- Money is integer minor units only — no floats anywhere in the pricing path —
+  and taxability is derived from server-side charge-type configuration, so a
+  client cannot mark a pass-through line as taxable or vice versa.
+- The VAT rate is configuration (a versioned `tax_rates` row), not code: it is
+  seeded at the owner's stated 16% but flagged `NEEDS_VERIFICATION`. No duty,
+  VAT or fee *amounts* are invented; figures come from staff-entered lines.
+- Issued invoices are immutable: an issued invoice cannot be edited (only a
+  draft can), and a wrong one is voided with a mandatory reason and reissued.
+  Invoice numbers are allocated by an atomic per-tenant upsert.
+- Payments are append-only (a database trigger rejects UPDATE/DELETE), and the
+  invoice's paid amount and status are derived from them, so the money trail
+  cannot be rewritten.
+
 ## CI checklist (must reference these)
 
 - [ ] Format, lint, type check and tests pass (`.github/workflows/ci.yml`).
@@ -197,3 +215,12 @@ data. Full detail in `docs/ai-safety.md` (Phase 8, not built).
    code). No default checklist is invented.
 7. **In-memory storage driver** loses objects on restart and is rejected in
    production; only the S3-compatible driver retains files.
+8. **VAT rate needs verification (Phase 4):** the seeded standard rate is 16%
+   flagged `NEEDS_VERIFICATION`; confirm it against a current ZRA source before
+   issuing real invoices. Tax *amounts* are never invented — they come from
+   staff-entered lines.
+9. **No credit notes / refunds yet (Phase 4):** a wrong issued invoice is voided
+   and reissued; partial credit notes and refunds (which would need their own
+   accounting rules) are not modelled.
+10. **Invoice delivery and PDF export** are not built; invoices exist only as
+    API records.

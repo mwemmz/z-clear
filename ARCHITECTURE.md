@@ -148,6 +148,38 @@ docs/           Supplemental docs (performance, runbook, ai-safety — later)
 
 ## Status
 
+**Phase 4 (done):** quotes and invoices.
+
+- Migration adds `quotes`/`quote_lines`, `invoices`/`invoice_lines`, `payments`
+  and the per-tenant `invoice_counters`, all tenant-owned and fail-closed
+  RLS-protected. Two global reference tables — `charge_types` and `tax_rates` —
+  carry configuration, not money: the charge categories come from the owner's
+  brief and the standard VAT rate (16.00%, integer basis points) is seeded
+  flagged `NEEDS_VERIFICATION` until confirmed against a current ZRA source.
+  **No duty, VAT or fee amounts are invented**; every figure is entered per line
+  by staff.
+- Money is integer minor units plus an ISO currency, never a float. Pricing is a
+  pure shared helper (`packages/shared/src/pricing.ts`): VAT applies only to the
+  service-fee line, pass-through lines (duty, transport, port charges,
+  disbursements) are summed untouched. Taxability is derived from the charge
+  type's configuration, never from client input.
+- Quotes (`POST /shipments/:id/quotes`, `GET|PATCH /quotes/:id`,
+  `POST /quotes/:id/status`) move draft → sent → accepted/declined/expired;
+  only drafts can be edited and accepted/declined/expired are final.
+- Invoices (`POST /shipments/:id/invoices`, `GET /invoices`, `GET|PATCH
+  /invoices/:id`, `POST /invoices/:id/issue|void`) are created from an accepted
+  quote (a **snapshot**, so later quote edits cannot change an issued invoice) or
+  from standalone lines. Invoices are ZMW only; a non-ZMW quote needs an
+  explicit exchange rate to convert. Issued invoices are immutable — a wrong one
+  is voided with a reason and reissued, never edited. Numbers are allocated by
+  an atomic per-tenant upsert (`INV-<year>-<seq>`).
+- Payments are append-only (a database trigger rejects UPDATE/DELETE) and the
+  invoice's paid amount and status (`issued`/`partially_paid`/`paid`) are derived
+  from them.
+- New permissions `quote:read|write`, `invoice:read|write`, `payment:record`;
+  `client_viewer` can read quotes and invoices but cannot create, edit, issue or
+  record payments.
+
 **Phase 3 (done):** document checklists and file storage.
 
 - Migration adds `documents`, `files` and `document_requirements`. The first two
@@ -222,8 +254,8 @@ docs/           Supplemental docs (performance, runbook, ai-safety — later)
 validation, structured logging with PII redaction, single error envelope,
 health + generated OpenAPI, `ARCHITECTURE.md`, `SECURITY.md`.
 
-**Not built yet:** tariff *authoring/verification*, quotes, invoices, exports,
-notifications, public status and the job worker. Real malware scanning for
-uploads and any management UI for `document_requirements` are also pending. The
+**Not built yet:** exports (the ASYCUDA handoff), notifications, public status
+and the job worker. Real malware scanning for uploads, any management UI for
+`document_requirements`, and invoice/quote web screens are also pending. The
 `integrations/` boundary is intentionally empty. Phase 1's `platform_admin` is
 tenant-scoped; cross-tenant administration is a later, audited path.

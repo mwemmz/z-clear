@@ -82,4 +82,10 @@ migrations on it; set `DATABASE_URL` to use an existing server instead.
   tracking, file uploads to private, tenant-scoped storage behind a provider
   interface (in-memory for dev/test, S3-compatible for production), short-lived
   signed downloads, and a scan-status gate. See `ARCHITECTURE.md`.
-- **Next:** lean hardening, then quotes/invoices.
+- **Phase 4:** quotes and invoices. Integer-minor-unit money, charge categories
+  and a versioned VAT rate held as configuration (the seeded rate is flagged
+  `NEEDS_VERIFICATION`), quotes that move through draft → sent → accepted, and
+  invoices snapshotted from accepted quotes (immutable once issued, voided
+  rather than edited), plus append-only recorded payments and per-tenant
+  sequential numbers. See `ARCHITECTURE.md`.
+- **Next:** lean hardening, then exports and notifications.
