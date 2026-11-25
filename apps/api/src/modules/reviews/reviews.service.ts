@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { Transaction } from 'kysely';
+import { sql, type RawBuilder, type Transaction } from 'kysely';
 import {
   REVIEW_POINT_EVENTS,
   REVIEW_TRANSITIONS,
@@ -13,15 +13,17 @@ import { ApiError } from '../../common/errors/api-error';
 import { uuidv7 } from '../../common/ids';
 import type { Role } from '../../common/roles';
 import { DatabaseService } from '../../database/database.service';
-import type { Database } from '../../database/database.types';
+import type { Database, DraftFindingRow } from '../../database/database.types';
 import { AuditService } from '../audit/audit.service';
 import type { RequestMeta } from '../auth/auth.service';
 import { WordingService } from './wording.service';
 import type {
   ImporterReviewSummary,
   ListReviewsQuery,
+  QueryReviewInput,
   ReviewFindingSummary,
-  ReviewActionInput,
+  ReviseReviewInput,
+  SendReviewInput,
 } from './reviews.dto';
 
 /**
@@ -163,10 +165,9 @@ export class ReviewsService {
     tenantId: string,
     actorUserId: string,
     shipmentId: string,
-    input: Pick<ReviewActionInput, 'message'>,
+    input: SendReviewInput,
     meta: RequestMeta,
   ): Promise<ImporterReviewSummary> {
-    if (!input.message) throw ApiError.validation('A message is required to send a review');
     const message: string = input.message;
     return this.db.withTenant(tenantId, async (trx) => {
       const shipment = await this.findShipment(trx, shipmentId);
@@ -210,7 +211,7 @@ export class ReviewsService {
             message,
             ...snapshot,
             baseline_freshness: shipment.review_freshness,
-            draft_findings: findings,
+            draft_findings: asJsonb(findings),
             draft_blocked: blocked,
             wording: composed?.text ?? null,
             wording_source: composed?.source ?? 'fixed',
@@ -234,7 +235,7 @@ export class ReviewsService {
             message,
             ...snapshot,
             baseline_freshness: shipment.review_freshness,
-            draft_findings: findings,
+            draft_findings: asJsonb(findings),
             draft_blocked: blocked,
             wording: composed?.text ?? null,
             wording_source: composed?.source ?? 'fixed',
@@ -284,10 +285,9 @@ export class ReviewsService {
     viewer: ViewerContext,
     actorUserId: string,
     id: string,
-    input: Pick<ReviewActionInput, 'message'>,
+    input: QueryReviewInput,
     meta: RequestMeta,
   ): Promise<ImporterReviewSummary> {
-    if (!input.message) throw ApiError.validation('A question is required to query a review');
     return this.db.withTenant(tenantId, async (trx) => {
       let row = await this.findRow(trx, id);
       if (viewer.role === 'client_viewer') {
@@ -338,12 +338,9 @@ export class ReviewsService {
     tenantId: string,
     actorUserId: string,
     id: string,
-    input: Pick<ReviewActionInput, 'newMessage'>,
+    input: ReviseReviewInput,
     meta: RequestMeta,
   ): Promise<ImporterReviewSummary> {
-    if (!input.newMessage) {
-      throw ApiError.validation('A corrected message is required to revise a review');
-    }
     return this.db.withTenant(tenantId, async (trx) => {
       const row = await this.findRow(trx, id);
       this.assertTransition(row, 'revise');
@@ -392,7 +389,7 @@ export class ReviewsService {
           message: input.newMessage,
           ...snapshot,
           baseline_freshness: shipment.review_freshness,
-          draft_findings: findings,
+          draft_findings: asJsonb(findings),
           draft_blocked: hasBlockingFinding(findings),
           wording: null,
           wording_source: 'fixed',
@@ -631,4 +628,14 @@ export class ReviewsService {
         severity: item.severity === 'error' ? 'error' : 'warning',
       }));
   }
+}
+
+/**
+ * The pg driver serialises JS arrays as Postgres array literals, which jsonb
+ * rejects (objects are fine, arrays are not). Writing through a `sql` fragment
+ * with JSON text keeps the column a proper jsonb array, which pg parses back
+ * into a JS array on read.
+ */
+function asJsonb(findings: DraftFinding[]): RawBuilder<DraftFindingRow[]> {
+  return sql`${JSON.stringify(findings)}::jsonb`;
 }

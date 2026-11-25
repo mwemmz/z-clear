@@ -295,6 +295,13 @@ export interface InvoiceCountersTable {
 }
 
 export type ImporterReviewState = 'draft' | 'in_review' | 'queried' | 'approved';
+/** jsonb column: array of deterministic draft-check findings. */
+export type DraftFindingRow = {
+  code: string;
+  field: string | null;
+  message: string;
+  severity: 'error' | 'warning';
+};
 export type ReviewPointEvent = 'review_sent' | 'review_approved';
 
 export interface ImporterReviewsTable {
@@ -319,7 +326,7 @@ export interface ImporterReviewsTable {
   destination: Nullable<string>;
   consignment: Generated<Record<string, unknown>>;
   baseline_freshness: number;
-  draft_findings: Generated<unknown[]>;
+  draft_findings: Generated<DraftFindingRow[]>;
   draft_check_version: Generated<number>;
   draft_blocked: Generated<boolean>;
   wording: Nullable<string>;

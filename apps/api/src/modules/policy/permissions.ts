@@ -82,7 +82,9 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'invoice:write',
     'payment:record',
     'review:read',
+    'review:send',
     'review:query',
+    'review:approve',
     'self:read',
   ],
   client_viewer: [

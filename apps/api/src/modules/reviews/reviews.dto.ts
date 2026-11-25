@@ -1,36 +1,17 @@
 import { z } from 'zod';
-import {
-  IMPORTER_REVIEW_ACTIONS,
-  type DraftFinding,
-  type ImporterReviewAction,
-  type ImporterReviewState,
-} from '@zclear/shared';
+import { REVIEW_TRANSITIONS, type ImporterReviewAction, type ImporterReviewState } from '@zclear/shared';
 
 const text = z.string().trim();
 const note = text.min(1).max(500);
 
 /**
- * Only the actions a caller can request; the current revision state decides
- * which are legal (shared REVIEW_TRANSITIONS), so callers cannot teleport a
- * review from draft to approved.
+ * Each review action has its own endpoint, so each has its own body schema:
+ * `send` carries the agent's message, `query` the importer's question and
+ * `revise` the corrected message for the new draft revision.
  */
-export const reviewActionSchema = z
-  .object({
-    action: z.enum(IMPORTER_REVIEW_ACTIONS),
-    /** Message from the agent (used by send) or the importer (by query). */
-    message: note.optional(),
-    /** Required for `revise`: replacement message for the new draft revision. */
-    newMessage: note.optional(),
-  })
-  .strict()
-  .refine((value) => value.action !== 'send' || Boolean(value.message), {
-    message: 'message is required when sending a review',
-    path: ['message'],
-  })
-  .refine((value) => value.action !== 'revise' || Boolean(value.newMessage), {
-    message: 'newMessage is required when revising a review',
-    path: ['newMessage'],
-  });
+export const sendReviewSchema = z.object({ message: note }).strict();
+export const queryReviewSchema = z.object({ message: note }).strict();
+export const reviseReviewSchema = z.object({ newMessage: note }).strict();
 
 export const listReviewsSchema = z
   .object({
@@ -41,7 +22,9 @@ export const listReviewsSchema = z
   })
   .strict();
 
-export type ReviewActionInput = z.infer<typeof reviewActionSchema>;
+export type SendReviewInput = z.infer<typeof sendReviewSchema>;
+export type QueryReviewInput = z.infer<typeof queryReviewSchema>;
+export type ReviseReviewInput = z.infer<typeof reviseReviewSchema>;
 export type ListReviewsQuery = z.infer<typeof listReviewsSchema>;
 
 export interface ReviewFindingSummary {
@@ -64,6 +47,7 @@ export interface ImporterReviewSummary {
   sentAt: string | null;
   queriedAt: string | null;
   approvedAt: string | null;
+  /** True when the shipment changed after this revision was raised. */
   isStale: boolean;
   /** Actions legal on this revision right now (from the shared transitions). */
   allowedActions: ImporterReviewAction[];
@@ -72,4 +56,7 @@ export interface ImporterReviewSummary {
   updatedAt: string;
 }
 
-export type DraftFindingLike = DraftFinding;
+/** Actions the shared transition table permits per state (for docs/tests). */
+export function allowedActionsForState(state: ImporterReviewState): ImporterReviewAction[] {
+  return [...REVIEW_TRANSITIONS[state]];
+}

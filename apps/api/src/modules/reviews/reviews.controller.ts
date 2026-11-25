@@ -10,10 +10,14 @@ import type { RequestMeta } from '../auth/auth.service';
 import { ReviewsService } from './reviews.service';
 import {
   listReviewsSchema,
-  reviewActionSchema,
+  queryReviewSchema,
+  reviseReviewSchema,
+  sendReviewSchema,
   type ImporterReviewSummary,
   type ListReviewsQuery,
-  type ReviewActionInput,
+  type QueryReviewInput,
+  type ReviseReviewInput,
+  type SendReviewInput,
 } from './reviews.dto';
 
 const uuidParam = new ZodValidationPipe(z.string().uuid());
@@ -50,7 +54,7 @@ export class ReviewsController {
   @ApiOperation({ summary: 'Send (or re-send a draft of) the shipment review to the importer' })
   send(
     @Param('shipmentId', uuidParam) shipmentId: string,
-    @Body(new ZodValidationPipe(reviewActionSchema)) body: ReviewActionInput,
+    @Body(new ZodValidationPipe(sendReviewSchema)) body: SendReviewInput,
     @CurrentUser() user: AuthenticatedUser,
     @Req() req: Request,
   ): Promise<ImporterReviewSummary> {
@@ -64,7 +68,7 @@ export class ReviewsController {
   @ApiOperation({ summary: 'Ask a question about the review (importer action)' })
   query(
     @Param('id', uuidParam) id: string,
-    @Body(new ZodValidationPipe(reviewActionSchema)) body: ReviewActionInput,
+    @Body(new ZodValidationPipe(queryReviewSchema)) body: QueryReviewInput,
     @CurrentUser() user: AuthenticatedUser,
     @Req() req: Request,
   ): Promise<ImporterReviewSummary> {
@@ -84,7 +88,7 @@ export class ReviewsController {
   @ApiOperation({ summary: 'Correct the review: open a new draft revision' })
   revise(
     @Param('id', uuidParam) id: string,
-    @Body(new ZodValidationPipe(reviewActionSchema)) body: ReviewActionInput,
+    @Body(new ZodValidationPipe(reviseReviewSchema)) body: ReviseReviewInput,
     @CurrentUser() user: AuthenticatedUser,
     @Req() req: Request,
   ): Promise<ImporterReviewSummary> {
