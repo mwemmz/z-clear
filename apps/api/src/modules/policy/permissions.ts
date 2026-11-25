@@ -25,6 +25,10 @@ export const PERMISSIONS = [
   'invoice:read',
   'invoice:write',
   'payment:record',
+  'review:read',
+  'review:send',
+  'review:query',
+  'review:approve',
   'self:read',
 ] as const;
 
@@ -55,6 +59,10 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'invoice:read',
     'invoice:write',
     'payment:record',
+    'review:read',
+    'review:send',
+    'review:query',
+    'review:approve',
     'self:read',
   ],
   agent_staff: [
@@ -73,6 +81,8 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'invoice:read',
     'invoice:write',
     'payment:record',
+    'review:read',
+    'review:query',
     'self:read',
   ],
   client_viewer: [
@@ -81,6 +91,10 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'file:read',
     'quote:read',
     'invoice:read',
+    // Importers read their assigned shipments' reviews and can query them,
+    // but never send, revise or approve.
+    'review:read',
+    'review:query',
     'self:read',
   ],
   platform_admin: [
@@ -103,6 +117,10 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'invoice:read',
     'invoice:write',
     'payment:record',
+    'review:read',
+    'review:send',
+    'review:query',
+    'review:approve',
     'self:read',
   ],
 };

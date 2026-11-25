@@ -29,6 +29,8 @@ export interface UsersTable {
   totp_enabled: Generated<boolean>;
   failed_login_attempts: Generated<number>;
   locked_until: Nullable<Date>;
+  /** Importer tax number (TPIN). Synthetic in demo data. */
+  tpin: Nullable<string>;
   created_at: Timestamp;
   updated_at: Timestamp;
   created_by: Nullable<string>;
@@ -70,6 +72,12 @@ export interface ShipmentsTable {
   origin: Nullable<string>;
   destination: Nullable<string>;
   consignment: Generated<Record<string, unknown>>;
+  /** Importer (client_viewer) this shipment is visible to. */
+  importer_user_id: Nullable<string>;
+  /** Agent staff member responsible for the review workflow. */
+  assigned_agent_id: Nullable<string>;
+  /** Bumped on material edits; review revisions pin their baseline. */
+  review_freshness: Generated<number>;
   is_active: Generated<boolean>;
   created_at: Timestamp;
   updated_at: Timestamp;
@@ -286,6 +294,52 @@ export interface InvoiceCountersTable {
   last_number: Generated<number>;
 }
 
+export type ImporterReviewState = 'draft' | 'in_review' | 'queried' | 'approved';
+export type ReviewPointEvent = 'review_sent' | 'review_approved';
+
+export interface ImporterReviewsTable {
+  id: string;
+  tenant_id: string;
+  shipment_id: string;
+  revision: number;
+  parent_review_id: Nullable<string>;
+  state: Generated<ImporterReviewState>;
+  message: Nullable<string>;
+  query: Nullable<string>;
+  sent_at: Nullable<Date>;
+  queried_at: Nullable<Date>;
+  approved_at: Nullable<Date>;
+  sent_by: Nullable<string>;
+  approved_by: Nullable<string>;
+  shipment_reference: string;
+  client_name: string;
+  client_contact: Nullable<string>;
+  shipment_type: ShipmentType;
+  origin: Nullable<string>;
+  destination: Nullable<string>;
+  consignment: Generated<Record<string, unknown>>;
+  baseline_freshness: number;
+  draft_findings: Generated<unknown[]>;
+  draft_check_version: Generated<number>;
+  draft_blocked: Generated<boolean>;
+  wording: Nullable<string>;
+  wording_source: Generated<'fixed' | 'ai'>;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+  created_by: Nullable<string>;
+}
+
+export interface ReviewPointsTable {
+  id: string;
+  tenant_id: string;
+  user_id: string;
+  shipment_id: string;
+  review_id: string;
+  event: ReviewPointEvent;
+  points: number;
+  created_at: Timestamp;
+}
+
 export interface Database {
   tenants: TenantsTable;
   users: UsersTable;
@@ -306,4 +360,6 @@ export interface Database {
   invoice_lines: InvoiceLinesTable;
   payments: PaymentsTable;
   invoice_counters: InvoiceCountersTable;
+  importer_reviews: ImporterReviewsTable;
+  review_points: ReviewPointsTable;
 }
