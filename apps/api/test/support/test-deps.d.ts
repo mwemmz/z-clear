@@ -10,6 +10,8 @@ declare module 'embedded-postgres' {
     user: string;
     password: string;
     persistent: boolean;
+    /** Postgres refuses to run as root; needed in root-only containers. */
+    createPostgresUser: boolean;
     onLog: (message: string) => void;
     onError: (error: unknown) => void;
   }
