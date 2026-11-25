@@ -62,6 +62,15 @@ data. Full detail in `docs/ai-safety.md` (Phase 8, not built).
   Never internal notes, fees, or other shipments. `noindex`; no sensitive data
   in URLs beyond the token.
 
+### Importer review (Phase 5, shipped)
+- Importer assignment is enforced server-side: `client_viewer` reads/queries
+  only reviews of shipments assigned to them; everything else is 404, so
+  existence is not leaked across tenants. RLS is the backstop.
+- Approval binds to the exact revision and rejects stale baselines after a
+  material edit; the points ledger is append-only and cannot be rewritten.
+- The optional AI wording step is flag-gated (`FEATURE_AI`), has a fixed
+  fallback and would receive no tools and no other tenants' data.
+
 ### Files and documents (Phase 3, shipped)
 - Private, tenant-scoped storage behind a provider interface: in-memory for
   dev/test, S3-compatible (R2/MinIO) for production. Keys are namespaced
