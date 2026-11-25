@@ -60,10 +60,36 @@ describe('importer reviews (e2e)', () => {
       trx
         .insertInto('users')
         .values([
-          { id: ownerA, tenant_id: tenantA, email: ownerAEmail, password_hash: hash, role: 'agency_owner' },
-          { id: staffA, tenant_id: tenantA, email: staffAEmail, password_hash: hash, role: 'agent_staff' },
-          { id: importerA, tenant_id: tenantA, email: importerAEmail, password_hash: hash, role: 'client_viewer', tpin: '1001111222' },
-          { id: otherImporterA, tenant_id: tenantA, email: otherImporterAEmail, password_hash: hash, role: 'client_viewer', tpin: '2002222333' },
+          {
+            id: ownerA,
+            tenant_id: tenantA,
+            email: ownerAEmail,
+            password_hash: hash,
+            role: 'agency_owner',
+          },
+          {
+            id: staffA,
+            tenant_id: tenantA,
+            email: staffAEmail,
+            password_hash: hash,
+            role: 'agent_staff',
+          },
+          {
+            id: importerA,
+            tenant_id: tenantA,
+            email: importerAEmail,
+            password_hash: hash,
+            role: 'client_viewer',
+            tpin: '1001111222',
+          },
+          {
+            id: otherImporterA,
+            tenant_id: tenantA,
+            email: otherImporterAEmail,
+            password_hash: hash,
+            role: 'client_viewer',
+            tpin: '2002222333',
+          },
         ])
         .execute(),
     );
@@ -71,8 +97,20 @@ describe('importer reviews (e2e)', () => {
       trx
         .insertInto('users')
         .values([
-          { id: ownerB, tenant_id: tenantB, email: ownerBEmail, password_hash: hash, role: 'agency_owner' },
-          { id: importerB, tenant_id: tenantB, email: importerBEmail, password_hash: hash, role: 'client_viewer' },
+          {
+            id: ownerB,
+            tenant_id: tenantB,
+            email: ownerBEmail,
+            password_hash: hash,
+            role: 'agency_owner',
+          },
+          {
+            id: importerB,
+            tenant_id: tenantB,
+            email: importerBEmail,
+            password_hash: hash,
+            role: 'client_viewer',
+          },
         ])
         .execute(),
     );
@@ -99,7 +137,11 @@ describe('importer reviews (e2e)', () => {
 
   async function assignedShipment(
     token: string,
-    overrides: { importerUserId?: string; clientContact?: string | null; consignment?: Record<string, unknown> } = {},
+    overrides: {
+      importerUserId?: string;
+      clientContact?: string | null;
+      consignment?: Record<string, unknown>;
+    } = {},
   ): Promise<{ id: string; reviewFreshness: number }> {
     const response = await server()
       .post('/api/v1/shipments')
@@ -135,7 +177,9 @@ describe('importer reviews (e2e)', () => {
       .expect(200);
     expect(sent.body).toMatchObject({ revision: 1, state: 'in_review' });
     expect(sent.body.allowedActions).toContain('query');
-    expect(sent.body.wording).toContain(shipment.id === sent.body.shipmentId ? 'Review request' : '');
+    expect(sent.body.wording).toContain(
+      shipment.id === sent.body.shipmentId ? 'Review request' : '',
+    );
     expect(sent.body.draftFindings).toEqual([]);
 
     // Importer queries it.
@@ -152,7 +196,11 @@ describe('importer reviews (e2e)', () => {
       .set('Authorization', `Bearer ${staffToken}`)
       .send({ newMessage: 'Corrected: TPIN confirmed with the importer.' })
       .expect(200);
-    expect(revised.body).toMatchObject({ revision: 2, state: 'draft', parentReviewId: sent.body.id });
+    expect(revised.body).toMatchObject({
+      revision: 2,
+      state: 'draft',
+      parentReviewId: sent.body.id,
+    });
 
     // Revision 1 can no longer be approved (superseded).
     await server()

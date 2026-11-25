@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import { REVIEW_TRANSITIONS, type ImporterReviewAction, type ImporterReviewState } from '@zclear/shared';
+import {
+  REVIEW_TRANSITIONS,
+  type ImporterReviewAction,
+  type ImporterReviewState,
+} from '@zclear/shared';
 
 const text = z.string().trim();
 const note = text.min(1).max(500);

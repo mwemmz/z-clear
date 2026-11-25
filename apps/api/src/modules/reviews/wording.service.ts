@@ -57,7 +57,6 @@ export class WordingService {
     return parts.join('\n');
   }
 
-
   /**
    * The AI step. No provider is wired in this phase: returning null always
    * falls back to the fixed wording, which keeps the feature flag honest and

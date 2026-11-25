@@ -219,9 +219,7 @@ export class ShipmentsService {
             ...(input.assignedAgentId !== undefined
               ? { assigned_agent_id: input.assignedAgentId }
               : {}),
-            ...(bump && current
-              ? { review_freshness: current.review_freshness + 1 }
-              : {}),
+            ...(bump && current ? { review_freshness: current.review_freshness + 1 } : {}),
             updated_by: actorUserId,
             updated_at: new Date(),
           })
@@ -385,7 +383,6 @@ export class ShipmentsService {
       }
     }
   }
-
 }
 
 function toSummary(row: {

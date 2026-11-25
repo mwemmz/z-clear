@@ -37,9 +37,7 @@ function fail(step: string, status: number, body: unknown): never {
 }
 
 async function login(email: string): Promise<string> {
-  const res = await server()
-    .post('/api/v1/auth/login')
-    .send({ email, password: PASSWORD });
+  const res = await server().post('/api/v1/auth/login').send({ email, password: PASSWORD });
   if (res.status !== 200) fail(`login ${email}`, res.status, res.body);
   return (res.body as { accessToken: string }).accessToken;
 }
@@ -72,7 +70,9 @@ async function main(): Promise<void> {
     // expected. Approve is final by design, so the run after a post-approval
     // reseed revises nothing and the smoke ends early with a clear note.
     if (current.state === 'approved') {
-      console.log('smoke: latest seeded revision is already approved (post-approval reseed); nothing to send');
+      console.log(
+        'smoke: latest seeded revision is already approved (post-approval reseed); nothing to send',
+      );
       return;
     }
     if (current.state === 'in_review') {

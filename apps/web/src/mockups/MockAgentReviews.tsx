@@ -8,9 +8,27 @@ const REVIEWS: {
   state: ImporterReviewState;
   action: string;
 }[] = [
-  { reference: 'DEMO-IMPORT-0001', client: 'Kafue Metals Ltd', revision: 3, state: 'in_review', action: 'Awaiting importer' },
-  { reference: 'DEMO-IMPORT-0002', client: 'Sunshine Trading', revision: 1, state: 'queried', action: 'Answer query' },
-  { reference: 'DEMO-EXPORT-0007', client: 'Copperbelt Foods', revision: 2, state: 'approved', action: 'Filed manually' },
+  {
+    reference: 'DEMO-IMPORT-0001',
+    client: 'Kafue Metals Ltd',
+    revision: 3,
+    state: 'in_review',
+    action: 'Awaiting importer',
+  },
+  {
+    reference: 'DEMO-IMPORT-0002',
+    client: 'Sunshine Trading',
+    revision: 1,
+    state: 'queried',
+    action: 'Answer query',
+  },
+  {
+    reference: 'DEMO-EXPORT-0007',
+    client: 'Copperbelt Foods',
+    revision: 2,
+    state: 'approved',
+    action: 'Filed manually',
+  },
 ];
 
 const STATE_LABEL: Record<ImporterReviewState, string> = {
@@ -34,13 +52,17 @@ export function MockAgentReviews() {
               </span>
             </div>
             <div className="mock-list__meta">
-              <span className={`mock-pill mock-pill--${review.state}`}>{STATE_LABEL[review.state]}</span>
+              <span className={`mock-pill mock-pill--${review.state}`}>
+                {STATE_LABEL[review.state]}
+              </span>
               <span className="mock-list__action">{review.action}</span>
             </div>
           </li>
         ))}
       </ul>
-      <p className="mock-hint">One tap opens the revision; approval binds to the exact revision shown.</p>
+      <p className="mock-hint">
+        One tap opens the revision; approval binds to the exact revision shown.
+      </p>
     </MockScreen>
   );
 }

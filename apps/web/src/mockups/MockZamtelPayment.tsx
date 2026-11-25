@@ -7,7 +7,10 @@ import { MockScreen } from './MockScreen';
  */
 export function MockZamtelPayment() {
   return (
-    <MockScreen label="Zamtel Money fee payment" note="Paying the agency service fee from the phone.">
+    <MockScreen
+      label="Zamtel Money fee payment"
+      note="Paying the agency service fee from the phone."
+    >
       <dl className="mock-kv">
         <dt>Agency</dt>
         <dd>Demo Clearing Agency</dd>

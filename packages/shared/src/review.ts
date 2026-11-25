@@ -32,7 +32,10 @@ export const REVIEW_TRANSITIONS: Record<ImporterReviewState, readonly ImporterRe
   approved: [],
 };
 
-export function isReviewTransition(state: ImporterReviewState, action: ImporterReviewAction): boolean {
+export function isReviewTransition(
+  state: ImporterReviewState,
+  action: ImporterReviewAction,
+): boolean {
   return REVIEW_TRANSITIONS[state].includes(action);
 }
 

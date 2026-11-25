@@ -100,7 +100,13 @@ export interface ViewerContext {
 
 type ShipmentSnapshot = Pick<
   ReviewRow,
-  'shipment_reference' | 'client_name' | 'client_contact' | 'shipment_type' | 'origin' | 'destination' | 'consignment'
+  | 'shipment_reference'
+  | 'client_name'
+  | 'client_contact'
+  | 'shipment_type'
+  | 'origin'
+  | 'destination'
+  | 'consignment'
 >;
 
 @Injectable()
@@ -346,13 +352,13 @@ export class ReviewsService {
       this.assertTransition(row, 'revise');
       const shipment = await this.findShipment(trx, row.shipment_id);
       const importerTpin = shipment.importer_user_id
-        ? (
+        ? ((
             await trx
               .selectFrom('users')
               .select('tpin')
               .where('id', '=', shipment.importer_user_id)
               .executeTakeFirst()
-          )?.tpin ?? null
+          )?.tpin ?? null)
         : null;
 
       const snapshot: ShipmentSnapshot = {
@@ -517,7 +523,10 @@ export class ReviewsService {
     return this.findRow(trx, id);
   }
 
-  private async latestRow(trx: Transaction<Database>, shipmentId: string): Promise<ReviewRow | null> {
+  private async latestRow(
+    trx: Transaction<Database>,
+    shipmentId: string,
+  ): Promise<ReviewRow | null> {
     const row = await trx
       .selectFrom('importer_reviews as r')
       .innerJoin('shipments as s', 's.id', 'r.shipment_id')

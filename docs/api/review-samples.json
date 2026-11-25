@@ -1,12 +1,32 @@
 {
   "$comment": "Z Clear — Phase 5 importer review: sample request/response JSON with error examples. Synthetic data only. No duty, VAT or fee figures appear anywhere: customs stays in ASYCUDA World. Published for frontend integration.",
   "endpoints": {
-    "list": { "method": "GET", "path": "/api/v1/reviews?state=in_review&limit=50", "permission": "review:read" },
+    "list": {
+      "method": "GET",
+      "path": "/api/v1/reviews?state=in_review&limit=50",
+      "permission": "review:read"
+    },
     "get": { "method": "GET", "path": "/api/v1/reviews/:id", "permission": "review:read" },
-    "send": { "method": "POST", "path": "/api/v1/shipments/:shipmentId/review/send", "permission": "review:send" },
-    "query": { "method": "POST", "path": "/api/v1/reviews/:id/query", "permission": "review:query" },
-    "revise": { "method": "POST", "path": "/api/v1/reviews/:id/revise", "permission": "review:send" },
-    "approve": { "method": "POST", "path": "/api/v1/reviews/:id/approve", "permission": "review:approve" }
+    "send": {
+      "method": "POST",
+      "path": "/api/v1/shipments/:shipmentId/review/send",
+      "permission": "review:send"
+    },
+    "query": {
+      "method": "POST",
+      "path": "/api/v1/reviews/:id/query",
+      "permission": "review:query"
+    },
+    "revise": {
+      "method": "POST",
+      "path": "/api/v1/reviews/:id/revise",
+      "permission": "review:send"
+    },
+    "approve": {
+      "method": "POST",
+      "path": "/api/v1/reviews/:id/approve",
+      "permission": "review:approve"
+    }
   },
   "samples": {
     "sendRequest": { "message": "Please confirm the shipment details below before we proceed." },
@@ -38,8 +58,18 @@
       "isStale": false,
       "allowedActions": ["send"],
       "draftFindings": [
-        { "code": "missing_contact", "field": "clientContact", "message": "Importer contact details are missing.", "severity": "error" },
-        { "code": "tpin_mismatch", "field": "consignment.tpin", "message": "TPIN on the shipment does not match the importer record.", "severity": "warning" }
+        {
+          "code": "missing_contact",
+          "field": "clientContact",
+          "message": "Importer contact details are missing.",
+          "severity": "error"
+        },
+        {
+          "code": "tpin_mismatch",
+          "field": "consignment.tpin",
+          "message": "TPIN on the shipment does not match the importer record.",
+          "severity": "warning"
+        }
       ]
     }
   },
@@ -51,7 +81,12 @@
         "state": "draft",
         "sentAt": null,
         "draftFindings": [
-          { "code": "missing_contact", "field": "clientContact", "message": "Importer contact details are missing.", "severity": "error" }
+          {
+            "code": "missing_contact",
+            "field": "clientContact",
+            "message": "Importer contact details are missing.",
+            "severity": "error"
+          }
         ]
       }
     },
