@@ -148,6 +148,39 @@ docs/           Supplemental docs (performance, runbook, ai-safety — later)
 
 ## Status
 
+**Phase 5 (done):** importer review workflow.
+
+- Migration adds `users.tpin`, `shipments.importer_user_id` / `assigned_agent_id` /
+  `review_freshness`, the revision-based `importer_reviews` table
+  (draft -> in_review -> queried -> approved) and the append-only
+  `review_points` ledger, all tenant-owned and fail-closed RLS-protected.
+- Assignment is enforced server-side: a `client_viewer` reads only shipments
+  assigned to them (list/get/events filter in the service, not the UI). An
+  importer must be an active tenant `client_viewer`; the assigned agent an
+  active `agent_staff`/owner.
+- Review endpoints: `GET /reviews`, `GET /reviews/:id`,
+  `POST /shipments/:id/review/send`, `POST /reviews/:id/query`,
+  `POST /reviews/:id/revise`, `POST /reviews/:id/approve`. Transitions come
+  from the shared `REVIEW_TRANSITIONS` table; sent revisions snapshot the
+  shipment data they describe.
+- Approval binds to the exact revision: a superseded revision cannot be
+  approved, and a material shipment edit (reference, client, contact, type,
+  route, consignment) bumps `review_freshness`, which makes every existing
+  revision stale (`isStale`) and blocks approval until a fresh revision is
+  raised against the new data. Non-material edits (stage/hold) do not.
+- The deterministic draft check runs per revision (`checkDraft` in
+  `packages/shared`) and stores its findings on the row; a blocking finding
+  keeps the revision a draft — nothing was sent, so no points.
+- `review_points` is append-only (reject_mutation trigger, payments pattern)
+  with a unique (tenant, review, event) index, so each qualifying event
+  (`review_sent`, `review_approved`) earns points exactly once, written in the
+  same transaction as the state change via `AuditService.recordInTransaction`.
+- An optional TPIN rule: a digits-only shape check plus a mismatch warning
+  against the importer user's stored (synthetic) TPIN.
+- The optional AI wording step is behind `FEATURE_AI` with a fixed fallback
+  template; no model is wired, so behaviour never depends on an external
+  service. Filing remains manual in ASYCUDA World.
+
 **Phase 4 (done):** quotes and invoices.
 
 - Migration adds `quotes`/`quote_lines`, `invoices`/`invoice_lines`, `payments`

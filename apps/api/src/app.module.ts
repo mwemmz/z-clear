@@ -10,6 +10,7 @@ import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { DocumentsModule } from './modules/documents/documents.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
 import { ShipmentsModule } from './modules/shipments/shipments.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
 import { UsersModule } from './modules/users/users.module';
@@ -35,6 +36,7 @@ import { UsersModule } from './modules/users/users.module';
     ShipmentsModule,
     DocumentsModule,
     BillingModule,
+    ReviewsModule,
     HealthModule,
   ],
   providers: [

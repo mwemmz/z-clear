@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { SHIPMENT_STATUS_LABELS } from '@zclear/shared';
+import { Mockups } from './mockups';
 import { api, messageOf, type ShipmentDetail, type ShipmentSummary, type UserProfile } from './api';
 
 const TOKEN_KEY = 'zclear_demo_token';
@@ -37,6 +38,7 @@ export function App() {
   const [detail, setDetail] = useState<ShipmentDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [showMockups, setShowMockups] = useState(false);
 
   const firstId = shipments[0]?.id ?? null;
 
@@ -251,6 +253,17 @@ export function App() {
           )}
         </>
       )}
+
+      <section aria-labelledby="mockups-heading" style={{ marginTop: '1.5rem' }}>
+        <button type="button" onClick={() => setShowMockups((value) => !value)}>
+          {showMockups ? 'Hide' : 'Show'} importer workflow mock screens
+        </button>
+        {showMockups ? (
+          <div style={{ marginTop: '1rem' }}>
+            <Mockups />
+          </div>
+        ) : null}
+      </section>
     </main>
   );
 }
