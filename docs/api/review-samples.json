@@ -1,0 +1,126 @@
+{
+  "$comment": "Z Clear — Phase 5 importer review: sample request/response JSON with error examples. Synthetic data only. No duty, VAT or fee figures appear anywhere: customs stays in ASYCUDA World. Published for frontend integration.",
+  "endpoints": {
+    "list": { "method": "GET", "path": "/api/v1/reviews?state=in_review&limit=50", "permission": "review:read" },
+    "get": { "method": "GET", "path": "/api/v1/reviews/:id", "permission": "review:read" },
+    "send": { "method": "POST", "path": "/api/v1/shipments/:shipmentId/review/send", "permission": "review:send" },
+    "query": { "method": "POST", "path": "/api/v1/reviews/:id/query", "permission": "review:query" },
+    "revise": { "method": "POST", "path": "/api/v1/reviews/:id/revise", "permission": "review:send" },
+    "approve": { "method": "POST", "path": "/api/v1/reviews/:id/approve", "permission": "review:approve" }
+  },
+  "samples": {
+    "sendRequest": { "message": "Please confirm the shipment details below before we proceed." },
+    "queryRequest": { "message": "Is the destination still Lusaka?" },
+    "reviseRequest": { "newMessage": "Corrected after the importer question." },
+    "approveRequest": {},
+    "reviewSummary": {
+      "id": "01920000-0000-7000-8000-00000000abcd",
+      "shipmentId": "01920000-0000-7000-8000-00000000d005",
+      "revision": 2,
+      "parentReviewId": "01920000-0000-7000-8000-00000000abce",
+      "state": "in_review",
+      "message": "Corrected after the importer question.",
+      "query": null,
+      "wording": "Review request for shipment DEMO-IMPORT-0001\nClient: Kafue Metals Ltd\nType: import\nRoute: Durban to Lusaka\n\nCorrected after the importer question.",
+      "wordingSource": "fixed",
+      "sentAt": "2026-11-25T10:30:00.000Z",
+      "queriedAt": null,
+      "approvedAt": null,
+      "isStale": false,
+      "allowedActions": ["query", "revise", "approve"],
+      "draftFindings": [],
+      "createdAt": "2026-11-25T10:00:00.000Z",
+      "updatedAt": "2026-11-25T10:30:00.000Z"
+    },
+    "reviewWithFindings": {
+      "id": "01920000-0000-7000-8000-00000000abcf",
+      "state": "draft",
+      "isStale": false,
+      "allowedActions": ["send"],
+      "draftFindings": [
+        { "code": "missing_contact", "field": "clientContact", "message": "Importer contact details are missing.", "severity": "error" },
+        { "code": "tpin_mismatch", "field": "consignment.tpin", "message": "TPIN on the shipment does not match the importer record.", "severity": "warning" }
+      ]
+    }
+  },
+  "errors": {
+    "draftBlocked": {
+      "status": 200,
+      "note": "A blocked send is not an error: the revision stays draft with findings.",
+      "body": {
+        "state": "draft",
+        "sentAt": null,
+        "draftFindings": [
+          { "code": "missing_contact", "field": "clientContact", "message": "Importer contact details are missing.", "severity": "error" }
+        ]
+      }
+    },
+    "validation": {
+      "status": 400,
+      "body": {
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Validation failed",
+          "details": [{ "field": "message", "issue": "Required" }],
+          "requestId": "6d2d7414-98d7-4871-bc09-586fe1e8cf8d"
+        }
+      }
+    },
+    "alreadyInFlight": {
+      "status": 409,
+      "body": {
+        "error": {
+          "code": "CONFLICT",
+          "message": "A review is already in flight; query it or revise it instead of sending again",
+          "details": [],
+          "requestId": "01edc769-62f9-40f1-b393-a71b4fe9be8d"
+        }
+      }
+    },
+    "staleApproval": {
+      "status": 409,
+      "body": {
+        "error": {
+          "code": "CONFLICT",
+          "message": "The shipment changed after this review was raised; revise the review before approving",
+          "details": [],
+          "requestId": "01edc769-62f9-40f1-b393-a71b4fe9be8d"
+        }
+      }
+    },
+    "invalidTransition": {
+      "status": 409,
+      "body": {
+        "error": {
+          "code": "CONFLICT",
+          "message": "A approved review cannot be queried",
+          "details": [],
+          "requestId": "cf08e29e-6148-4f01-a899-dc2023140498"
+        }
+      }
+    },
+    "forbidden": {
+      "status": 403,
+      "body": {
+        "error": {
+          "code": "FORBIDDEN",
+          "message": "Not permitted",
+          "details": [],
+          "requestId": "cf08e29e-6148-4f01-a899-dc2023140498"
+        }
+      }
+    },
+    "crossTenant": {
+      "status": 404,
+      "note": "Cross-tenant access is indistinguishable from a missing row (no existence leak).",
+      "body": {
+        "error": {
+          "code": "NOT_FOUND",
+          "message": "Review not found",
+          "details": [],
+          "requestId": "cf08e29e-6148-4f01-a899-dc2023140498"
+        }
+      }
+    }
+  }
+}
