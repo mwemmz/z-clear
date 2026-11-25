@@ -24,7 +24,6 @@ import request from 'supertest';
 
 const BASE = process.env.API_BASE_URL ?? 'http://localhost:3000';
 
-const TENANT_ID = '01920000-0000-7000-8000-00000000d001';
 const AGENT_EMAIL = 'agent@demo-clearing.example';
 const IMPORTER_EMAIL = 'importer@kafuemetals.example';
 const OTHER_IMPORTER_EMAIL = 'other.importer@sunshine-trading.example';
