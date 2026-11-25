@@ -46,7 +46,7 @@ export class ShipmentsController {
     @Query(new ZodValidationPipe(listShipmentsSchema)) query: ListShipmentsQuery,
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<ShipmentSummary[]> {
-    return this.shipments.list(user.tenantId, query);
+    return this.shipments.list(user.tenantId, query, { role: user.role, userId: user.userId });
   }
 
   @RequirePermissions('shipment:create')
@@ -67,7 +67,7 @@ export class ShipmentsController {
     @Param('id', uuidParam) id: string,
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<ShipmentDetail> {
-    return this.shipments.get(user.tenantId, id);
+    return this.shipments.get(user.tenantId, id, { role: user.role, userId: user.userId });
   }
 
   @RequirePermissions('shipment:update')
@@ -102,7 +102,10 @@ export class ShipmentsController {
     @Param('id', uuidParam) id: string,
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<ShipmentEventSummary[]> {
-    return this.shipments.listEvents(user.tenantId, id);
+    return this.shipments.listEvents(user.tenantId, id, {
+      role: user.role,
+      userId: user.userId,
+    });
   }
 }
 

@@ -48,6 +48,9 @@ export async function startTestDatabase(): Promise<TestDatabase> {
     user: 'postgres',
     password: 'postgres',
     persistent: false,
+    // PostgreSQL refuses to run as root; in root-owned environments (CI
+    // containers, this sandbox) it must run under a dedicated OS user.
+    createPostgresUser: true,
     onLog: () => {},
     onError: () => {},
   });

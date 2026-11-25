@@ -22,8 +22,27 @@ export const createShipmentSchema = z
     origin: place.optional(),
     destination: place.optional(),
     consignment: consignment.optional(),
+    // Review workflow assignment: which importer (client_viewer) can see the
+    // shipment and which agent staff member owns the review.
+    importerUserId: z.string().uuid().optional(),
+    assignedAgentId: z.string().uuid().optional(),
   })
   .strict();
+
+/**
+ * Fields whose change invalidates a review revision's approval (the revision
+ * was raised against stale data). Non-material fields (hold/stage, contacts
+ * bookkeeping) do not bump the freshness counter.
+ */
+export const MATERIAL_SHIPMENT_FIELDS = [
+  'reference',
+  'clientName',
+  'clientContact',
+  'type',
+  'origin',
+  'destination',
+  'consignment',
+] as const;
 
 export const updateShipmentSchema = z
   .object({
@@ -34,6 +53,8 @@ export const updateShipmentSchema = z
     origin: place,
     destination: place,
     consignment,
+    importerUserId: z.string().uuid().nullable(),
+    assignedAgentId: z.string().uuid().nullable(),
   })
   .partial()
   .strict();
@@ -79,6 +100,9 @@ export interface ShipmentSummary {
   origin: string | null;
   destination: string | null;
   consignment: Record<string, unknown>;
+  importerUserId: string | null;
+  assignedAgentId: string | null;
+  reviewFreshness: number;
   createdAt: string;
   updatedAt: string;
 }
