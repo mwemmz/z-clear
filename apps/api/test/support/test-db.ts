@@ -9,6 +9,14 @@ const APP_ROLE = 'app_user';
 const APP_PASSWORD = 'app_user';
 
 /**
+ * Only POSIX root needs a dedicated OS user for initdb. Windows has no
+ * `groupadd`/`useradd`, so asking embedded-postgres to create one fails before
+ * any test runs. The current Windows user can own the temporary cluster.
+ */
+const NEEDS_DEDICATED_OS_USER =
+  process.platform !== 'win32' && typeof process.getuid === 'function' && process.getuid() === 0;
+
+/**
  * Mirrors production provisioning: the application connects as a dedicated
  * role that does NOT own the tables, so Row-Level Security actually applies
  * (a table owner bypasses its own RLS policies).
@@ -48,9 +56,9 @@ export async function startTestDatabase(): Promise<TestDatabase> {
     user: 'postgres',
     password: 'postgres',
     persistent: false,
-    // PostgreSQL refuses to run as root; in root-owned environments (CI
-    // containers, this sandbox) it must run under a dedicated OS user.
-    createPostgresUser: true,
+    // PostgreSQL refuses to run as root; CI containers need a dedicated OS
+    // user. On Windows the current user owns the temporary cluster instead.
+    createPostgresUser: NEEDS_DEDICATED_OS_USER,
     onLog: () => {},
     onError: () => {},
   });

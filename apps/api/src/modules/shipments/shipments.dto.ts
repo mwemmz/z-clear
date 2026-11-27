@@ -10,7 +10,7 @@ const reference = z.string().trim().min(1).max(100);
 const clientName = z.string().trim().min(1).max(200);
 const clientContact = z.string().trim().min(1).max(320);
 const place = z.string().trim().min(1).max(200);
-const consignment = z.record(z.unknown());
+const consignment = z.record(z.string(), z.unknown());
 const note = z.string().trim().max(500);
 
 export const createShipmentSchema = z

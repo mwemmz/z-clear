@@ -39,7 +39,9 @@
       "@embedded-postgres/windows-x64"
     ],
     "overrides": {
-      "tinypool": "^2.1.2"
+      "tinypool": "^2.1.2",
+      "body-parser": "^2.4.0",
+      "multer": "^2.5.0"
     }
   }
 }
