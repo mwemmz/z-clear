@@ -1,9 +1,17 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { SHIPMENT_STATUS_LABELS } from '@zclear/shared';
+import { AgentDirectory } from './AgentDirectory';
 import { CaseForm } from './CaseForm';
 import { Checklist } from './Checklist';
 import { Mockups } from './mockups';
-import { api, messageOf, type ShipmentDetail, type ShipmentSummary, type UserProfile } from './api';
+import {
+  api,
+  messageOf,
+  type AppointmentResult,
+  type ShipmentDetail,
+  type ShipmentSummary,
+  type UserProfile,
+} from './api';
 
 const TOKEN_KEY = 'zclear_demo_token';
 
@@ -42,6 +50,10 @@ export function App() {
   const [busy, setBusy] = useState(false);
   const [showMockups, setShowMockups] = useState(false);
   const [showCaseForm, setShowCaseForm] = useState(false);
+  const [appointmentNotice, setAppointmentNotice] = useState<string | null>(null);
+  // A slow initial shipment load must not erase a case the importer has just
+  // created while that request was in flight.
+  const createdCaseRef = useRef(false);
 
   const firstId = shipments[0]?.id ?? null;
 
@@ -56,8 +68,10 @@ export function App() {
         const [profile, list] = await Promise.all([api.me(token), api.listShipments(token)]);
         if (cancelled) return;
         setUser(profile);
-        setShipments(list);
-        setSelectedId(null);
+        if (!createdCaseRef.current) {
+          setShipments(list);
+          setSelectedId(null);
+        }
         setError(null);
       } catch (cause) {
         if (!cancelled) setError(messageOf(cause));
@@ -105,11 +119,13 @@ export function App() {
     const password = String(form.get('password') ?? '');
     setBusy(true);
     setError(null);
+    createdCaseRef.current = false;
     try {
       const result = await api.login(email, password);
       sessionStorage.setItem(TOKEN_KEY, result.accessToken);
       setToken(result.accessToken);
       setUser(result.user);
+      setAppointmentNotice(null);
     } catch (cause) {
       setError(messageOf(cause));
     } finally {
@@ -118,6 +134,7 @@ export function App() {
   }
 
   function handleCaseCreated(shipment: ShipmentSummary): void {
+    createdCaseRef.current = true;
     setShipments((current) => [shipment, ...current]);
     setSelectedId(shipment.id);
     setShowCaseForm(false);
@@ -126,12 +143,20 @@ export function App() {
 
   function handleSignOut(): void {
     sessionStorage.removeItem(TOKEN_KEY);
+    createdCaseRef.current = false;
     setToken('');
     setUser(null);
     setShipments([]);
     setSelectedId(null);
     setDetail(null);
     setError(null);
+  }
+
+  function handleAppointed(_result: AppointmentResult): void {
+    // The access token still carries the importer's old tenant claim. Signing
+    // out forces a fresh login so the case is visible in the agency tenant.
+    handleSignOut();
+    setAppointmentNotice('Agent appointed. Sign in again to continue in the agency workspace.');
   }
 
   return (
@@ -156,6 +181,12 @@ export function App() {
       {error && (
         <p className="alert" role="alert">
           {error}
+        </p>
+      )}
+
+      {appointmentNotice && (
+        <p className="hint" data-testid="appointment-notice">
+          {appointmentNotice}
         </p>
       )}
 
@@ -249,6 +280,10 @@ export function App() {
                   </p>
                 )}
               </section>
+
+              {user.role === 'client_viewer' && !detail.assignedAgentId && (
+                <AgentDirectory token={token} caseId={detail.id} onAppointed={handleAppointed} />
+              )}
 
               {user.role === 'client_viewer' && <Checklist token={token} caseId={detail.id} />}
 

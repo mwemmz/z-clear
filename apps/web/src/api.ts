@@ -34,6 +34,7 @@ export interface ShipmentSummary {
   origin: string | null;
   destination: string | null;
   consignment: Record<string, unknown>;
+  assignedAgentId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -61,6 +62,23 @@ export interface CreateCaseInput {
   clientName: string;
   clientContact: string;
   consignment: Record<string, unknown>;
+}
+
+/** Curated directory fields only: no contact details, TPIN or case data. */
+export interface AgentDirectoryEntry {
+  id: string;
+  userId: string;
+  agencyName: string;
+  location: string;
+  serviceArea: string | null;
+  languages: string | null;
+  licenceStatus: 'SIMULATED' | 'VERIFIED';
+  licenceNotice: string;
+}
+
+export interface AppointmentResult {
+  agencyTenantId: string;
+  mustReauthenticate: true;
 }
 
 export class ApiRequestError extends Error {
@@ -132,6 +150,20 @@ export const api = {
 
   getChecklist(token: string, caseId: string): Promise<PersonalisedChecklist> {
     return request(`/cases/${encodeURIComponent(caseId)}/checklist`, token);
+  },
+
+  listAgentProfiles(token: string): Promise<AgentDirectoryEntry[]> {
+    return request('/agent-profiles', token);
+  },
+
+  appointAgent(
+    token: string,
+    input: { caseId: string; agentUserId: string; consentText: string },
+  ): Promise<AppointmentResult> {
+    return request('/appointments', token, {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
   },
 };
 

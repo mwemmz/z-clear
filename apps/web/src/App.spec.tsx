@@ -13,6 +13,7 @@ const summary = {
   origin: 'Dar es Salaam',
   destination: 'Lusaka',
   consignment: { goods: 'Maize', quantity: '40 bags' },
+  assignedAgentId: null,
   createdAt: '2026-11-20T08:00:00.000Z',
   updatedAt: '2026-11-21T08:00:00.000Z',
 };
@@ -39,13 +40,21 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-function stubApi(overrides: { role?: string; loginStatus?: number; loginMessage?: string } = {}) {
+function stubApi(
+  overrides: {
+    role?: string;
+    loginStatus?: number;
+    loginMessage?: string;
+    assignedAgentId?: string | null;
+  } = {},
+) {
   const user = {
     id: 'u1',
     tenantId: 't1',
     email: 'agent@example.com',
     role: overrides.role ?? 'agent_staff',
   };
+  const shipment = { ...summary, assignedAgentId: overrides.assignedAgentId ?? null };
   const fetchMock = vi.fn(async (input: RequestInfo | URL, _init?: RequestInit) => {
     const url = String(input);
     if (url.endsWith('/api/v1/auth/login')) {
@@ -57,8 +66,27 @@ function stubApi(overrides: { role?: string; loginStatus?: number; loginMessage?
         : jsonResponse({ accessToken: 'demo-token', user });
     }
     if (url.endsWith('/api/v1/auth/me')) return jsonResponse(user);
-    if (url.endsWith('/api/v1/shipments?limit=50')) return jsonResponse([summary]);
-    if (url.endsWith('/api/v1/shipments/s1')) return jsonResponse(detail);
+    if (url.endsWith('/api/v1/shipments?limit=50')) return jsonResponse([shipment]);
+    if (url.endsWith('/api/v1/shipments/s1')) {
+      return jsonResponse({ ...detail, assignedAgentId: shipment.assignedAgentId });
+    }
+    if (url.endsWith('/api/v1/agent-profiles')) {
+      return jsonResponse([
+        {
+          id: 'a1',
+          userId: 'agent-1',
+          agencyName: 'Copperbelt Clearing',
+          location: 'Ndola',
+          serviceArea: 'Copperbelt',
+          languages: 'English, Bemba',
+          licenceStatus: 'SIMULATED',
+          licenceNotice: 'Simulated, pending ZRA API',
+        },
+      ]);
+    }
+    if (url.endsWith('/api/v1/appointments')) {
+      return jsonResponse({ agencyTenantId: 't2', mustReauthenticate: true }, 201);
+    }
     if (url.endsWith('/api/v1/cases/s1/checklist')) {
       return jsonResponse({
         caseKind: 'goods',
@@ -241,5 +269,60 @@ describe('App', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Invalid email or password');
     expect(screen.queryByTestId('case-reference')).not.toBeInTheDocument();
+  });
+
+  it('shows the importer a labelled agent directory with simulated licence status', async () => {
+    stubApi({ role: 'client_viewer' });
+    render(<App />);
+    await signIn();
+
+    expect(await screen.findByTestId('agent-directory')).toBeInTheDocument();
+    expect(screen.getByTestId('agent-directory-notice')).toHaveTextContent(
+      /simulated, pending ZRA API/,
+    );
+    expect(await screen.findByTestId('agent-a1')).toHaveTextContent('Copperbelt Clearing');
+    expect(screen.getByTestId('agent-licence-a1')).toHaveTextContent('Simulated, pending ZRA API');
+  });
+
+  it('requires explicit consent, appoints the chosen agent and asks the importer to sign in again', async () => {
+    const fetchMock = stubApi({ role: 'client_viewer' });
+    render(<App />);
+    await signIn();
+
+    const appointButton = await screen.findByRole('button', { name: 'Appoint this agent' });
+    expect(appointButton).toBeDisabled();
+    fireEvent.click(screen.getByLabelText(/I understand my case and importer account/));
+    expect(appointButton).toBeEnabled();
+    fireEvent.click(appointButton);
+
+    expect(await screen.findByTestId('appointment-notice')).toHaveTextContent(/Sign in again/);
+    expect(await screen.findByLabelText('Email')).toBeInTheDocument();
+    const call = fetchMock.mock.calls.find(
+      ([url, init]) => String(url).endsWith('/api/v1/appointments') && init?.method === 'POST',
+    );
+    expect(call).toBeDefined();
+    const body = JSON.parse(String(call?.[1]?.body)) as {
+      caseId: string;
+      agentUserId: string;
+      consentText: string;
+    };
+    expect(body).toMatchObject({ caseId: 's1', agentUserId: 'agent-1' });
+    expect(body.consentText.length).toBeGreaterThan(9);
+  });
+
+  it('hides the agent directory from staff and from cases that already have an agent', async () => {
+    stubApi();
+    render(<App />);
+    await signIn();
+    expect(await screen.findByTestId('case-reference')).toBeInTheDocument();
+    expect(screen.queryByTestId('agent-directory')).not.toBeInTheDocument();
+  });
+
+  it('does not offer appointment again once an agent is assigned', async () => {
+    stubApi({ role: 'client_viewer', assignedAgentId: 'agent-1' });
+    render(<App />);
+    await signIn();
+    expect(await screen.findByTestId('case-reference')).toBeInTheDocument();
+    expect(screen.queryByTestId('agent-directory')).not.toBeInTheDocument();
   });
 });
