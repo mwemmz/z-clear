@@ -1,0 +1,44 @@
+{
+  "$comment": "Z Clear — importer valuation-disagreement information flow. Synthetic sample only. The amount is what the importer typed on the case; Z Clear never assesses customs value, duty, VAT or fees. Customs value is decided in ASYCUDA World.",
+  "endpoints": {
+    "information": {
+      "method": "GET",
+      "path": "/api/v1/cases/:id/valuation",
+      "permission": "case:read",
+      "scope": "Importer-only case lookup; another importer gets 404, agent staff get 403."
+    },
+    "query": {
+      "method": "POST",
+      "path": "/api/v1/reviews/:id/query",
+      "permission": "review:query",
+      "scope": "Only the importer on the case can query a revision in review. The state change is audited and the agency receives an outbox event."
+    }
+  },
+  "sampleInformationResponse": {
+    "caseId": "0199f2b0-0000-7000-8000-000000000001",
+    "recorded": {
+      "label": "Value you recorded",
+      "description": "Packaged maize flour",
+      "amountMinor": 32000000,
+      "currency": "ZMW",
+      "formatted": "K 320,000.00"
+    },
+    "notice": "This is the value recorded on your case, not a customs assessment. Z Clear does not decide customs value, assess duty or tax, or send anything to ZRA. Customs value is decided in ASYCUDA World.",
+    "review": {
+      "id": "0199f2b0-0000-7000-8000-000000000002",
+      "revision": 1,
+      "state": "in_review",
+      "query": null,
+      "allowedActions": ["query", "revise", "approve"]
+    }
+  },
+  "sampleQueryRequest": {
+    "message": "The value does not match my records."
+  },
+  "sampleQueryResponse": {
+    "id": "0199f2b0-0000-7000-8000-000000000002",
+    "revision": 1,
+    "state": "queried",
+    "query": "The value does not match my records."
+  }
+}
