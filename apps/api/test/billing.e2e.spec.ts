@@ -21,9 +21,11 @@ describe('billing (e2e)', () => {
   const tenantB = uuidv7();
   const ownerA = uuidv7();
   const viewerA = uuidv7();
+  const viewerB = uuidv7();
   const ownerB = uuidv7();
   const ownerAEmail = `billing-owner-a-${tenantA}@example.com`;
   const viewerAEmail = `billing-viewer-a-${tenantA}@example.com`;
+  const viewerBEmail = `billing-viewer-b-${tenantA}@example.com`;
   const ownerBEmail = `billing-owner-b-${tenantB}@example.com`;
 
   beforeAll(async () => {
@@ -60,6 +62,13 @@ describe('billing (e2e)', () => {
             id: viewerA,
             tenant_id: tenantA,
             email: viewerAEmail,
+            password_hash: hash,
+            role: 'client_viewer',
+          },
+          {
+            id: viewerB,
+            tenant_id: tenantA,
+            email: viewerBEmail,
             password_hash: hash,
             role: 'client_viewer',
           },
@@ -369,16 +378,68 @@ describe('billing (e2e)', () => {
     await server()
       .get(`/api/v1/quotes/${quote.id}`)
       .set('Authorization', `Bearer ${viewerToken}`)
-      .expect(200);
+      .expect(404);
     await server()
       .post(`/api/v1/shipments/${shipmentId}/quotes`)
       .set('Authorization', `Bearer ${viewerToken}`)
       .send({ reference: `Q-${uuidv7()}`, lines: [feeLine] })
       .expect(403);
-    await server()
+    const invoices = await server()
       .get('/api/v1/invoices')
       .set('Authorization', `Bearer ${viewerToken}`)
       .expect(200);
+    expect(invoices.body).toEqual([]);
+  });
+
+  it('scopes billing reads to the importer assigned to the shipment', async () => {
+    const ownerToken = await tokenFor(ownerAEmail);
+    const viewerToken = await tokenFor(viewerAEmail);
+    const otherViewerToken = await tokenFor(viewerBEmail);
+    const shipmentId = await newShipment(ownerToken);
+    await db.withTenant(tenantA, (trx) =>
+      trx
+        .updateTable('shipments')
+        .set({ importer_user_id: viewerA })
+        .where('id', '=', shipmentId)
+        .execute(),
+    );
+
+    const quote = await createQuote(ownerToken, shipmentId);
+    const invoice = await server()
+      .post(`/api/v1/shipments/${shipmentId}/invoices`)
+      .set('Authorization', `Bearer ${ownerToken}`)
+      .send({ lines: [feeLine] })
+      .expect(201);
+    const invoiceId = (invoice.body as { id: string }).id;
+
+    await server()
+      .get(`/api/v1/quotes/${quote.id}`)
+      .set('Authorization', `Bearer ${viewerToken}`)
+      .expect(200);
+    await server()
+      .get(`/api/v1/quotes/${quote.id}`)
+      .set('Authorization', `Bearer ${otherViewerToken}`)
+      .expect(404);
+
+    const own = await server()
+      .get('/api/v1/invoices')
+      .set('Authorization', `Bearer ${viewerToken}`)
+      .expect(200);
+    expect((own.body as { id: string }[]).map((row) => row.id)).toContain(invoiceId);
+    const other = await server()
+      .get('/api/v1/invoices')
+      .set('Authorization', `Bearer ${otherViewerToken}`)
+      .expect(200);
+    expect((other.body as { id: string }[]).map((row) => row.id)).not.toContain(invoiceId);
+
+    for (const path of [
+      `/api/v1/invoices/${invoiceId}`,
+      `/api/v1/invoices/${invoiceId}/payments`,
+      `/api/v1/invoices/${invoiceId}/pdf`,
+    ]) {
+      await server().get(path).set('Authorization', `Bearer ${viewerToken}`).expect(200);
+      await server().get(path).set('Authorization', `Bearer ${otherViewerToken}`).expect(404);
+    }
   });
 
   it('isolates quotes and invoices between tenants', async () => {

@@ -16,7 +16,7 @@ import { ZodValidationPipe } from '../../common/validation/zod-validation.pipe';
 import { CurrentUser, RequirePermissions } from '../policy/decorators';
 import type { AuthenticatedUser } from '../auth/auth.types';
 import type { RequestMeta } from '../auth/auth.service';
-import { QuotesService } from './quotes.service';
+import { QuotesService, type QuoteViewer } from './quotes.service';
 import {
   createQuoteSchema,
   quoteStatusSchema,
@@ -42,7 +42,7 @@ export class QuotesController {
     @Param('shipmentId', uuidParam) shipmentId: string,
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<QuoteSummary[]> {
-    return this.quotes.listForShipment(user.tenantId, shipmentId);
+    return this.quotes.listForShipment(user.tenantId, shipmentId, viewerOf(user));
   }
 
   @RequirePermissions('quote:write')
@@ -64,7 +64,7 @@ export class QuotesController {
     @Param('id', uuidParam) id: string,
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<QuoteDetail> {
-    return this.quotes.get(user.tenantId, id);
+    return this.quotes.get(user.tenantId, id, viewerOf(user));
   }
 
   @RequirePermissions('quote:write')
@@ -91,6 +91,10 @@ export class QuotesController {
   ): Promise<QuoteDetail> {
     return this.quotes.setStatus(user.tenantId, user.userId, id, body, metaOf(req));
   }
+}
+
+function viewerOf(user: AuthenticatedUser): QuoteViewer {
+  return { role: user.role, userId: user.userId };
 }
 
 function metaOf(req: Request): RequestMeta {

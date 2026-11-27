@@ -20,7 +20,7 @@ import { CurrentUser, RequirePermissions } from '../policy/decorators';
 import type { AuthenticatedUser } from '../auth/auth.types';
 import type { RequestMeta } from '../auth/auth.service';
 import { NotificationsService } from '../notifications/notifications.service';
-import { InvoicesService } from './invoices.service';
+import { InvoicesService, type BillingViewer } from './invoices.service';
 import {
   createInvoiceSchema,
   listInvoicesSchema,
@@ -53,7 +53,7 @@ export class InvoicesController {
     @Query(new ZodValidationPipe(listInvoicesSchema)) query: ListInvoicesQuery,
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<InvoiceDetail[]> {
-    return this.invoices.list(user.tenantId, query);
+    return this.invoices.list(user.tenantId, query, viewerOf(user));
   }
 
   @RequirePermissions('invoice:write')
@@ -75,7 +75,7 @@ export class InvoicesController {
     @Param('id', uuidParam) id: string,
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<InvoiceDetail> {
-    return this.invoices.get(user.tenantId, id);
+    return this.invoices.get(user.tenantId, id, viewerOf(user));
   }
 
   @RequirePermissions('invoice:read')
@@ -87,7 +87,13 @@ export class InvoicesController {
     @Req() req: Request,
     @Res() res: Response,
   ): Promise<void> {
-    const result = await this.invoices.renderPdf(user.tenantId, user.userId, id, metaOf(req));
+    const result = await this.invoices.renderPdf(
+      user.tenantId,
+      user.userId,
+      id,
+      metaOf(req),
+      viewerOf(user),
+    );
     res.type('application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${result.number}.pdf"`);
     res.send(result.bytes);
@@ -149,7 +155,7 @@ export class InvoicesController {
     @Param('id', uuidParam) id: string,
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<PaymentSummary[]> {
-    return this.invoices.listPayments(user.tenantId, id);
+    return this.invoices.listPayments(user.tenantId, id, viewerOf(user));
   }
 
   @RequirePermissions('payment:record')
@@ -182,6 +188,10 @@ export class InvoicesController {
     });
     return invoice;
   }
+}
+
+function viewerOf(user: AuthenticatedUser): BillingViewer {
+  return { role: user.role, userId: user.userId };
 }
 
 function metaOf(req: Request): RequestMeta {

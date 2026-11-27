@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { Transaction } from 'kysely';
+import type { Role } from '../../common/roles';
 import { ApiError } from '../../common/errors/api-error';
 import { uuidv7 } from '../../common/ids';
 import { DatabaseService } from '../../database/database.service';
@@ -17,6 +18,11 @@ import type {
 } from './billing.dto';
 
 const UNIQUE_VIOLATION = '23505';
+
+export interface QuoteViewer {
+  role: Role;
+  userId: string;
+}
 
 const QUOTE_COLUMNS = [
   'id',
@@ -65,26 +71,40 @@ export class QuotesService {
     private readonly audit: AuditService,
   ) {}
 
-  async listForShipment(tenantId: string, shipmentId: string): Promise<QuoteSummary[]> {
+  async listForShipment(
+    tenantId: string,
+    shipmentId: string,
+    viewer?: QuoteViewer,
+  ): Promise<QuoteSummary[]> {
     return this.db.withTenant(tenantId, async (trx) => {
       await this.assertShipment(trx, shipmentId);
-      const rows = await trx
+      const builder = trx
         .selectFrom('quotes')
         .select(QUOTE_COLUMNS)
-        .where('shipment_id', '=', shipmentId)
-        .orderBy('created_at', 'desc')
-        .execute();
+        .where('shipment_id', '=', shipmentId);
+      if (viewer?.role === 'client_viewer') {
+        const visible = await trx
+          .selectFrom('shipments')
+          .select('id')
+          .where('id', '=', shipmentId)
+          .where('importer_user_id', '=', viewer.userId)
+          .executeTakeFirst();
+        if (!visible) throw ApiError.notFound('Shipment not found');
+      }
+      const rows = await builder.orderBy('created_at', 'desc').execute();
       return rows.map(toQuoteSummary);
     });
   }
 
-  async get(tenantId: string, id: string): Promise<QuoteDetail> {
+  async get(tenantId: string, id: string, viewer?: QuoteViewer): Promise<QuoteDetail> {
     return this.db.withTenant(tenantId, async (trx) => {
-      const row = await trx
-        .selectFrom('quotes')
-        .select(QUOTE_COLUMNS)
-        .where('id', '=', id)
-        .executeTakeFirst();
+      let builder = trx.selectFrom('quotes').select(QUOTE_COLUMNS).where('id', '=', id);
+      if (viewer?.role === 'client_viewer') {
+        builder = builder.where('shipment_id', 'in', (eb) =>
+          eb.selectFrom('shipments').select('id').where('importer_user_id', '=', viewer.userId),
+        );
+      }
+      const row = await builder.executeTakeFirst();
       if (!row) throw ApiError.notFound('Quote not found');
       const lines = await this.linesOf(trx, id);
       return toQuoteDetail(row, lines);

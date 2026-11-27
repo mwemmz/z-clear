@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { Transaction } from 'kysely';
 import { paymentStatusFor } from '@zclear/shared';
+import type { Role } from '../../common/roles';
 import { ApiError } from '../../common/errors/api-error';
 import { uuidv7 } from '../../common/ids';
 import { DatabaseService } from '../../database/database.service';
@@ -56,6 +57,11 @@ const INVOICE_LINE_COLUMNS = [
   'sort_order',
 ] as const;
 
+export interface BillingViewer {
+  role: Role;
+  userId: string;
+}
+
 const PAYMENT_COLUMNS = [
   'id',
   'amount_minor',
@@ -75,9 +81,22 @@ export class InvoicesService {
     private readonly audit: AuditService,
   ) {}
 
-  async list(tenantId: string, query: ListInvoicesQuery): Promise<InvoiceDetail[]> {
+  /**
+   * Importers only see invoices on shipments assigned to them. Staff see every
+   * invoice in their tenant; RLS still bounds that to the tenant itself.
+   */
+  async list(
+    tenantId: string,
+    query: ListInvoicesQuery,
+    viewer?: BillingViewer,
+  ): Promise<InvoiceDetail[]> {
     return this.db.withTenant(tenantId, async (trx) => {
       let builder = trx.selectFrom('invoices').select(INVOICE_COLUMNS);
+      if (viewer?.role === 'client_viewer') {
+        builder = builder.where('shipment_id', 'in', (eb) =>
+          eb.selectFrom('shipments').select('id').where('importer_user_id', '=', viewer.userId),
+        );
+      }
       if (query.status) builder = builder.where('status', '=', query.status);
       if (query.shipmentId) builder = builder.where('shipment_id', '=', query.shipmentId);
       const rows = await builder
@@ -91,13 +110,15 @@ export class InvoicesService {
     });
   }
 
-  async get(tenantId: string, id: string): Promise<InvoiceDetail> {
+  async get(tenantId: string, id: string, viewer?: BillingViewer): Promise<InvoiceDetail> {
     return this.db.withTenant(tenantId, async (trx) => {
-      const row = await trx
-        .selectFrom('invoices')
-        .select(INVOICE_COLUMNS)
-        .where('id', '=', id)
-        .executeTakeFirst();
+      let builder = trx.selectFrom('invoices').select(INVOICE_COLUMNS).where('id', '=', id);
+      if (viewer?.role === 'client_viewer') {
+        builder = builder.where('shipment_id', 'in', (eb) =>
+          eb.selectFrom('shipments').select('id').where('importer_user_id', '=', viewer.userId),
+        );
+      }
+      const row = await builder.executeTakeFirst();
       if (!row) throw ApiError.notFound('Invoice not found');
       const lines = await this.linesOf(trx, id);
       const payments = await this.paymentsOf(trx, id);
@@ -111,8 +132,9 @@ export class InvoicesService {
     actorUserId: string,
     id: string,
     meta: RequestMeta,
+    viewer?: BillingViewer,
   ): Promise<{ number: string; bytes: Buffer }> {
-    const invoice = await this.get(tenantId, id);
+    const invoice = await this.get(tenantId, id, viewer);
     await this.audit.record({
       tenantId,
       actorUserId,
@@ -466,13 +488,19 @@ export class InvoicesService {
   async listPayments(
     tenantId: string,
     invoiceId: string,
+    viewer?: BillingViewer,
   ): Promise<ReturnType<typeof toPaymentSummary>[]> {
     return this.db.withTenant(tenantId, async (trx) => {
-      const invoice = await trx
+      let invoiceQuery = trx
         .selectFrom('invoices')
-        .select('id')
-        .where('id', '=', invoiceId)
-        .executeTakeFirst();
+        .select(['id', 'shipment_id'])
+        .where('id', '=', invoiceId);
+      if (viewer?.role === 'client_viewer') {
+        invoiceQuery = invoiceQuery.where('shipment_id', 'in', (eb) =>
+          eb.selectFrom('shipments').select('id').where('importer_user_id', '=', viewer.userId),
+        );
+      }
+      const invoice = await invoiceQuery.executeTakeFirst();
       if (!invoice) throw ApiError.notFound('Invoice not found');
       const rows = await this.paymentsOf(trx, invoiceId);
       return rows.map(toPaymentSummary);
