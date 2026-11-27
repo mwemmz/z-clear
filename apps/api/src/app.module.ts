@@ -9,6 +9,7 @@ import { AccessGuard } from './modules/policy/access.guard';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BillingModule } from './modules/billing/billing.module';
+import { CasesModule } from './modules/cases/cases.module';
 import { DocumentsModule } from './modules/documents/documents.module';
 import { HandoffModule } from './modules/handoff/handoff.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
@@ -38,6 +39,7 @@ import { UsersModule } from './modules/users/users.module';
     TenantsModule,
     UsersModule,
     ShipmentsModule,
+    CasesModule,
     DocumentsModule,
     RequirementsModule,
     BillingModule,

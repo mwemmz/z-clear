@@ -16,6 +16,9 @@ export const PERMISSIONS = [
   'shipment:create',
   'shipment:update',
   'shipment:stage',
+  // Importers may open their own case before an agent is appointed. The
+  // service always sets importer_user_id to the caller; no other role gets it.
+  'case:create',
   'document:read',
   'document:write',
   'file:read',
@@ -92,6 +95,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
   ],
   client_viewer: [
     'shipment:read',
+    'case:create',
     'document:read',
     'file:read',
     'quote:read',

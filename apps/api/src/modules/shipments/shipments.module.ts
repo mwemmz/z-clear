@@ -7,5 +7,6 @@ import { ShipmentsService } from './shipments.service';
   imports: [AuthModule],
   controllers: [ShipmentsController],
   providers: [ShipmentsService],
+  exports: [ShipmentsService],
 })
 export class ShipmentsModule {}
