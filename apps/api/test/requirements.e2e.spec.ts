@@ -210,4 +210,45 @@ describe('document requirements (e2e)', () => {
       .expect(200);
     expect(listA.body.some((row: { id: string }) => row.id === idB)).toBe(false);
   });
+
+  it('stores provenance and refuses VERIFIED without a source', async () => {
+    const token = await ownerToken();
+    await server()
+      .post('/api/v1/requirements')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        shipmentType: 'import',
+        caseKind: 'vehicle',
+        docType: 'sample_title',
+        label: 'Sample title',
+        sourceUrl: 'https://example.com/rule',
+        effectiveDate: '2026-11-01',
+        verificationStatus: 'VERIFIED',
+      })
+      .expect(201);
+
+    await server()
+      .post('/api/v1/requirements')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        shipmentType: 'export',
+        caseKind: 'goods',
+        docType: 'no_source',
+        label: 'No source',
+        verificationStatus: 'VERIFIED',
+      })
+      .expect(400);
+
+    const list = await server()
+      .get('/api/v1/requirements?shipmentType=import&caseKind=vehicle')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    const row = list.body.find((item: { docType: string }) => item.docType === 'sample_title');
+    expect(row).toMatchObject({
+      caseKind: 'vehicle',
+      sourceUrl: 'https://example.com/rule',
+      effectiveDate: '2026-11-01',
+      verificationStatus: 'VERIFIED',
+    });
+  });
 });

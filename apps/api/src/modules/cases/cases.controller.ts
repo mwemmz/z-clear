@@ -1,12 +1,20 @@
-import { Body, Controller, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { z } from 'zod';
 import type { Request } from 'express';
 import { ZodValidationPipe } from '../../common/validation/zod-validation.pipe';
 import { RequirePermissions, CurrentUser } from '../policy/decorators';
 import type { AuthenticatedUser } from '../auth/auth.types';
 import type { RequestMeta } from '../auth/auth.service';
 import { CasesService } from './cases.service';
-import { createCaseSchema, type CaseSummary, type CreateCaseInput } from './cases.dto';
+import {
+  createCaseSchema,
+  type CaseChecklist,
+  type CaseSummary,
+  type CreateCaseInput,
+} from './cases.dto';
+
+const uuidParam = new ZodValidationPipe(z.string().uuid());
 
 @ApiTags('cases')
 @Controller('cases')
@@ -22,6 +30,16 @@ export class CasesController {
     @Req() req: Request,
   ): Promise<CaseSummary> {
     return this.cases.create(user.tenantId, user.userId, body, metaOf(req));
+  }
+
+  @RequirePermissions('document:read')
+  @Get(':id/checklist')
+  @ApiOperation({ summary: 'Read the importer’s own personalised, provenance-labelled checklist' })
+  checklist(
+    @Param('id', uuidParam) id: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<CaseChecklist> {
+    return this.cases.checklist(user.tenantId, user.userId, id);
   }
 }
 

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { caseConsignmentSchema } from '@zclear/shared';
+import type { PersonalisedChecklist } from '@zclear/shared';
 import type { ShipmentSummary } from '../shipments/shipments.dto';
 
 /**
@@ -17,3 +18,4 @@ export const createCaseSchema = z
 
 export type CreateCaseInput = z.infer<typeof createCaseSchema>;
 export type CaseSummary = ShipmentSummary;
+export type CaseChecklist = PersonalisedChecklist;

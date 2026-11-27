@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { formatDateOnly } from '../../common/dates';
 import { ApiError } from '../../common/errors/api-error';
 import { uuidv7 } from '../../common/ids';
 import { DatabaseService } from '../../database/database.service';
+import type { CaseKind, VerificationStatus } from '../../database/database.types';
 import { AuditService } from '../audit/audit.service';
 import type { RequestMeta } from '../auth/auth.service';
 import type {
@@ -14,11 +16,15 @@ import type {
 const COLUMNS = [
   'id',
   'shipment_type',
+  'case_kind',
   'doc_type',
   'label',
   'is_mandatory',
   'sort_order',
   'is_active',
+  'source_url',
+  'effective_date',
+  'verification_status',
 ] as const;
 
 @Injectable()
@@ -34,16 +40,11 @@ export class RequirementsService {
       if (query.shipmentType) {
         builder = builder.where('shipment_type', '=', query.shipmentType);
       }
+      if (query.caseKind) {
+        builder = builder.where('case_kind', '=', query.caseKind);
+      }
       const rows = await builder.orderBy('shipment_type').orderBy('sort_order').execute();
-      return rows.map((row) => ({
-        id: row.id,
-        shipmentType: row.shipment_type,
-        docType: row.doc_type,
-        label: row.label,
-        isMandatory: row.is_mandatory,
-        sortOrder: row.sort_order,
-        isActive: row.is_active,
-      }));
+      return rows.map(toView);
     });
   }
 
@@ -58,10 +59,13 @@ export class RequirementsService {
         .selectFrom('document_requirements')
         .select('id')
         .where('shipment_type', '=', input.shipmentType)
+        .where((eb) =>
+          input.caseKind ? eb('case_kind', '=', input.caseKind) : eb('case_kind', 'is', null),
+        )
         .where('doc_type', '=', input.docType)
         .executeTakeFirst();
       if (duplicate) {
-        throw ApiError.conflict('That document type is already configured for this shipment type');
+        throw ApiError.conflict('That document type is already configured for this case type');
       }
 
       const id = uuidv7();
@@ -71,11 +75,15 @@ export class RequirementsService {
           id,
           tenant_id: tenantId,
           shipment_type: input.shipmentType,
+          case_kind: input.caseKind ?? null,
           doc_type: input.docType,
           label: input.label,
           is_mandatory: input.isMandatory,
           sort_order: input.sortOrder,
           is_active: true,
+          source_url: input.sourceUrl ?? null,
+          effective_date: input.effectiveDate ? asDate(input.effectiveDate) : null,
+          verification_status: input.verificationStatus,
         })
         .execute();
 
@@ -85,7 +93,12 @@ export class RequirementsService {
         action: 'requirement.created',
         entityType: 'document_requirement',
         entityId: id,
-        metadata: { shipmentType: input.shipmentType, docType: input.docType },
+        metadata: {
+          shipmentType: input.shipmentType,
+          caseKind: input.caseKind ?? null,
+          docType: input.docType,
+          verificationStatus: input.verificationStatus,
+        },
         ip: meta.ip,
         userAgent: meta.userAgent,
       });
@@ -93,11 +106,15 @@ export class RequirementsService {
       return {
         id,
         shipmentType: input.shipmentType,
+        caseKind: input.caseKind ?? null,
         docType: input.docType,
         label: input.label,
         isMandatory: input.isMandatory,
         sortOrder: input.sortOrder,
         isActive: true,
+        sourceUrl: input.sourceUrl ?? null,
+        effectiveDate: input.effectiveDate ?? null,
+        verificationStatus: input.verificationStatus,
       };
     });
   }
@@ -124,6 +141,13 @@ export class RequirementsService {
           ...(input.isMandatory !== undefined ? { is_mandatory: input.isMandatory } : {}),
           ...(input.sortOrder !== undefined ? { sort_order: input.sortOrder } : {}),
           ...(input.isActive !== undefined ? { is_active: input.isActive } : {}),
+          ...(input.sourceUrl !== undefined ? { source_url: input.sourceUrl } : {}),
+          ...(input.effectiveDate !== undefined
+            ? { effective_date: input.effectiveDate ? asDate(input.effectiveDate) : null }
+            : {}),
+          ...(input.verificationStatus !== undefined
+            ? { verification_status: input.verificationStatus }
+            : {}),
           updated_at: new Date(),
         })
         .where('id', '=', id)
@@ -140,15 +164,12 @@ export class RequirementsService {
         userAgent: meta.userAgent,
       });
 
-      return {
-        id: existing.id,
-        shipmentType: existing.shipment_type,
-        docType: existing.doc_type,
-        label: input.label ?? existing.label,
-        isMandatory: input.isMandatory ?? existing.is_mandatory,
-        sortOrder: input.sortOrder ?? existing.sort_order,
-        isActive: input.isActive ?? existing.is_active,
-      };
+      const updated = await trx
+        .selectFrom('document_requirements')
+        .select(COLUMNS)
+        .where('id', '=', id)
+        .executeTakeFirstOrThrow();
+      return toView(updated);
     });
   }
 
@@ -180,4 +201,36 @@ export class RequirementsService {
       return { ok: true } as const;
     });
   }
+}
+
+function asDate(value: string): Date {
+  return new Date(`${value}T00:00:00.000Z`);
+}
+
+function toView(row: {
+  id: string;
+  shipment_type: string;
+  case_kind: CaseKind | null;
+  doc_type: string;
+  label: string;
+  is_mandatory: boolean;
+  sort_order: number;
+  is_active: boolean;
+  source_url: string | null;
+  effective_date: Date | null;
+  verification_status: VerificationStatus;
+}): RequirementView {
+  return {
+    id: row.id,
+    shipmentType: row.shipment_type as RequirementView['shipmentType'],
+    caseKind: row.case_kind,
+    docType: row.doc_type,
+    label: row.label,
+    isMandatory: row.is_mandatory,
+    sortOrder: row.sort_order,
+    isActive: row.is_active,
+    sourceUrl: row.source_url,
+    effectiveDate: row.effective_date ? formatDateOnly(row.effective_date) : null,
+    verificationStatus: row.verification_status,
+  };
 }

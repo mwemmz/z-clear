@@ -155,15 +155,23 @@ export interface FilesTable {
   created_at: Timestamp;
 }
 
+export type CaseKind = 'vehicle' | 'goods';
+
 export interface DocumentRequirementsTable {
   id: string;
   tenant_id: string;
   shipment_type: ShipmentType;
+  /** NULL applies to every case kind; otherwise targets one kind only. */
+  case_kind: Nullable<CaseKind>;
   doc_type: string;
   label: string;
   is_mandatory: Generated<boolean>;
   sort_order: Generated<number>;
   is_active: Generated<boolean>;
+  /** Provenance of the rule; never an assessment or a legal requirement by default. */
+  source_url: Nullable<string>;
+  effective_date: Nullable<Date>;
+  verification_status: Generated<VerificationStatus>;
   created_at: Timestamp;
   updated_at: Timestamp;
 }

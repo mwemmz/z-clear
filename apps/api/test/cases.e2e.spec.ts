@@ -88,6 +88,54 @@ describe('importer cases (e2e)', () => {
         ])
         .execute(),
     );
+
+    // Agency-configured sample rules. Synthetic config, not ZRA data.
+    await db.withTenant(tenant, (trx) =>
+      trx
+        .insertInto('document_requirements')
+        .values([
+          {
+            id: uuidv7(),
+            tenant_id: tenant,
+            shipment_type: 'import',
+            case_kind: null,
+            doc_type: 'id_copy',
+            label: 'Identity copy',
+            sort_order: 1,
+          },
+          {
+            id: uuidv7(),
+            tenant_id: tenant,
+            shipment_type: 'import',
+            case_kind: 'vehicle',
+            doc_type: 'purchase_invoice',
+            label: 'Purchase invoice',
+            sort_order: 2,
+          },
+          {
+            id: uuidv7(),
+            tenant_id: tenant,
+            shipment_type: 'import',
+            case_kind: 'goods',
+            doc_type: 'goods_manifest',
+            label: 'Goods manifest',
+            sort_order: 3,
+          },
+          {
+            id: uuidv7(),
+            tenant_id: tenant,
+            shipment_type: 'import',
+            case_kind: null,
+            doc_type: 'verified_example',
+            label: 'Verified example',
+            is_mandatory: false,
+            sort_order: 4,
+            source_url: 'https://example.com/source',
+            verification_status: 'VERIFIED',
+          },
+        ])
+        .execute(),
+    );
   });
 
   afterAll(async () => {
@@ -207,6 +255,81 @@ describe('importer cases (e2e)', () => {
         .send(body)
         .expect(400);
     }
+  });
+
+  it('personalises the checklist by case kind and keeps provenance visible', async () => {
+    const token = await tokenFor(importerEmail);
+    const created = await server()
+      .post('/api/v1/cases')
+      .set('Authorization', `Bearer ${token}`)
+      .send(vehicleCase)
+      .expect(201);
+    const caseId = created.body.id as string;
+
+    await db.withTenant(tenant, (trx) =>
+      trx
+        .insertInto('documents')
+        .values({
+          id: uuidv7(),
+          tenant_id: tenant,
+          shipment_id: caseId,
+          doc_type: 'id_copy',
+          label: 'Identity copy',
+          created_by: importerId,
+          updated_by: importerId,
+        })
+        .execute(),
+    );
+
+    const response = await server()
+      .get(`/api/v1/cases/${caseId}/checklist`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    const body = response.body as {
+      caseKind: string;
+      rules: Array<{
+        docType: string;
+        verificationStatus: string;
+        sourceUrl: string | null;
+        satisfied: boolean;
+      }>;
+      missingMandatory: string[];
+      hasUnverifiedRules: boolean;
+      notice: string;
+    };
+    expect(body.caseKind).toBe('vehicle');
+    expect(body.rules.map((rule) => rule.docType)).toEqual([
+      'id_copy',
+      'purchase_invoice',
+      'verified_example',
+    ]);
+    expect(body.missingMandatory).toEqual(['purchase_invoice']);
+    expect(body.rules.find((rule) => rule.docType === 'id_copy')?.satisfied).toBe(true);
+    expect(body.rules.find((rule) => rule.docType === 'verified_example')?.sourceUrl).toBe(
+      'https://example.com/source',
+    );
+    expect(body.hasUnverifiedRules).toBe(true);
+    expect(body.notice).toMatch(/not official requirements/);
+  });
+
+  it('denies another importer and agent staff access to someone else’s checklist', async () => {
+    const token = await tokenFor(importerEmail);
+    const created = await server()
+      .post('/api/v1/cases')
+      .set('Authorization', `Bearer ${token}`)
+      .send(vehicleCase)
+      .expect(201);
+    const caseId = created.body.id as string;
+
+    await server()
+      .get(`/api/v1/cases/${caseId}/checklist`)
+      .set('Authorization', `Bearer ${await tokenFor(otherEmail)}`)
+      .expect(404);
+    await server()
+      .get(`/api/v1/cases/${caseId}/checklist`)
+      .set('Authorization', `Bearer ${await tokenFor(staffEmail)}`)
+      .expect(404);
   });
 
   it('writes case.created and shipment.created audit rows', async () => {
