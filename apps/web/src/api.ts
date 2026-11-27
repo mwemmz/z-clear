@@ -154,6 +154,34 @@ export interface RegistryGuidanceView {
   isVerified: boolean;
 }
 
+/** Agency invoice and its recorded payments. Balances are derived, not edited. */
+export interface InvoiceSummary {
+  id: string;
+  shipmentId: string;
+  number: string;
+  status: 'draft' | 'issued' | 'partially_paid' | 'paid' | 'void';
+  currency: string;
+  totalMinor: number;
+  amountPaidMinor: number;
+  balanceMinor: number;
+  notes: string | null;
+  vatVerificationStatus: string;
+  issuedAt: string | null;
+  lines: Array<{
+    chargeType: string;
+    description: string;
+    lineAmountMinor: number;
+  }>;
+  payments: Array<{
+    id: string;
+    amountMinor: number;
+    method: string;
+    reference: string | null;
+    paidOn: string;
+    note: string | null;
+  }>;
+}
+
 export interface ComplianceAssistantResult {
   caseId: string;
   prompts: CompliancePrompt[];
@@ -251,6 +279,27 @@ export const api = {
 
   listGuidance(token: string): Promise<RegistryGuidanceView[]> {
     return request('/guidance', token);
+  },
+
+  listInvoices(token: string): Promise<InvoiceSummary[]> {
+    return request('/invoices?limit=50', token);
+  },
+
+  recordPayment(
+    token: string,
+    invoiceId: string,
+    input: {
+      amountMinor: number;
+      method: 'cash' | 'bank_transfer' | 'mobile_money' | 'card' | 'other';
+      reference?: string;
+      paidOn: string;
+      note?: string;
+    },
+  ): Promise<InvoiceSummary> {
+    return request(`/invoices/${encodeURIComponent(invoiceId)}/payments`, token, {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
   },
 
   createCase(token: string, input: CreateCaseInput): Promise<ShipmentSummary> {

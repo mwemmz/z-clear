@@ -57,6 +57,7 @@ function stubApi(
   const shipment = { ...summary, assignedAgentId: overrides.assignedAgentId ?? null };
   let queryPosted = false;
   let checkInPosted = false;
+  let paymentPosted: { amountMinor: number; method: string; paidOn: string } | null = null;
   const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     if (url.endsWith('/api/v1/auth/login')) {
@@ -154,6 +155,55 @@ function stubApi(
           detail: 'SMS mock: interface only, nothing sent',
           subject: 'Review ready for shipment s1',
           createdAt: '2026-11-27T09:00:00.000Z',
+        },
+      ]);
+    }
+    if (url.endsWith('/api/v1/invoices/i1/payments') && init?.method === 'POST') {
+      const body = JSON.parse(String(init.body ?? '{}')) as {
+        amountMinor: number;
+        method: string;
+        paidOn: string;
+      };
+      paymentPosted = body;
+      return jsonResponse({
+        id: 'i1',
+        shipmentId: 's1',
+        number: 'INV-0001',
+        status: 'paid',
+        currency: 'ZMW',
+        totalMinor: 60_000,
+        amountPaidMinor: 60_000,
+        balanceMinor: 0,
+        notes: 'Synthetic demo: agency clearance service fee only.',
+        vatVerificationStatus: 'NEEDS_VERIFICATION',
+        issuedAt: '2026-11-27T08:00:00.000Z',
+        lines: [],
+        payments: [],
+      });
+    }
+    if (url.endsWith('/api/v1/invoices?limit=50')) {
+      return jsonResponse([
+        {
+          id: 'i1',
+          shipmentId: 's1',
+          number: 'INV-0001',
+          status: paymentPosted ? 'paid' : 'issued',
+          currency: 'ZMW',
+          totalMinor: 60_000,
+          amountPaidMinor: paymentPosted ? 60_000 : 0,
+          balanceMinor: paymentPosted ? 0 : 60_000,
+          notes:
+            'Synthetic demo: agency clearance service fee only. Not a ZRA assessment; no duty or VAT included.',
+          vatVerificationStatus: 'NEEDS_VERIFICATION',
+          issuedAt: '2026-11-27T08:00:00.000Z',
+          lines: [
+            {
+              chargeType: 'agency_fee',
+              description: 'Agency clearance service fee (synthetic)',
+              lineAmountMinor: 60_000,
+            },
+          ],
+          payments: [],
         },
       ]);
     }
@@ -352,6 +402,50 @@ describe('App', () => {
       expect.stringContaining('/notifications?limit=50'),
       expect.any(Object),
     );
+  });
+
+  it('lets agency staff record an off-platform payment against the issued invoice', async () => {
+    const fetchMock = stubApi();
+    render(<App />);
+    await signIn();
+
+    expect(await screen.findByTestId('invoice-row')).toHaveTextContent('INV-0001');
+    expect(screen.getByTestId('payment-notice')).toHaveTextContent(/not a ZRA assessment/);
+    fireEvent.change(screen.getByLabelText('Payment amount in ZMW'), {
+      target: { value: '600.00' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Record payment' }));
+
+    expect(await screen.findByTestId('payment-confirmation')).toHaveTextContent(
+      /No money was moved by this app/,
+    );
+    const call = fetchMock.mock.calls.find(
+      ([url, init]) => String(url).endsWith('/invoices/i1/payments') && init?.method === 'POST',
+    );
+    expect(call).toBeDefined();
+    expect(JSON.parse(String(call?.[1]?.body))).toMatchObject({
+      amountMinor: 60_000,
+      method: 'mobile_money',
+    });
+  });
+
+  it('shows invoices read-only to an importer', async () => {
+    stubApi({ role: 'client_viewer' });
+    render(<App />);
+    await signIn();
+
+    expect(await screen.findByTestId('invoice-row')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Record payment' })).not.toBeInTheDocument();
+    expect(screen.getByText(/Only agency staff can record a payment/)).toBeInTheDocument();
+  });
+
+  it('does not show invoices to the driver role', async () => {
+    stubApi({ role: 'driver' });
+    render(<App />);
+    await signIn();
+
+    expect(await screen.findByTestId('case-reference')).toBeInTheDocument();
+    expect(screen.queryByText('Invoices & payments')).not.toBeInTheDocument();
   });
 
   it('shows agency-configured guidance with its verification status', async () => {
