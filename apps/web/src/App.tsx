@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { SHIPMENT_STATUS_LABELS } from '@zclear/shared';
 import { AgentDirectory } from './AgentDirectory';
 import { CaseForm } from './CaseForm';
+import { CaseStatus } from './CaseStatus';
 import { Checklist } from './Checklist';
 import { Mockups } from './mockups';
 import {
@@ -280,6 +281,8 @@ export function App() {
                   </p>
                 )}
               </section>
+
+              {user.role === 'client_viewer' && <CaseStatus token={token} caseId={detail.id} />}
 
               {user.role === 'client_viewer' && !detail.assignedAgentId && (
                 <AgentDirectory token={token} caseId={detail.id} onAppointed={handleAppointed} />

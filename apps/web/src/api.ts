@@ -1,4 +1,9 @@
-import type { PersonalisedChecklist, ShipmentStatus, ShipmentType } from '@zclear/shared';
+import type {
+  CaseStatusAnswer,
+  PersonalisedChecklist,
+  ShipmentStatus,
+  ShipmentType,
+} from '@zclear/shared';
 
 /**
  * Thin client for the existing /api/v1 endpoints. Deliberately small: the
@@ -76,6 +81,12 @@ export interface AgentDirectoryEntry {
   licenceNotice: string;
 }
 
+export interface CaseStatus {
+  caseId: string;
+  answers: CaseStatusAnswer[];
+  notice: string;
+}
+
 export interface AppointmentResult {
   agencyTenantId: string;
   mustReauthenticate: true;
@@ -150,6 +161,10 @@ export const api = {
 
   getChecklist(token: string, caseId: string): Promise<PersonalisedChecklist> {
     return request(`/cases/${encodeURIComponent(caseId)}/checklist`, token);
+  },
+
+  getCaseStatus(token: string, caseId: string): Promise<CaseStatus> {
+    return request(`/cases/${encodeURIComponent(caseId)}/status`, token);
   },
 
   listAgentProfiles(token: string): Promise<AgentDirectoryEntry[]> {

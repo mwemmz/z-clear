@@ -87,6 +87,23 @@ function stubApi(
     if (url.endsWith('/api/v1/appointments')) {
       return jsonResponse({ agencyTenantId: 't2', mustReauthenticate: true }, 201);
     }
+    if (url.endsWith('/api/v1/cases/s1/status')) {
+      return jsonResponse({
+        caseId: 's1',
+        answers: [
+          {
+            question: 'Where is my case?',
+            answer: 'Duty paid. This is the latest stage your agency recorded.',
+          },
+          {
+            question: 'What do I owe?',
+            answer: 'No unpaid invoice balance is recorded.',
+          },
+        ],
+        notice:
+          'Stages are your agency’s manual record. Customs steps happen in ASYCUDA World; Z Clear does not assess duty or decide release.',
+      });
+    }
     if (url.endsWith('/api/v1/cases/s1/checklist')) {
       return jsonResponse({
         caseKind: 'goods',
@@ -186,6 +203,20 @@ describe('App', () => {
     expect(screen.getByTestId('checklist-missing')).toHaveTextContent('Still needed: 1');
   });
 
+  it('shows the importer plain-language status with the ASYCUDA boundary notice', async () => {
+    stubApi({ role: 'client_viewer' });
+    render(<App />);
+    await signIn();
+
+    const answers = await screen.findByTestId('case-status-answers');
+    expect(answers).toHaveTextContent('Where is my case?');
+    expect(answers).toHaveTextContent('Duty paid');
+    expect(answers).toHaveTextContent('No unpaid invoice balance is recorded');
+    expect(screen.getByTestId('case-status-notice')).toHaveTextContent(
+      /does not assess duty or decide release/,
+    );
+  });
+
   it('does not show the importer checklist to agent staff', async () => {
     stubApi();
     render(<App />);
@@ -193,6 +224,7 @@ describe('App', () => {
 
     expect(await screen.findByTestId('case-reference')).toBeInTheDocument();
     expect(screen.queryByText('Your document checklist')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('case-status-answers')).not.toBeInTheDocument();
   });
 
   it('lets an importer open a typed case before any agent is appointed', async () => {
