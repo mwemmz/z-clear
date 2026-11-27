@@ -8,6 +8,8 @@ export interface ScanInput {
 
 export interface ScanResult {
   status: ScanStatus;
+  /** Optional diagnostic detail, never exposed to end users verbatim. */
+  detail?: string;
 }
 
 /**

@@ -10,6 +10,9 @@ import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { DocumentsModule } from './modules/documents/documents.module';
+import { HandoffModule } from './modules/handoff/handoff.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { RequirementsModule } from './modules/requirements/requirements.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { ShipmentsModule } from './modules/shipments/shipments.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
@@ -30,13 +33,16 @@ import { UsersModule } from './modules/users/users.module';
     StorageModule,
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
     AuditModule,
+    NotificationsModule,
     AuthModule,
     TenantsModule,
     UsersModule,
     ShipmentsModule,
     DocumentsModule,
+    RequirementsModule,
     BillingModule,
     ReviewsModule,
+    HandoffModule,
     HealthModule,
   ],
   providers: [

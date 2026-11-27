@@ -3,7 +3,8 @@ import { APP_ENV } from '../config/config.module';
 import type { AppEnv } from '../config/env';
 import { MemoryStorageProvider } from './memory-storage.provider';
 import { S3StorageProvider } from './s3-storage.provider';
-import { NoopScanProvider, SCAN_PROVIDER } from './scan.provider';
+import { ClamAvScanProvider } from './clamav-scan.provider';
+import { NoopScanProvider, SCAN_PROVIDER, type ScanProvider } from './scan.provider';
 import { STORAGE_PROVIDER, type StorageProvider } from './storage.types';
 
 /**
@@ -20,7 +21,14 @@ import { STORAGE_PROVIDER, type StorageProvider } from './storage.types';
       useFactory: (env: AppEnv): StorageProvider =>
         env.STORAGE_DRIVER === 's3' ? new S3StorageProvider(env) : new MemoryStorageProvider(),
     },
-    { provide: SCAN_PROVIDER, useClass: NoopScanProvider },
+    {
+      provide: SCAN_PROVIDER,
+      inject: [APP_ENV],
+      useFactory: (env: AppEnv): ScanProvider =>
+        env.SCAN_PROVIDER === 'clamav'
+          ? new ClamAvScanProvider(env.CLAMAV_HOST, env.CLAMAV_PORT, env.CLAMAV_TIMEOUT_MS)
+          : new NoopScanProvider(),
+    },
   ],
   exports: [STORAGE_PROVIDER, SCAN_PROVIDER],
 })

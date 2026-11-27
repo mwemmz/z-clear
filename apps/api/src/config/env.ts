@@ -28,12 +28,17 @@ export const envSchema = z.object({
   AUTH_REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().positive().max(365).default(30),
   AUTH_LOGIN_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
   AUTH_LOGIN_LOCK_MINUTES: z.coerce.number().int().positive().default(15),
-  COOKIE_SECURE: booleanish.default('false'),
+  COOKIE_SECURE: booleanish.default(false),
   COOKIE_DOMAIN: z.string().optional(),
 
   NOTIFICATION_PROVIDER: z.enum(['mock', 'sms', 'whatsapp', 'email']).default('mock'),
-  FEATURE_AI: booleanish.default('false'),
-  FEATURE_NOTIFICATIONS: booleanish.default('false'),
+  /** Pilot channel is email. Delivered through a configurable webhook endpoint. */
+  NOTIFICATION_FROM: z.string().default(''),
+  NOTIFICATION_WEBHOOK_URL: z.string().url().optional(),
+  NOTIFICATION_WEBHOOK_TOKEN: z.string().optional(),
+  NOTIFICATION_TIMEOUT_MS: z.coerce.number().int().positive().default(5_000),
+  FEATURE_AI: booleanish.default(false),
+  FEATURE_NOTIFICATIONS: booleanish.default(false),
 
   // File storage. `memory` is the dev/test default; production uses an
   // S3-compatible bucket (private only). Uploads are never public.
@@ -49,12 +54,19 @@ export const envSchema = z.object({
       'application/pdf,image/jpeg,image/png,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ),
   SIGNED_URL_TTL_SECONDS: z.coerce.number().int().positive().max(3600).default(300),
+
+  // Malware scanning. `noop` reports skipped; `clamav` talks INSTREAM to clamd.
+  // Delivery stays blocked unless a scan is clean (or explicitly skipped).
+  SCAN_PROVIDER: z.enum(['noop', 'clamav']).default('noop'),
+  CLAMAV_HOST: z.string().default('127.0.0.1'),
+  CLAMAV_PORT: z.coerce.number().int().positive().max(65535).default(3310),
+  CLAMAV_TIMEOUT_MS: z.coerce.number().int().positive().default(5_000),
   S3_ENDPOINT: z.string().url().optional(),
   S3_REGION: z.string().default('us-east-1'),
   S3_BUCKET: z.string().optional(),
   S3_ACCESS_KEY_ID: z.string().optional(),
   S3_SECRET_ACCESS_KEY: z.string().optional(),
-  S3_FORCE_PATH_STYLE: booleanish.default('true'),
+  S3_FORCE_PATH_STYLE: booleanish.default(true),
 
   APP_VERSION: z.string().default('0.0.0'),
 });
@@ -100,6 +112,16 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): AppEnv {
       }
       if (!env.S3_SECRET_ACCESS_KEY) {
         problems.push('S3_SECRET_ACCESS_KEY is required when STORAGE_DRIVER=s3.');
+      }
+    }
+    if (env.FEATURE_NOTIFICATIONS && env.NOTIFICATION_PROVIDER === 'email') {
+      if (!env.NOTIFICATION_FROM) {
+        problems.push('NOTIFICATION_FROM is required for email notifications in production.');
+      }
+      if (!env.NOTIFICATION_WEBHOOK_URL) {
+        problems.push(
+          'NOTIFICATION_WEBHOOK_URL is required for email notifications in production.',
+        );
       }
     }
     if (problems.length > 0) {

@@ -9,6 +9,7 @@ import { AuditService } from '../audit/audit.service';
 import type { RequestMeta } from '../auth/auth.service';
 import { toInvoiceDetail, toPaymentSummary, type PaymentRow } from './billing.mappers';
 import { loadBillingConfig, priceValidatedLines } from './billing.pricing';
+import { renderInvoicePdf } from './invoice-pdf';
 import type {
   CreateInvoiceInput,
   InvoiceDetail,
@@ -102,6 +103,27 @@ export class InvoicesService {
       const payments = await this.paymentsOf(trx, id);
       return toInvoiceDetail(row, lines, payments);
     });
+  }
+
+  /** Renders an immutable snapshot to PDF and audits the delivery. */
+  async renderPdf(
+    tenantId: string,
+    actorUserId: string,
+    id: string,
+    meta: RequestMeta,
+  ): Promise<{ number: string; bytes: Buffer }> {
+    const invoice = await this.get(tenantId, id);
+    await this.audit.record({
+      tenantId,
+      actorUserId,
+      action: 'invoice.pdf_generated',
+      entityType: 'invoice',
+      entityId: id,
+      metadata: { number: invoice.number },
+      ip: meta.ip,
+      userAgent: meta.userAgent,
+    });
+    return { number: invoice.number, bytes: renderInvoicePdf(invoice) };
   }
 
   /**

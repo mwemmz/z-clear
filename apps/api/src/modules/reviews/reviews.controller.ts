@@ -17,6 +17,7 @@ import { ZodValidationPipe } from '../../common/validation/zod-validation.pipe';
 import { CurrentUser, RequirePermissions } from '../policy/decorators';
 import type { AuthenticatedUser } from '../auth/auth.types';
 import type { RequestMeta } from '../auth/auth.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { ReviewsService } from './reviews.service';
 import {
   listReviewsSchema,
@@ -35,7 +36,10 @@ const uuidParam = new ZodValidationPipe(z.string().uuid());
 @ApiTags('reviews')
 @Controller()
 export class ReviewsController {
-  constructor(private readonly reviews: ReviewsService) {}
+  constructor(
+    private readonly reviews: ReviewsService,
+    private readonly notify: NotificationsService,
+  ) {}
 
   @RequirePermissions('review:read')
   @Get('reviews')
@@ -62,13 +66,34 @@ export class ReviewsController {
   @Post('shipments/:shipmentId/review/send')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Send (or re-send a draft of) the shipment review to the importer' })
-  send(
+  async send(
     @Param('shipmentId', uuidParam) shipmentId: string,
     @Body(new ZodValidationPipe(sendReviewSchema)) body: SendReviewInput,
     @CurrentUser() user: AuthenticatedUser,
     @Req() req: Request,
   ): Promise<ImporterReviewSummary> {
-    return this.reviews.send(user.tenantId, user.userId, shipmentId, body, metaOf(req));
+    const summary = await this.reviews.send(
+      user.tenantId,
+      user.userId,
+      shipmentId,
+      body,
+      metaOf(req),
+    );
+    // A blocked draft was never sent, so it must not generate a notification.
+    if (summary.state !== 'draft') {
+      await this.notify.emit({
+        tenantId: user.tenantId,
+        shipmentId,
+        eventType: 'review.sent',
+        entityType: 'importer_review',
+        entityId: summary.id,
+        subject: `Review ready for shipment ${summary.shipmentId}`,
+        body: `A new review revision ${summary.revision} is waiting for your approval.`,
+        audience: 'importer',
+        meta: metaOf(req),
+      });
+    }
+    return summary;
   }
 
   @RequirePermissions('review:query')
@@ -76,13 +101,13 @@ export class ReviewsController {
   @Post('reviews/:id/query')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Ask a question about the review (importer action)' })
-  query(
+  async query(
     @Param('id', uuidParam) id: string,
     @Body(new ZodValidationPipe(queryReviewSchema)) body: QueryReviewInput,
     @CurrentUser() user: AuthenticatedUser,
     @Req() req: Request,
   ): Promise<ImporterReviewSummary> {
-    return this.reviews.query(
+    const summary = await this.reviews.query(
       user.tenantId,
       { role: user.role, userId: user.userId },
       user.userId,
@@ -90,6 +115,18 @@ export class ReviewsController {
       body,
       metaOf(req),
     );
+    await this.notify.emit({
+      tenantId: user.tenantId,
+      shipmentId: summary.shipmentId,
+      eventType: 'review.queried',
+      entityType: 'importer_review',
+      entityId: summary.id,
+      subject: `Question on review ${summary.id}`,
+      body: `The importer asked a question on revision ${summary.revision}.`,
+      audience: 'agency',
+      meta: metaOf(req),
+    });
+    return summary;
   }
 
   @RequirePermissions('review:send')
@@ -109,12 +146,24 @@ export class ReviewsController {
   @Post('reviews/:id/approve')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Approve the exact revision; rejects stale revisions' })
-  approve(
+  async approve(
     @Param('id', uuidParam) id: string,
     @CurrentUser() user: AuthenticatedUser,
     @Req() req: Request,
   ): Promise<ImporterReviewSummary> {
-    return this.reviews.approve(user.tenantId, user.userId, id, metaOf(req));
+    const summary = await this.reviews.approve(user.tenantId, user.userId, id, metaOf(req));
+    await this.notify.emit({
+      tenantId: user.tenantId,
+      shipmentId: summary.shipmentId,
+      eventType: 'review.approved',
+      entityType: 'importer_review',
+      entityId: summary.id,
+      subject: `Review approved for shipment ${summary.shipmentId}`,
+      body: `Revision ${summary.revision} was approved by the importer.`,
+      audience: 'agency',
+      meta: metaOf(req),
+    });
+    return summary;
   }
 }
 

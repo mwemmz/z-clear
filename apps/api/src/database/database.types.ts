@@ -294,6 +294,22 @@ export interface InvoiceCountersTable {
   last_number: Generated<number>;
 }
 
+export interface NotificationOutboxTable {
+  id: string;
+  tenant_id: string;
+  event_type: string;
+  entity_type: Nullable<string>;
+  entity_id: Nullable<string>;
+  recipient_user_id: Nullable<string>;
+  recipient_email: string;
+  channel: 'email' | 'mock';
+  subject: string;
+  body: string;
+  status: 'sent' | 'skipped' | 'failed';
+  detail: Nullable<string>;
+  created_at: Timestamp;
+}
+
 export type ImporterReviewState = 'draft' | 'in_review' | 'queried' | 'approved';
 /** jsonb column: array of deterministic draft-check findings. */
 export type DraftFindingRow = {
@@ -367,6 +383,7 @@ export interface Database {
   invoice_lines: InvoiceLinesTable;
   payments: PaymentsTable;
   invoice_counters: InvoiceCountersTable;
+  notification_outbox: NotificationOutboxTable;
   importer_reviews: ImporterReviewsTable;
   review_points: ReviewPointsTable;
 }
