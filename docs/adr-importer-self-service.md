@@ -1,6 +1,6 @@
 # ADR: importer cases before agent appointment
 
-**Status:** Proposed (STEP 0 of the importer self-service build)  
+**Status:** Accepted and implemented in STEP 3 (2026-11-27)  
 **Date:** 2026-11-27  
 **Context:** importers must create a case before they appoint an agent, but tenants are
 per agency and all business tables are tenant-owned behind fail-closed RLS.
@@ -60,3 +60,18 @@ sign them back in with the agency tenant on the token.
 - Licence status stays `SIMULATED / unverified` until ZRA data exists, labelled
   `Simulated, pending ZRA API`.
 - No duty, VAT, fee or legal figure is created by this flow.
+
+## Implementation notes (STEP 3)
+
+- Migration `1737800000000_agent-appointments.js` adds the RLS-protected
+  `agent_profiles` and `appointments` tables, the read-only
+  `published_agent_directory()` function and the `appoint_agent()` transfer.
+- `GET /api/v1/agent-profiles` returns only curated published fields;
+  `POST /api/v1/agent-profiles/me` lets agency staff publish their own card;
+  `POST /api/v1/appointments` performs the consented transfer (permission
+  `case:appoint`, throttled, dual-tenant audit).
+- The web client shows a labelled directory with explicit consent and signs the
+  importer out after appointment so the next login carries the agency tenant.
+- Tests: `apps/api/test/appointments.e2e.spec.ts` and the directory cases in
+  `apps/web/src/App.spec.tsx`. Each API test uses its own synthetic importer
+  because appointment deliberately moves the user between tenants.
