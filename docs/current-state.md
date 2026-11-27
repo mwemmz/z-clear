@@ -16,7 +16,8 @@ World.
 | Quotes, ZMW invoices, payments, per-tenant numbering, VAT config | **Real** | Phase 4; VAT 16% flagged `NEEDS_VERIFICATION` |
 | Importer review: send → query → revise → approve, draft check, points ledger | **Real** | Dev 1's `reviews` module, `reviews.e2e.spec.ts` |
 | Phone-first UI: role badge, case-file header, read-only stage timeline | **Real** | `apps/web/src/App.tsx`, `App.spec.tsx` |
-| Importer self-service: typed own cases, labelled checklist, agent appointment, plain-language case status, valuation query | **Real, branch `feat/importer-self-service`** | `FUTURE_PLANS.md` section 9; samples in `docs/api/case-status.json` and `docs/api/valuation-query.json` |
+| Importer self-service: typed own cases, labelled checklist, agent appointment, plain-language case status, valuation query, SMS mock interface | **Real, branch `feat/importer-self-service`** | `FUTURE_PLANS.md` section 9; samples in `docs/api/case-status.json` and `docs/api/valuation-query.json` |
+| SMS notification interface (`sms_mock`) | **Real, sends nothing** | Outbox records skipped outcomes with tenant phone data; `sms`/`whatsapp` fail closed |
 | Six static labelled mock screens behind a demo toggle | **Mocked** | `apps/web/src/mockups/` — `MOCK` badge, sample data only |
 | Agent directory, draft-screen visuals, SMS/Zamtel/Cross screens | **Mocked** | Static screens; no live provider or registry |
 | One-way handoff artifact + PDF snapshot + notification outbox + requirements API | **Real** | Phase 5 slices added in this handoff (tests below) |
@@ -32,7 +33,7 @@ World.
 |---|---|---|
 | API artifact exists but no downloadable file/UI | Polished handoff file + review screen | **Roadmap, not built**; no ASYCUDA integration, scraping or automation |
 | PDF download exists; no private stored artifact/signed link | Store generated PDFs privately if needed | Issued invoices are immutable; regenerate as a new artifact, never edit |
-| Notification outbox exists; no provider configured | Configure pilot email webhook + sender | Pilot channel is email; no real addresses in code or fixtures (only `example.com` placeholders in unit tests); `FEATURE_NOTIFICATIONS` off by default |
+| Notification outbox + local `sms_mock` interface exist; no real provider configured | Configure pilot email webhook + sender | Pilot channel is email; `sms_mock` sends nothing; `sms`/`whatsapp` fail closed; no real addresses in code or fixtures (only `example.com` placeholders in unit tests); `FEATURE_NOTIFICATIONS` off by default |
 | Requirements API exists; no management UI | Tenant-scoped management UI | Never invent a ZRA document list; agencies configure their own |
 | ClamAV provider exists; no daemon bundled | Point `SCAN_PROVIDER=clamav` at a real clamd | Downloads stay blocked while `pending`/`infected`/`failed` |
 | Demo docs still describe the pre-merge world | Update runbook, script, overview, `FUTURE_PLANS.md` | Only the Real column from the workload plan may be claimed as built |

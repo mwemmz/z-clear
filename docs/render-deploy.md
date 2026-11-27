@@ -78,8 +78,10 @@ preview deployment. Never seed real customer or customs data.
 ## 6. Guardrails
 
 - No ASYCUDA integration, scraping or automation; `integrations/` stays empty.
-- SMS/WhatsApp notification providers fail closed. Email is off by default
-  (`NOTIFICATION_PROVIDER=mock`); enable it only with a sender and webhook.
+- SMS/WhatsApp notification providers fail closed. `NOTIFICATION_PROVIDER=sms_mock`
+  records outcomes in the outbox and sends nothing (local interface only). Email
+  is off by default (`NOTIFICATION_PROVIDER=mock`); enable it only with a sender
+  and webhook.
 - The refresh cookie uses `SameSite=lax`. The current web flow uses bearer
   tokens from sign-in, not cross-site refresh, so this is safe today; a future
   cross-domain refresh flow needs a different design.

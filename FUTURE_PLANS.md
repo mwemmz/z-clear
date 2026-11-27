@@ -125,12 +125,12 @@ labelled "Mock-up, sample data"; `Roadmap` means slide-only.
 | TPIN mismatch rule (synthetic) | Real | digits shape check + stored synthetic TPIN |
 | Follow / delivery status from stage events | Real, read-only | `GET /shipments/:id/events` |
 | One-way handoff **JSON artifact** | Real | `POST /shipments/:id/handoff-export`; manual keying only |
-| Notifications (mock/email seam, outbox) | Real seam | `mock` default sends nothing; SMS is step 6 below |
+| Notifications (mock/sms_mock/email seam, outbox) | Real seam | `mock` and `sms_mock` send nothing; SMS/WhatsApp fail closed |
 | AI wording step | Real seam, off | `FEATURE_AI`, fixed fallback, no model wired |
 | Registry: SIM/NRC, PIN, PACRA/ZRA guidance | Mock | `apps/web/src/mockups/`; official registration stays external |
 | Agent directory, reviews rating line, Choose | Mock | seeded list, `Mock-up, sample data` label |
 | Cost check / advance-tax figures | Mock | sample figures only; "estimate, confirm with ZRA" |
-| SMS/USSD-style status messages | Mock | sample messages; no provider |
+| SMS/USSD-style status messages | Mock | sample messages; `sms_mock` outbox interface only, no real provider |
 | Zamtel Money fee payment screen | Mock | over an existing invoice; no integration |
 | Cross check-in, border-ready, arrival/congestion | Mock | labelled "illustrative, not live data" |
 | Local-language strings | Mock, could | only if speaker-checked; else Roadmap |
@@ -153,7 +153,7 @@ Branch `feat/importer-self-service`; small commits; synthetic data only. See
 | 3 | Agent directory + consented appointment (API + web) | Done (`e17cf0e`, `d3395e5`, `150fc95`, `f1a6510`) |
 | 4 | "My case" status answers from stages/hold/invoices/payments (web) | Done (`b2267d9`, `bf27d56`, `dd2b0e9`) |
 | 5 | Valuation-disagree information flow + query to agent (API + web) | Done (`882776e`, `4b50ee8`, `0f8b1a2`) |
-| 6 | Notification SMS interface + mock implementation | Not started |
+| 6 | Notification SMS interface + mock implementation | Done (`8065235`) |
 | 7 | Pre-import compliance assistant + VERIFIED-only estimator | Not started |
 
 ## 10. Verification gates and handoff
