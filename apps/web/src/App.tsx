@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { SHIPMENT_STATUS_LABELS } from '@zclear/shared';
 import { CaseForm } from './CaseForm';
+import { Checklist } from './Checklist';
 import { Mockups } from './mockups';
 import { api, messageOf, type ShipmentDetail, type ShipmentSummary, type UserProfile } from './api';
 
@@ -248,6 +249,8 @@ export function App() {
                   </p>
                 )}
               </section>
+
+              {user.role === 'client_viewer' && <Checklist token={token} caseId={detail.id} />}
 
               <section aria-labelledby="timeline-heading" className="card">
                 <h2 id="timeline-heading">Stage history</h2>

@@ -59,6 +59,27 @@ function stubApi(overrides: { role?: string; loginStatus?: number; loginMessage?
     if (url.endsWith('/api/v1/auth/me')) return jsonResponse(user);
     if (url.endsWith('/api/v1/shipments?limit=50')) return jsonResponse([summary]);
     if (url.endsWith('/api/v1/shipments/s1')) return jsonResponse(detail);
+    if (url.endsWith('/api/v1/cases/s1/checklist')) {
+      return jsonResponse({
+        caseKind: 'goods',
+        rules: [
+          {
+            docType: 'proof_of_purchase',
+            label: 'Proof of purchase',
+            isMandatory: true,
+            sortOrder: 1,
+            caseKind: null,
+            sourceUrl: null,
+            effectiveDate: null,
+            verificationStatus: 'NEEDS_VERIFICATION',
+            satisfied: false,
+          },
+        ],
+        missingMandatory: ['proof_of_purchase'],
+        hasUnverifiedRules: true,
+        notice: 'This checklist is agency guidance.',
+      });
+    }
     return jsonResponse({ error: { message: 'Not found' } }, 404);
   });
   vi.stubGlobal('fetch', fetchMock);
@@ -120,6 +141,30 @@ describe('App', () => {
     await signIn();
 
     expect(await screen.findByTestId('role-badge')).toHaveTextContent('Importer / client');
+  });
+
+  it('shows the importer a provenance-labelled checklist, not official claims', async () => {
+    stubApi({ role: 'client_viewer' });
+    render(<App />);
+    await signIn();
+
+    expect(await screen.findByTestId('checklist-unverified-banner')).toHaveTextContent(
+      /not an official ZRA requirement/,
+    );
+    expect(screen.getByTestId('checklist-proof_of_purchase')).toHaveTextContent(
+      'Proof of purchase',
+    );
+    expect(screen.getByTestId('checklist-proof_of_purchase')).toHaveTextContent('Unverified');
+    expect(screen.getByTestId('checklist-missing')).toHaveTextContent('Still needed: 1');
+  });
+
+  it('does not show the importer checklist to agent staff', async () => {
+    stubApi();
+    render(<App />);
+    await signIn();
+
+    expect(await screen.findByTestId('case-reference')).toBeInTheDocument();
+    expect(screen.queryByText('Your document checklist')).not.toBeInTheDocument();
   });
 
   it('lets an importer open a typed case before any agent is appointed', async () => {

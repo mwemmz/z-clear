@@ -148,8 +148,8 @@ Branch `feat/importer-self-service`; small commits; synthetic data only. See
 | Step | Deliverable | Status |
 |---|---|---|
 | STEP 0 | Design note comparing personal tenant vs holding space | Done (ADR written) |
-| 1 | Importer case creation, typed consignment, own-case permission (API + web) | In progress |
-| 2 | Personalised rules-based checklist (API + web) | Not started |
+| 1 | Importer case creation, typed consignment, own-case permission (API + web) | Done (`b9da053`, `7986559`, `6d41abe`) |
+| 2 | Personalised rules-based checklist (API + web) | Done (`b6d09e9`, `15ad79b`) |
 | 3 | Agent directory + consented appointment (API + web) | Not started |
 | 4 | "My case" status answers from stages/hold/invoices/payments (web) | Not started |
 | 5 | Valuation-disagree information flow + query to agent (API + web) | Not started |

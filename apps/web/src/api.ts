@@ -1,4 +1,4 @@
-import type { ShipmentStatus, ShipmentType } from '@zclear/shared';
+import type { PersonalisedChecklist, ShipmentStatus, ShipmentType } from '@zclear/shared';
 
 /**
  * Thin client for the existing /api/v1 endpoints. Deliberately small: the
@@ -128,6 +128,10 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(input),
     });
+  },
+
+  getChecklist(token: string, caseId: string): Promise<PersonalisedChecklist> {
+    return request(`/cases/${encodeURIComponent(caseId)}/checklist`, token);
   },
 };
 
