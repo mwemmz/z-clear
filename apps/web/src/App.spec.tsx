@@ -157,6 +157,22 @@ function stubApi(
         },
       ]);
     }
+    if (url.endsWith('/api/v1/guidance')) {
+      return jsonResponse([
+        {
+          id: 'g1',
+          stepKey: 'tpin_registration',
+          title: 'TPIN registration',
+          detail: 'Agency guidance only; confirm with ZRA.',
+          sortOrder: 1,
+          isActive: true,
+          sourceUrl: null,
+          effectiveDate: null,
+          verificationStatus: 'NEEDS_VERIFICATION',
+          isVerified: false,
+        },
+      ]);
+    }
     if (url.endsWith('/api/v1/agent-profiles')) {
       return jsonResponse([
         {
@@ -336,6 +352,29 @@ describe('App', () => {
       expect.stringContaining('/notifications?limit=50'),
       expect.any(Object),
     );
+  });
+
+  it('shows agency-configured guidance with its verification status', async () => {
+    const fetchMock = stubApi();
+    render(<App />);
+    await signIn();
+
+    expect(await screen.findByTestId('guidance-row')).toHaveTextContent('TPIN registration');
+    expect(screen.getByTestId('guidance-verification')).toHaveTextContent('Needs verification');
+    expect(screen.getByTestId('guidance-notice')).toHaveTextContent(/guidance only/);
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/guidance'),
+      expect.any(Object),
+    );
+  });
+
+  it('does not show registry guidance to the driver role', async () => {
+    stubApi({ role: 'driver' });
+    render(<App />);
+    await signIn();
+
+    expect(await screen.findByTestId('case-reference')).toBeInTheDocument();
+    expect(screen.queryByText('Registry guidance')).not.toBeInTheDocument();
   });
 
   it('does not show delivery outcomes to the driver role', async () => {

@@ -9,6 +9,7 @@ import { DriverCheckIn } from './DriverCheckIn';
 import { Mockups } from './mockups';
 import { ComplianceAssistant } from './ComplianceAssistant';
 import { NotificationStatus } from './NotificationStatus';
+import { RegistryGuidance } from './RegistryGuidance';
 import { ValuationQuery } from './ValuationQuery';
 import {
   api,
@@ -269,6 +270,8 @@ export function App() {
       )}
 
       {token && user && user.role !== 'driver' && <NotificationStatus token={token} />}
+
+      {token && user && user.role !== 'driver' && <RegistryGuidance token={token} />}
 
       {token && user && shipments.length > 0 && (
         <>

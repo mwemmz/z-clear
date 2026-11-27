@@ -52,8 +52,10 @@ pnpm dev                      # API :3000, web :5173 (web proxies /api)
 7. Agency staff and drivers now see real review-inbox and check-in cards backed
    by the API; staff and importers also see a notification status card reading
    recorded outcomes from `GET /notifications` (the SMS mock sends nothing).
-   The **MOCKUPS** toggle reveals three remaining static labelled screens (SIM
-   sign-up/PIN, registry guidance, Zamtel Money payment). Each has a `MOCK`
+   Registry guidance is also real: the agency configures its own steps and the
+   UI labels anything without a current source as guidance only. The **MOCKUPS**
+   toggle reveals two remaining static labelled screens (SIM sign-up/PIN and
+   Zamtel Money payment). Each has a `MOCK`
    badge and says "sample data only — no API calls". Announce each one aloud as
    "this screen is a mock-up".
 
@@ -111,13 +113,15 @@ endpoint, so the stage timeline is shown instead.
   `GET /api/v1/notifications` returns those recorded outcomes without recipient
   addresses, and the UI states that the SMS mock sends nothing.
 - Agency-owned document-requirement configuration endpoints with RLS and audit.
+- Agency-owned registry guidance via `GET /api/v1/guidance`; no official list is
+  seeded, and unverified steps are labelled as guidance only.
 - Phone-first case-file header, role badge and stage timeline in `apps/web`.
 
 **Mocked (sample data, not built):**
 
-- The three screens in `apps/web/src/mockups/`: SIM sign-up and PIN, registry
-  guidance and Zamtel Money fee payment, plus the agent directory rating line.
-  They carry a `MOCK` badge and use sample data only.
+- The two screens in `apps/web/src/mockups/`: SIM sign-up and PIN and Zamtel
+  Money fee payment, plus the agent directory rating line. They carry a `MOCK`
+  badge and use sample data only.
 - Use `Mock-up, sample data` on screen and say "this screen is a mock-up" aloud.
 
 **Roadmap, not built:**

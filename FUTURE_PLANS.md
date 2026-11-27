@@ -127,7 +127,8 @@ labelled "Mock-up, sample data"; `Roadmap` means slide-only.
 | One-way handoff **JSON artifact** | Real | `POST /shipments/:id/handoff-export`; manual keying only |
 | Notifications (mock/sms_mock/email seam, outbox) | Real seam | `mock` and `sms_mock` send nothing; SMS/WhatsApp fail closed; `GET /notifications` is a scoped read of recorded outcomes |
 | AI wording steps | Real seam, off | `FEATURE_AI`, fixed fallback, no model wired; `docs/ai-safety.md` |
-| Registry: SIM/NRC, PIN, PACRA/ZRA guidance | Mock | `apps/web/src/mockups/`; official registration stays external |
+| Registry guidance (agency-owned setup steps) | Real | `GET /guidance` + `RegistryGuidance.tsx`; nothing seeded, VERIFIED needs a source; `docs/api/registry-guidance.json` |
+| SIM/NRC sign-up and real SIM checks, PACRA/ZRA registration | Mock / Roadmap | static SIM screen only; official registration stays external |
 | Agent directory, reviews rating line, Choose | Mock | seeded list, `Mock-up, sample data` label |
 | Cost check / advance-tax figures | Mock | sample figures only; "estimate, confirm with ZRA" |
 | Notification status from the outbox | Real, read-only | `GET /notifications` + `NotificationStatus.tsx`; `sms_mock` outcomes say "nothing sent"; no recipient address returned |
@@ -177,13 +178,13 @@ Branch `feat/importer-self-service`; small commits; synthetic data only. See
   `docs/demo-accounts.md`.
 - **Real staff/driver workflows (done):** `AgentReviews.tsx` reads the review
   API; `DriverCheckIn.tsx` records a manual check-in through the scoped API and
-  reloads the event timeline. The static Agent reviews and Cross check-in mock
-  screens are no longer shown. `NotificationStatus.tsx` reads recorded delivery
+  reloads the event timeline. `NotificationStatus.tsx` reads recorded delivery
    outcomes from `GET /notifications` and states that the SMS mock sends nothing.
-   The static Agent reviews, Cross check-in and SMS status mock screens are no
-   longer shown.
-- **Outstanding:** registry guidance and payment capture workflows,
-  final docs and push to `master`.
+  Registry guidance is also real: each tenant configures its own steps, nothing
+  is seeded, and unverified rows are labelled as guidance only. The static
+  Agent reviews, Cross check-in, SMS status and registry guidance mock screens
+  are no longer shown.
+- **Outstanding:** payment capture workflow, final docs and push to `master`.
 
 ## 10. Verification gates and handoff
 

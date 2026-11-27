@@ -35,11 +35,13 @@ local-only synthetic demo logins seeded with `DEMO_PASSWORD`; and a React/Vite
 phone-first case-file header, role badge, stage history and split sign-in page
 with a role guide and no embedded credentials. The SMS notification interface is
 a local mock that sends nothing; `GET /notifications` exposes only recorded
-outcomes, and the UI states that no message was transmitted.
+outcomes, and the UI states that no message was transmitted. Registry guidance
+is tenant-configured through `GET /guidance`; nothing is seeded and unverified
+steps are labelled as guidance only.
 
-**Mocked (sample data, not built):** three static screens in `apps/web/src/mockups/`
-— SIM sign-up/PIN, 3-step registry guidance and Zamtel Money fee payment — plus
-the agent directory rating line. They carry a `MOCK` badge, say
+**Mocked (sample data, not built):** two static screens in `apps/web/src/mockups/`
+— SIM sign-up/PIN and Zamtel Money fee payment — plus the agent directory rating
+line. They carry a `MOCK` badge, say
 "sample data only — no API calls", and are announced aloud in the demo.
 
 **Roadmap, not built:** a polished downloadable handoff file and review UI,

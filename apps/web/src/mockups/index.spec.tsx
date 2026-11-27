@@ -3,15 +3,20 @@ import { render, screen } from '@testing-library/react';
 import { Mockups } from './index';
 
 describe('mockups', () => {
-  it('renders the three remaining labelled mock screens with the MOCK badge', () => {
+  it('renders the two remaining labelled mock screens with the MOCK badge', () => {
     render(<Mockups />);
-    const labels = ['Zamtel SIM sign-up & PIN', 'Registry guidance', 'Zamtel Money fee payment'];
+    const labels = ['Zamtel SIM sign-up & PIN', 'Zamtel Money fee payment'];
     for (const label of labels) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
-    expect(screen.getAllByText('MOCK')).toHaveLength(3);
-    expect(screen.getAllByText(/Sample data only/)).toHaveLength(3);
-    for (const removed of ['Agent reviews', 'Cross check-in', 'SMS status updates']) {
+    expect(screen.getAllByText('MOCK')).toHaveLength(2);
+    expect(screen.getAllByText(/Sample data only/)).toHaveLength(2);
+    for (const removed of [
+      'Agent reviews',
+      'Cross check-in',
+      'SMS status updates',
+      'Registry guidance',
+    ]) {
       expect(screen.queryByText(removed)).not.toBeInTheDocument();
     }
   });

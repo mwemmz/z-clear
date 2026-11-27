@@ -140,6 +140,20 @@ export interface NotificationView {
   createdAt: string;
 }
 
+/** Agency-owned setup guidance; never seeded with official requirements. */
+export interface RegistryGuidanceView {
+  id: string;
+  stepKey: string;
+  title: string;
+  detail: string | null;
+  sortOrder: number;
+  isActive: boolean;
+  sourceUrl: string | null;
+  effectiveDate: string | null;
+  verificationStatus: 'NEEDS_VERIFICATION' | 'VERIFIED' | 'SUPERSEDED';
+  isVerified: boolean;
+}
+
 export interface ComplianceAssistantResult {
   caseId: string;
   prompts: CompliancePrompt[];
@@ -233,6 +247,10 @@ export const api = {
 
   listNotifications(token: string): Promise<NotificationView[]> {
     return request('/notifications?limit=50', token);
+  },
+
+  listGuidance(token: string): Promise<RegistryGuidanceView[]> {
+    return request('/guidance', token);
   },
 
   createCase(token: string, input: CreateCaseInput): Promise<ShipmentSummary> {
