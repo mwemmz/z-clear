@@ -4,8 +4,17 @@ import type { ShipmentStatus, ShipmentType } from '@zclear/shared';
  * Thin client for the existing /api/v1 endpoints. Deliberately small: the
  * prototype only needs sign-in, the current user's role, and a shipment case
  * file. No credentials or customer data are stored in this module.
+ *
+ * Locally the Vite dev server proxies /api to the API on port 3000. On Render
+ * the static site is built with VITE_API_ORIGIN set to the API service URL,
+ * so requests go straight to the deployed API.
  */
-const API_BASE = '/api/v1';
+export function apiBase(): string {
+  const origin = (import.meta.env.VITE_API_ORIGIN ?? '').trim().replace(/\/+$/, '');
+  return `${origin}/api/v1`;
+}
+
+const API_BASE = apiBase();
 
 export interface UserProfile {
   id: string;
