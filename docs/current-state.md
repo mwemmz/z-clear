@@ -1,9 +1,10 @@
 # Z Clear - where we are vs where we need to go
 
-Baseline: `master` at `ca2cdf4` (Phase 4 billing + Dev 1's importer-review Phase
-5 + the API-backed case-file UI). "Real" means backed by code and covered by
-tests. Nothing in this document may be described as integrated with ZRA or
-ASYCUDA World.
+Baseline: `master` at `351fc67` (Phase 4 billing, Dev 1's importer-review,
+Phase 5 handoff/PDF/notifications/requirements/ClamAV slices, and the Render
+deployment blueprint). "Real" means backed by code and covered by tests.
+Nothing in this document may be described as integrated with ZRA or ASYCUDA
+World.
 
 ## 1. Where we are
 
@@ -22,6 +23,7 @@ ASYCUDA World.
 | Roadmap items (polished handoff file/UI, Cross, tracking, Deliver, etc.) | **Roadmap, not built** | `docs/roadmap.md` |
 | Workload plan with a "Real" column and the MOCKS section | **Blocked** | Owner said they will provide the file; sections 7-10 are held |
 | Audit-log read endpoint | **Absent by decision** | `AuditModule` is write-only; UI shows the stage timeline instead |
+| Render deployment blueprint + guide | **Real, not deployed** | `render.yaml`, `docs/render-deploy.md`; dashboard secrets and service creation still pending |
 
 ## 2. Where we need to go
 
@@ -39,9 +41,8 @@ ASYCUDA World.
 
 ## 3. Next steps in order
 
-1. Build the Phase 5 slices: handoff export, invoice PDF, notifications,
-   document requirements management, ClamAV provider.
-2. Update the demo docs to match what is actually Real after those slices.
-3. Run `pnpm verify`, commit and push.
-4. Owner: provide the workload plan file, confirm VAT and phase direction,
+1. Deploy the Render blueprint with dashboard-only secrets and verify both
+   services (health route + deployed web sign-in).
+2. Update the demo docs to match what is actually Real after the Phase 5 slices.
+3. Owner: provide the workload plan file, confirm VAT and phase direction,
    send the organiser email, record the ≤5-minute video.
