@@ -7,3 +7,4 @@ export * from './importer-case';
 export * from './checklist';
 export * from './case-status';
 export * from './valuation';
+export * from './compliance';
