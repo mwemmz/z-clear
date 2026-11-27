@@ -16,6 +16,7 @@ World.
 | Quotes, ZMW invoices, payments, per-tenant numbering, VAT config | **Real** | Phase 4; VAT 16% flagged `NEEDS_VERIFICATION` |
 | Importer review: send → query → revise → approve, draft check, points ledger | **Real** | Dev 1's `reviews` module, `reviews.e2e.spec.ts` |
 | Phone-first UI: role badge, case-file header, read-only stage timeline | **Real** | `apps/web/src/App.tsx`, `App.spec.tsx` |
+| Importer self-service: typed own cases, labelled checklist, agent appointment, plain-language case status | **Real, branch `feat/importer-self-service`** | `FUTURE_PLANS.md` section 9; status sample in `docs/api/case-status.json` |
 | Six static labelled mock screens behind a demo toggle | **Mocked** | `apps/web/src/mockups/` — `MOCK` badge, sample data only |
 | Agent directory, draft-screen visuals, SMS/Zamtel/Cross screens | **Mocked** | Static screens; no live provider or registry |
 | One-way handoff artifact + PDF snapshot + notification outbox + requirements API | **Real** | Phase 5 slices added in this handoff (tests below) |

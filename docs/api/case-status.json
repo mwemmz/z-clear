@@ -1,0 +1,47 @@
+{
+  "$comment": "Z Clear — importer self-service 'My case' status. Synthetic sample only. Answers are derived from the agency's recorded stage, hold reason, checklist and invoice balances. Z Clear does not assess duty, tax or a customs outcome; those happen in ASYCUDA World.",
+  "endpoints": {
+    "status": {
+      "method": "GET",
+      "path": "/api/v1/cases/:id/status",
+      "permission": "case:read",
+      "scope": "The case is resolved with the importer scope: only the importer on the case can read it. Another importer gets 404; agent staff lack the permission and get 403."
+    }
+  },
+  "sampleResponse": {
+    "caseId": "0199f2b0-0000-7000-8000-000000000001",
+    "answers": [
+      {
+        "question": "Where is my case?",
+        "answer": "On hold. This is the latest stage your agency recorded."
+      },
+      {
+        "question": "Do you need anything from me?",
+        "answer": "Your agency has paused the case: Need a signed proof of purchase. Ask them what they need from you."
+      },
+      {
+        "question": "What do I owe?",
+        "answer": "K 600.00 is recorded as owing on invoice INV-0001. This is your agency's record, not a ZRA assessment."
+      },
+      {
+        "question": "What happens next?",
+        "answer": "Your agency will update the case when the hold is resolved."
+      }
+    ],
+    "notice": "Stages are your agency’s manual record. Customs steps happen in ASYCUDA World; Z Clear does not assess duty or decide release."
+  },
+  "errorExamples": {
+    "otherImporter": {
+      "status": 404,
+      "body": { "error": { "code": "NOT_FOUND", "message": "Shipment not found" } }
+    },
+    "agentStaff": {
+      "status": 403,
+      "body": { "error": { "code": "FORBIDDEN", "message": "Not permitted" } }
+    },
+    "invalidId": {
+      "status": 400,
+      "body": { "error": { "code": "VALIDATION_ERROR", "message": "Invalid request" } }
+    }
+  }
+}
