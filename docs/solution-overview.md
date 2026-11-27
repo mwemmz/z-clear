@@ -27,8 +27,10 @@ numbers; importer review (send/query/revise/approve, deterministic draft check,
 stale-approval rejection, append-only points ledger); a one-way handoff artifact
 and audit entry; authenticated invoice PDF snapshots; an append-only notification
 outbox behind a provider seam (email off by default); agency-owned document
-requirements with RLS; a configurable ClamAV provider that fails closed; and a
-React/Vite phone-first case-file header, role badge and stage history.
+requirements with RLS; a configurable ClamAV provider that fails closed; an
+importer compliance assistant and VERIFIED-only illustrative estimator; and a
+React/Vite phone-first case-file header, role badge and stage history. The
+SMS notification interface is a local mock that sends nothing.
 
 **Mocked (sample data, not built):** six static screens in `apps/web/src/mockups/`
 — agent directory and rating line, SIM sign-up/PIN, 3-step registry guidance,
@@ -66,7 +68,8 @@ S3-compatible object storage, Docker, GitHub Actions.
 **AI model:** No AI model is called by the application code. These submission
 documents and the web case-file scaffold were prepared with the OpenCode coding
 agent using the **Big Pickle** model; it is a drafting tool, not a runtime or
-product dependency. No customer data was supplied to it.
+product dependency. No customer data was supplied to it. Full runtime AI and
+tool disclosure is in `docs/ai-safety.md`.
 
 ## Synthetic-data statement
 

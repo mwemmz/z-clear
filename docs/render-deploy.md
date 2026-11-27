@@ -85,4 +85,10 @@ preview deployment. Never seed real customer or customs data.
 - The refresh cookie uses `SameSite=lax`. The current web flow uses bearer
   tokens from sign-in, not cross-site refresh, so this is safe today; a future
   cross-domain refresh flow needs a different design.
+- Compliance estimates refuse unless `COMPLIANCE_RULES_FILE` supplies a
+  `VERIFIED` rule with source URL and effective date. `COMPLIANCE_SAMPLE_MODE`
+  is demo-only and every result is labelled do-not-pay-or-file. No tariff rate,
+  duty or fee is stored in code.
+- No AI model is called at runtime. `FEATURE_AI` is off by default and has a
+  deterministic fallback; disclosure is in `docs/ai-safety.md`.
 - No secrets or real data in `render.yaml`, commits or logs.

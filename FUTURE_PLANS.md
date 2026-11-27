@@ -126,7 +126,7 @@ labelled "Mock-up, sample data"; `Roadmap` means slide-only.
 | Follow / delivery status from stage events | Real, read-only | `GET /shipments/:id/events` |
 | One-way handoff **JSON artifact** | Real | `POST /shipments/:id/handoff-export`; manual keying only |
 | Notifications (mock/sms_mock/email seam, outbox) | Real seam | `mock` and `sms_mock` send nothing; SMS/WhatsApp fail closed |
-| AI wording step | Real seam, off | `FEATURE_AI`, fixed fallback, no model wired |
+| AI wording steps | Real seam, off | `FEATURE_AI`, fixed fallback, no model wired; `docs/ai-safety.md` |
 | Registry: SIM/NRC, PIN, PACRA/ZRA guidance | Mock | `apps/web/src/mockups/`; official registration stays external |
 | Agent directory, reviews rating line, Choose | Mock | seeded list, `Mock-up, sample data` label |
 | Cost check / advance-tax figures | Mock | sample figures only; "estimate, confirm with ZRA" |
@@ -138,7 +138,7 @@ labelled "Mock-up, sample data"; `Roadmap` means slide-only.
 | Cell-tower tracking | Roadmap | needs legal authority and driver consent |
 | Forecasts, trade indicators | Roadmap | needs ZRA data and approval |
 | ASYCUDA/ZRA integration, scraping, automation | Roadmap, not built | out of scope; `integrations/` stays empty |
-| Duty/tax estimator | Not built | step 7 below; refuses unless tariff data is VERIFIED |
+| Illustrative estimator | Real, refuses by default | external VERIFIED rules only; SAMPLE mode labelled do-not-pay-or-file |
 
 ## 9. Importer self-service build (owner's instruction, in progress)
 
@@ -154,7 +154,7 @@ Branch `feat/importer-self-service`; small commits; synthetic data only. See
 | 4 | "My case" status answers from stages/hold/invoices/payments (web) | Done (`b2267d9`, `bf27d56`, `dd2b0e9`) |
 | 5 | Valuation-disagree information flow + query to agent (API + web) | Done (`882776e`, `4b50ee8`, `0f8b1a2`) |
 | 6 | Notification SMS interface + mock implementation | Done (`8065235`) |
-| 7 | Pre-import compliance assistant + VERIFIED-only estimator | Not started |
+| 7 | Pre-import compliance assistant + VERIFIED-only estimator | Done (`5ec14ea`, `4703302`, `d46bd8a`) |
 
 ## 10. Verification gates and handoff
 

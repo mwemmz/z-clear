@@ -38,7 +38,7 @@ flowchart TB
     SHP[shipments]
     DOC[documents]
     FIL[files]
-    TAR[tariffs]
+    TAR[compliance + tariff rules<br/>VERIFIED-only data]
     QUO[quotes]
     INV[invoices]
     EXP[exports - ASYCUDA handoff]

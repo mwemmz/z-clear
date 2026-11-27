@@ -1,0 +1,65 @@
+{
+  "$comment": "Z Clear — pre-import compliance assistant and illustrative estimator. Synthetic samples only. No duty, VAT, fee or legal requirement is invented. Estimates refuse unless external VERIFIED tariff data matches; SAMPLE figures carry a do-not-pay-or-file label. Customs happens in ASYCUDA World.",
+  "endpoints": {
+    "assistant": {
+      "method": "GET",
+      "path": "/api/v1/compliance/assistant/:caseId",
+      "permission": "compliance:read",
+      "scope": "Importer-only case lookup; another importer or staff member gets 404."
+    },
+    "estimate": {
+      "method": "POST",
+      "path": "/api/v1/compliance/estimate",
+      "permission": "compliance:read",
+      "scope": "Pure computation. Refuses unless a VERIFIED rule matches; SAMPLE rules require COMPLIANCE_SAMPLE_MODE=true."
+    }
+  },
+  "sampleAssistantResponse": {
+    "caseId": "0199f2b0-0000-7000-8000-000000000001",
+    "prompts": [
+      {
+        "id": "agency:id_copy",
+        "text": "Confirm with your agency: Identity copy.",
+        "origin": "agency_requirement",
+        "verificationStatus": "NEEDS_VERIFICATION",
+        "sourceUrl": "https://example.com/agency-note",
+        "effectiveDate": "2026-01-01"
+      },
+      {
+        "id": "case:recorded-value",
+        "text": "Check that the value you recorded (K 1,850,000.00) matches your documents. Ask your agency if you are unsure.",
+        "origin": "case_fact",
+        "verificationStatus": null,
+        "sourceUrl": null,
+        "effectiveDate": null
+      }
+    ],
+    "wordingSource": "fixed",
+    "notice": "These are questions to confirm with your agency, not legal advice or a ZRA requirement. Z Clear does not decide what customs requires or assess any amount; declarations and decisions happen in ASYCUDA World."
+  },
+  "sampleEstimateRequest": {
+    "hsCode": "1102200000",
+    "customsValueMinor": 32000000,
+    "currency": "ZMW"
+  },
+  "sampleRefusalResponse": {
+    "kind": "refused",
+    "reason": "no_verified_rule",
+    "notice": "Illustrative estimate only. Z Clear does not assess duty, VAT or fees, decide customs value or file declarations. Customs amounts are decided in ASYCUDA World. Do not pay or file on this figure."
+  },
+  "sampleSampleModeResponse": {
+    "kind": "estimate",
+    "amountMinor": 1600000,
+    "currency": "ZMW",
+    "rateBp": 500,
+    "basis": "SAMPLE",
+    "rule": {
+      "hsCode": "1102200000",
+      "description": "SAMPLE ONLY — not a real tariff",
+      "sourceUrl": "https://example.com/sample-tariff",
+      "effectiveDate": "2026-01-01",
+      "verificationStatus": "SAMPLE"
+    },
+    "notice": "Illustrative estimate only. Z Clear does not assess duty, VAT or fees, decide customs value or file declarations. Customs amounts are decided in ASYCUDA World. Do not pay or file on this figure."
+  }
+}

@@ -16,8 +16,9 @@ World.
 | Quotes, ZMW invoices, payments, per-tenant numbering, VAT config | **Real** | Phase 4; VAT 16% flagged `NEEDS_VERIFICATION` |
 | Importer review: send → query → revise → approve, draft check, points ledger | **Real** | Dev 1's `reviews` module, `reviews.e2e.spec.ts` |
 | Phone-first UI: role badge, case-file header, read-only stage timeline | **Real** | `apps/web/src/App.tsx`, `App.spec.tsx` |
-| Importer self-service: typed own cases, labelled checklist, agent appointment, plain-language case status, valuation query, SMS mock interface | **Real, branch `feat/importer-self-service`** | `FUTURE_PLANS.md` section 9; samples in `docs/api/case-status.json` and `docs/api/valuation-query.json` |
+| Importer self-service: typed own cases, labelled checklist, agent appointment, plain-language case status, valuation query, compliance assistant, SMS mock interface | **Real, branch `feat/importer-self-service`** | `FUTURE_PLANS.md` section 9; samples in `docs/api/case-status.json`, `docs/api/valuation-query.json` and `docs/api/compliance.json` |
 | SMS notification interface (`sms_mock`) | **Real, sends nothing** | Outbox records skipped outcomes with tenant phone data; `sms`/`whatsapp` fail closed |
+| Compliance assistant + illustrative estimator | **Real, estimator refuses by default** | Agency-owned prompts with provenance; only external `VERIFIED` rules produce a figure, `SAMPLE` mode labelled do-not-pay-or-file; `docs/ai-safety.md` |
 | Six static labelled mock screens behind a demo toggle | **Mocked** | `apps/web/src/mockups/` — `MOCK` badge, sample data only |
 | Agent directory, draft-screen visuals, SMS/Zamtel/Cross screens | **Mocked** | Static screens; no live provider or registry |
 | One-way handoff artifact + PDF snapshot + notification outbox + requirements API | **Real** | Phase 5 slices added in this handoff (tests below) |

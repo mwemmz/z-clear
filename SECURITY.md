@@ -26,7 +26,7 @@ instructions. Defense: a model reading untrusted content gets **no tools** and n
 access to other shipments or tenants; it returns strict schema output only;
 humans confirm all side effects; tools, if ever added, are least-privilege,
 tenant-scoped and read-only by default; model output is treated as untrusted
-data. Full detail in `docs/ai-safety.md` (Phase 8, not built).
+data. Full detail and model/tool disclosure in `docs/ai-safety.md`.
 
 ## Controls by area
 
@@ -89,6 +89,23 @@ data. Full detail in `docs/ai-safety.md` (Phase 8, not built).
   closed at boot.
 - Document requirements are tenant-owned config behind RLS and
   `document:read|write`; client viewers can read but never change them.
+- `sms_mock` records skipped outcomes with tenant phone data in the append-only
+  outbox and sends nothing. `sms` and `whatsapp` fail closed at boot.
+
+### Compliance assistant and estimator (importer self-service branch)
+
+- `GET /compliance/assistant/:caseId` reuses the importer-scoped case lookup, so
+  another importer gets 404 and existence is not leaked. Prompts come only from
+  the tenant's own configured requirements plus the value the importer typed;
+  no legal requirement is invented. Every prompt carries verification status
+  and source labels.
+- `POST /compliance/estimate` is a pure computation with zod validation and a
+  permission declaration. It refuses unless an external `VERIFIED` rule
+  matches. `SAMPLE` rules require explicit `COMPLIANCE_SAMPLE_MODE=true` and are
+  labelled do-not-pay-or-file. `NEEDS_VERIFICATION` and `SUPERSEDED` rules are
+  never used. No rule, rate, duty or fee is stored in code.
+- No AI model is called at runtime. `FEATURE_AI` wording seams have a fixed
+  fallback; disclosure is in `docs/ai-safety.md`.
 
 ### Files and documents (Phase 3, shipped)
 - Private, tenant-scoped storage behind a provider interface: in-memory for
