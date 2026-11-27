@@ -39,6 +39,14 @@ export const envSchema = z.object({
   NOTIFICATION_WEBHOOK_URL: z.string().url().optional(),
   NOTIFICATION_WEBHOOK_TOKEN: z.string().optional(),
   NOTIFICATION_TIMEOUT_MS: z.coerce.number().int().positive().default(5_000),
+
+  // Tariff/compliance data is external configuration, never invented in code.
+  // Rules must carry a source URL, effective date and verification status.
+  COMPLIANCE_RULES_FILE: z.string().optional(),
+  // Demo-only opt-in: allow rules explicitly marked SAMPLE to be estimated.
+  // Results are labelled SAMPLE and must never be used to pay or file.
+  COMPLIANCE_SAMPLE_MODE: booleanish.default(false),
+
   FEATURE_AI: booleanish.default(false),
   FEATURE_NOTIFICATIONS: booleanish.default(false),
 

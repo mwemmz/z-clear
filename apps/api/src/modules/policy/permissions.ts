@@ -42,6 +42,9 @@ export const PERMISSIONS = [
   'review:send',
   'review:query',
   'review:approve',
+  // Importers read the compliance assistant and request an illustrative
+  // estimate. Both are read-only computations scoped to the caller's own case.
+  'compliance:read',
   'self:read',
 ] as const;
 
@@ -78,6 +81,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'review:send',
     'review:query',
     'review:approve',
+    'compliance:read',
     'self:read',
   ],
   agent_staff: [
@@ -102,6 +106,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'review:send',
     'review:query',
     'review:approve',
+    'compliance:read',
     'self:read',
   ],
   client_viewer: [
@@ -118,6 +123,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     // but never send, revise or approve.
     'review:read',
     'review:query',
+    'compliance:read',
     'self:read',
   ],
   platform_admin: [
@@ -146,6 +152,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'review:send',
     'review:query',
     'review:approve',
+    'compliance:read',
     'self:read',
   ],
 };
