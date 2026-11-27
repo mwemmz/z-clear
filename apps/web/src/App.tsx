@@ -5,6 +5,7 @@ import { CaseForm } from './CaseForm';
 import { CaseStatus } from './CaseStatus';
 import { Checklist } from './Checklist';
 import { Mockups } from './mockups';
+import { ComplianceAssistant } from './ComplianceAssistant';
 import { ValuationQuery } from './ValuationQuery';
 import {
   api,
@@ -286,6 +287,10 @@ export function App() {
               {user.role === 'client_viewer' && <CaseStatus token={token} caseId={detail.id} />}
 
               {user.role === 'client_viewer' && <ValuationQuery token={token} caseId={detail.id} />}
+
+              {user.role === 'client_viewer' && (
+                <ComplianceAssistant token={token} caseId={detail.id} />
+              )}
 
               {user.role === 'client_viewer' && !detail.assignedAgentId && (
                 <AgentDirectory token={token} caseId={detail.id} onAppointed={handleAppointed} />

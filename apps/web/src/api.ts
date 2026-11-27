@@ -1,5 +1,7 @@
 import type {
   CaseStatusAnswer,
+  CompliancePrompt,
+  EstimateOutcome,
   ImporterReviewAction,
   ImporterReviewState,
   PersonalisedChecklist,
@@ -110,6 +112,15 @@ export interface ReviewQueryResult {
   query: string | null;
 }
 
+export interface ComplianceAssistantResult {
+  caseId: string;
+  prompts: CompliancePrompt[];
+  wordingSource: 'fixed' | 'ai';
+  notice: string;
+}
+
+export type EstimateResult = EstimateOutcome;
+
 export interface AppointmentResult {
   agencyTenantId: string;
   mustReauthenticate: true;
@@ -198,6 +209,20 @@ export const api = {
     return request(`/reviews/${encodeURIComponent(reviewId)}/query`, token, {
       method: 'POST',
       body: JSON.stringify({ message }),
+    });
+  },
+
+  getComplianceAssistant(token: string, caseId: string): Promise<ComplianceAssistantResult> {
+    return request(`/compliance/assistant/${encodeURIComponent(caseId)}`, token);
+  },
+
+  requestEstimate(
+    token: string,
+    input: { hsCode: string; customsValueMinor: number; currency: 'ZMW' | 'USD' },
+  ): Promise<EstimateResult> {
+    return request('/compliance/estimate', token, {
+      method: 'POST',
+      body: JSON.stringify(input),
     });
   },
 

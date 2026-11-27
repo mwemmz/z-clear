@@ -118,6 +118,32 @@ function stubApi(
         query: 'The value does not match my records.',
       });
     }
+    if (url.endsWith('/api/v1/compliance/assistant/s1')) {
+      return jsonResponse({
+        caseId: 's1',
+        prompts: [
+          {
+            id: 'agency:proof_of_purchase',
+            text: 'Confirm with your agency: Proof of purchase.',
+            origin: 'agency_requirement',
+            verificationStatus: 'NEEDS_VERIFICATION',
+            sourceUrl: 'https://example.com/agency-note',
+            effectiveDate: '2026-01-01',
+          },
+        ],
+        wordingSource: 'fixed',
+        notice:
+          'These are questions to confirm with your agency, not legal advice or a ZRA requirement. Z Clear does not decide what customs requires or assess any amount; declarations and decisions happen in ASYCUDA World.',
+      });
+    }
+    if (url.endsWith('/api/v1/compliance/estimate') && init?.method === 'POST') {
+      return jsonResponse({
+        kind: 'refused',
+        reason: 'no_verified_rule',
+        notice:
+          'Illustrative estimate only. Z Clear does not assess duty, VAT or fees, decide customs value or file declarations. Customs amounts are decided in ASYCUDA World. Do not pay or file on this figure.',
+      });
+    }
     if (url.endsWith('/api/v1/cases/s1/status')) {
       return jsonResponse({
         caseId: 's1',
@@ -273,6 +299,37 @@ describe('App', () => {
     });
   });
 
+  it('shows labelled compliance prompts and refuses to guess a figure', async () => {
+    const fetchMock = stubApi({ role: 'client_viewer' });
+    render(<App />);
+    await signIn();
+
+    expect(await screen.findByTestId('compliance-prompts')).toHaveTextContent(
+      'Confirm with your agency: Proof of purchase.',
+    );
+    expect(screen.getByTestId('compliance-notice')).toHaveTextContent(/not legal advice/);
+    expect(screen.getByText(/NEEDS_VERIFICATION/)).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('HS code'), { target: { value: '1102200000' } });
+    fireEvent.change(screen.getByLabelText('Value in ZMW'), { target: { value: '320000' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Check for a verified figure' }));
+
+    expect(await screen.findByTestId('estimate-refusal')).toHaveTextContent(
+      /no verified tariff rule/i,
+    );
+    expect(screen.queryByTestId('estimate-result')).not.toBeInTheDocument();
+    const call = fetchMock.mock.calls.find(
+      ([url, init]) =>
+        String(url).endsWith('/api/v1/compliance/estimate') && init?.method === 'POST',
+    );
+    expect(call).toBeDefined();
+    expect(JSON.parse(String(call?.[1]?.body))).toEqual({
+      hsCode: '1102200000',
+      customsValueMinor: 32000000,
+      currency: 'ZMW',
+    });
+  });
+
   it('does not show the importer checklist to agent staff', async () => {
     stubApi();
     render(<App />);
@@ -282,6 +339,7 @@ describe('App', () => {
     expect(screen.queryByText('Your document checklist')).not.toBeInTheDocument();
     expect(screen.queryByTestId('case-status-answers')).not.toBeInTheDocument();
     expect(screen.queryByTestId('recorded-valuation')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('compliance-prompts')).not.toBeInTheDocument();
   });
 
   it('lets an importer open a typed case before any agent is appointed', async () => {
