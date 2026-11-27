@@ -43,6 +43,12 @@ docker compose up --build
 # api  :3000   web :8080   postgres :5432   minio :9000/:9001
 ```
 
+## Deployment
+
+Render is the deployment target. `render.yaml` defines the NestJS API service
+and the Vite static site; see `docs/render-deploy.md` for Neon roles, private
+storage, secrets and verification steps. Do not commit real credentials.
+
 ## Checks
 
 ```bash

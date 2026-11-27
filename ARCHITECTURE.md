@@ -113,6 +113,18 @@ Nothing here talks to ASYCUDA.
 - Notification channels sit behind a `NotificationProvider` interface with a
   mock for tests (`mock` is the Phase 0 default).
 
+## Deployment (Render)
+
+`render.yaml` creates a Node web service for the API and a static site for the
+web client from `master`. The API build installs the workspace and builds
+`@zclear/api...` (shared helpers first); the web build publishes
+`apps/web/dist`. The API reads `API_PORT` mapped from Render's `PORT`, and its
+health check is `/api/v1/health`. Pre-deploy runs migrations and then
+`grant-app-role.ts` so the non-owner API role keeps RLS enforced. The web client
+bakes `VITE_API_ORIGIN` into the bundle at build time; locally it falls back to
+Vite's `/api` proxy. Secrets stay in Render, never in the repository. See
+`docs/render-deploy.md`.
+
 ## Key decisions and trade-offs
 
 | Decision | Why | Trade-off accepted |
