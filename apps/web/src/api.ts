@@ -57,6 +57,12 @@ export interface LoginResponse {
   user: UserProfile;
 }
 
+export interface CreateCaseInput {
+  clientName: string;
+  clientContact: string;
+  consignment: Record<string, unknown>;
+}
+
 export class ApiRequestError extends Error {
   constructor(
     message: string,
@@ -115,6 +121,13 @@ export const api = {
 
   getShipment(token: string, id: string): Promise<ShipmentDetail> {
     return request(`/shipments/${encodeURIComponent(id)}`, token);
+  },
+
+  createCase(token: string, input: CreateCaseInput): Promise<ShipmentSummary> {
+    return request('/cases', token, {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
   },
 };
 

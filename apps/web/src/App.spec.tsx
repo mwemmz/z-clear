@@ -122,6 +122,73 @@ describe('App', () => {
     expect(await screen.findByTestId('role-badge')).toHaveTextContent('Importer / client');
   });
 
+  it('lets an importer open a typed case before any agent is appointed', async () => {
+    const importer = {
+      id: 'u9',
+      tenantId: 't9',
+      email: 'importer@example.com',
+      role: 'client_viewer',
+    };
+    const created = {
+      ...summary,
+      id: 's9',
+      reference: 'CASE-ABC123',
+      clientName: 'New Imports Ltd',
+      consignment: { caseKind: 'vehicle', vehicle: { make: 'Toyota' } },
+    };
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith('/api/v1/auth/login')) {
+        return jsonResponse({ accessToken: 'importer-token', user: importer });
+      }
+      if (url.endsWith('/api/v1/auth/me')) return jsonResponse(importer);
+      if (url.endsWith('/api/v1/shipments?limit=50')) return jsonResponse([]);
+      if (url.endsWith('/api/v1/shipments/s9')) {
+        return jsonResponse({ ...created, events: [] });
+      }
+      if (url.endsWith('/api/v1/cases') && init?.method === 'POST') {
+        return jsonResponse(created, 201);
+      }
+      return jsonResponse({ error: { message: 'Not found' } }, 404);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<App />);
+    await signIn();
+    fireEvent.click(await screen.findByRole('button', { name: 'Open a new case' }));
+
+    fireEvent.change(screen.getByLabelText('Your name'), { target: { value: 'New Imports Ltd' } });
+    fireEvent.change(screen.getByLabelText('Phone or email'), {
+      target: { value: '+260970000009' },
+    });
+    fireEvent.change(screen.getByLabelText('Make'), { target: { value: 'Toyota' } });
+    fireEvent.change(screen.getByLabelText('Model'), { target: { value: 'Hilux' } });
+    fireEvent.change(screen.getByLabelText('Year'), { target: { value: '2022' } });
+    fireEvent.change(screen.getByLabelText('VIN or chassis'), {
+      target: { value: 'AHTFR22C000000001' },
+    });
+    fireEvent.change(screen.getByLabelText('Engine'), { target: { value: '2GD-FTV' } });
+    fireEvent.change(screen.getByLabelText('Purchase price (ZMW)'), {
+      target: { value: '18500000' },
+    });
+    fireEvent.change(screen.getByLabelText('Origin'), { target: { value: 'Japan' } });
+    fireEvent.change(screen.getByLabelText('Port of entry'), { target: { value: 'Ndola' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Create case' }));
+
+    expect(await screen.findByTestId('case-reference')).toHaveTextContent('CASE-ABC123');
+    const call = fetchMock.mock.calls.find(
+      ([url, init]) => String(url).endsWith('/api/v1/cases') && init?.method === 'POST',
+    );
+    expect(call).toBeDefined();
+    const body = JSON.parse(String(call?.[1]?.body)) as {
+      clientName: string;
+      consignment: { caseKind: string; vehicle: { purchasePriceMinor: number } };
+    };
+    expect(body.clientName).toBe('New Imports Ltd');
+    expect(body.consignment.caseKind).toBe('vehicle');
+    expect(body.consignment.vehicle.purchasePriceMinor).toBe(1850000000);
+  });
+
   it('shows the API error message when sign-in fails', async () => {
     stubApi({ loginStatus: 401, loginMessage: 'Invalid email or password' });
     render(<App />);

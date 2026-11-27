@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { SHIPMENT_STATUS_LABELS } from '@zclear/shared';
+import { CaseForm } from './CaseForm';
 import { Mockups } from './mockups';
 import { api, messageOf, type ShipmentDetail, type ShipmentSummary, type UserProfile } from './api';
 
@@ -39,6 +40,7 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [showMockups, setShowMockups] = useState(false);
+  const [showCaseForm, setShowCaseForm] = useState(false);
 
   const firstId = shipments[0]?.id ?? null;
 
@@ -114,6 +116,13 @@ export function App() {
     }
   }
 
+  function handleCaseCreated(shipment: ShipmentSummary): void {
+    setShipments((current) => [shipment, ...current]);
+    setSelectedId(shipment.id);
+    setShowCaseForm(false);
+    setError(null);
+  }
+
   function handleSignOut(): void {
     sessionStorage.removeItem(TOKEN_KEY);
     setToken('');
@@ -175,6 +184,19 @@ export function App() {
       )}
 
       {token && busy && <p className="hint">Loading case file…</p>}
+
+      {token && user?.role === 'client_viewer' && (
+        <section aria-labelledby="new-case-toggle" className="card">
+          <button
+            id="new-case-toggle"
+            type="button"
+            onClick={() => setShowCaseForm((value) => !value)}
+          >
+            {showCaseForm ? 'Cancel' : 'Open a new case'}
+          </button>
+          {showCaseForm && <CaseForm token={token} onCreated={handleCaseCreated} />}
+        </section>
+      )}
 
       {token && user && shipments.length === 0 && !busy && (
         <p className="empty">No shipments are available for this account yet.</p>
