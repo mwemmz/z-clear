@@ -37,7 +37,10 @@ with a role guide and no embedded credentials. The SMS notification interface is
 a local mock that sends nothing; `GET /notifications` exposes only recorded
 outcomes, and the UI states that no message was transmitted. Registry guidance
 is tenant-configured through `GET /guidance`; nothing is seeded and unverified
-steps are labelled as guidance only.
+steps are labelled as guidance only. `PaymentCapture.tsx` lets staff record a
+payment already made off-platform against an issued agency invoice; no provider
+is called, no money moves, and invoice/quote reads are scoped to the assigned
+importer.
 
 **Mocked (sample data, not built):** two static screens in `apps/web/src/mockups/`
 — SIM sign-up/PIN and Zamtel Money fee payment — plus the agent directory rating

@@ -23,6 +23,7 @@ World.
 | SMS notification interface (`sms_mock`) | **Real, sends nothing** | Outbox records skipped outcomes with tenant phone data; `sms`/`whatsapp` fail closed |
 | Notification status UI and scoped read endpoint | **Real** | `GET /notifications` + `NotificationStatus.tsx`; no recipient address returned; importers see only their own outcomes |
 | Tenant-owned registry guidance | **Real** | `GET/PATCH/POST/DELETE /guidance` + `RegistryGuidance.tsx`; nothing seeded, `VERIFIED` requires a source, audited and RLS-scoped; `docs/api/registry-guidance.json` |
+| Manual invoice payment capture | **Real** | `PaymentCapture.tsx` over `GET/POST /invoices`; off-platform observation only, no provider or money movement; importer-scoped billing reads; `docs/api/invoice-payment.json` |
 | Compliance assistant + illustrative estimator | **Real, estimator refuses by default** | Agency-owned prompts with provenance; only external `VERIFIED` rules produce a figure, `SAMPLE` mode labelled do-not-pay-or-file; `docs/ai-safety.md` |
 | Two static labelled mock screens behind a demo toggle | **Mocked** | `apps/web/src/mockups/` — `MOCK` badge, sample data only |
 | Agent directory, draft-screen visuals, Zamtel screens | **Mocked** | Static screens; no live provider or real SIM check |
@@ -42,7 +43,7 @@ World.
 | Notification outbox + local `sms_mock` interface exist; no real provider configured | Configure pilot email webhook + sender | Pilot channel is email; `sms_mock` sends nothing; `sms`/`whatsapp` fail closed; no real addresses in code or fixtures (only `example.com` placeholders in unit tests); `FEATURE_NOTIFICATIONS` off by default |
 | Requirements API exists; no management UI | Tenant-scoped management UI | Never invent a ZRA document list; agencies configure their own |
 | ClamAV provider exists; no daemon bundled | Point `SCAN_PROVIDER=clamav` at a real clamd | Downloads stay blocked while `pending`/`infected`/`failed` |
-| Demo docs still describe the pre-merge world | Update runbook, script, overview, `FUTURE_PLANS.md` | Only the Real column from the workload plan may be claimed as built |
+| Final demo docs and push | Update runbook, script, overview, `FUTURE_PLANS.md`; push approved branch to `master` | Only the Real column from the workload plan may be claimed as built; two labelled mocks remain |
 | VAT 16% unverified | Confirm against a current ZRA source | Ask the owner; keep `NEEDS_VERIFICATION` until then |
 | Docker/compose untested | Exercise local stack where Docker is available | Environment limitation, not a code change |
 | Submission logistics unconfirmed | Organiser email + completed checklist | Deadline, portal, file limits, submitter = registered group leader |

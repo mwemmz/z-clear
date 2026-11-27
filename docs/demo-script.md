@@ -50,9 +50,11 @@ entry is written per earned event. No approval is transmitted to ASYCUDA World."
 "The points ledger is real in the API. **This screen is a mock-up** — the
 directory card showing the rating line is sample data. Behind the flow is one
 case file with a manual one-tap stage pipeline, documents, quotes and invoices.
-We also added a one-way handoff artifact for an agent to key into ASYCUDA by
-hand, an invoice PDF snapshot, and an append-only notification outbox with the
-email provider off by default. We do not integrate with ASYCUDA."
+The invoice card is real: staff record a payment already made off-platform, and
+nothing in this app moves money or pays customs. We also added a one-way handoff
+artifact for an agent to key into ASYCUDA by hand, an invoice PDF snapshot, and
+an append-only notification outbox with the email provider off by default. We do
+not integrate with ASYCUDA."
 
 **[4:00-4:20 — 20-second roadmap close; show docs/roadmap.md.]**
 
@@ -70,7 +72,8 @@ replacement for it."
 - Keep the video 5 minutes or less; this script targets 4:40.
 - Audio must be audible with no background noise.
 - Say "this screen is a mock-up" on every mock screen shown (the directory and
-  points card above, and any of the six static screens from the MOCKUPS toggle).
+  points card above, and either of the two static screens from the MOCKUPS
+  toggle).
 - Do not say "integrated", "live" or "real-time" about any mock or roadmap item.
 - If a fallback mock is used (Dev 1's work not ready by Friday midday), it must
   carry the `Mock-up, sample data` label on screen as well.

@@ -23,7 +23,8 @@ pnpm dev                      # API :3000, web :5173 (web proxies /api)
   VAT seed.
 - `seed-review-demo.ts` is the local reset/seed script. It upserts fixed
   synthetic tenants, four demo logins, one extra importer for isolation checks,
-  a shipment, an in-flight review revision and a points entry. It hashes
+  a shipment, an in-flight review revision, a points entry and one issued
+  invoice for a labelled synthetic agency service fee. It hashes
   `DEMO_PASSWORD` for the demo users, never logs it and refuses to run when
   `NODE_ENV=production`. See `docs/demo-accounts.md` for the sample emails.
 - `smoke-review.ts` is the real-API smoke check for the importer review flow.
@@ -53,9 +54,11 @@ pnpm dev                      # API :3000, web :5173 (web proxies /api)
    by the API; staff and importers also see a notification status card reading
    recorded outcomes from `GET /notifications` (the SMS mock sends nothing).
    Registry guidance is also real: the agency configures its own steps and the
-   UI labels anything without a current source as guidance only. The **MOCKUPS**
-   toggle reveals two remaining static labelled screens (SIM sign-up/PIN and
-   Zamtel Money payment). Each has a `MOCK`
+   UI labels anything without a current source as guidance only. The invoice
+   card is real: staff record a payment observed off-platform; no money moves
+   here and it is not a customs payment. The **MOCKUPS** toggle reveals two
+   remaining static labelled screens (SIM sign-up/PIN and Zamtel Money payment).
+   Each has a `MOCK`
    badge and says "sample data only — no API calls". Announce each one aloud as
    "this screen is a mock-up".
 
@@ -115,6 +118,11 @@ endpoint, so the stage timeline is shown instead.
 - Agency-owned document-requirement configuration endpoints with RLS and audit.
 - Agency-owned registry guidance via `GET /api/v1/guidance`; no official list is
   seeded, and unverified steps are labelled as guidance only.
+- Manual invoice payment capture over `GET/POST /api/v1/invoices`: staff record a
+  payment already made off-platform; balances are derived, payments are
+  append-only, and invoice/quote reads are scoped to the assigned importer. No
+  Zamtel Money, bank or card provider is called. See
+  `docs/api/invoice-payment.json`.
 - Phone-first case-file header, role badge and stage timeline in `apps/web`.
 
 **Mocked (sample data, not built):**
@@ -127,8 +135,8 @@ endpoint, so the stage timeline is shown instead.
 **Roadmap, not built:**
 
 - Every row in `docs/roadmap.md`, including a polished downloadable handoff
-  file/UI, Cross check-in UI, cell-tower tracking, Zamtel Money integration and
-  real SIM verification.
+  file/UI, cell-tower tracking, Zamtel Money integration and real SIM
+  verification. The manual driver check-in UI is Real, not roadmap.
 
 ## 5. Before you record
 

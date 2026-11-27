@@ -127,12 +127,13 @@ labelled "Mock-up, sample data"; `Roadmap` means slide-only.
 | One-way handoff **JSON artifact** | Real | `POST /shipments/:id/handoff-export`; manual keying only |
 | Notifications (mock/sms_mock/email seam, outbox) | Real seam | `mock` and `sms_mock` send nothing; SMS/WhatsApp fail closed; `GET /notifications` is a scoped read of recorded outcomes |
 | AI wording steps | Real seam, off | `FEATURE_AI`, fixed fallback, no model wired; `docs/ai-safety.md` |
-| Registry guidance (agency-owned setup steps) | Real | `GET /guidance` + `RegistryGuidance.tsx`; nothing seeded, VERIFIED needs a source; `docs/api/registry-guidance.json` |
+| Registry guidance (agency-owned setup steps) | Real | `GET/POST/PATCH/DELETE /guidance` + `RegistryGuidance.tsx`; nothing seeded, VERIFIED needs a source; `docs/api/registry-guidance.json` |
 | SIM/NRC sign-up and real SIM checks, PACRA/ZRA registration | Mock / Roadmap | static SIM screen only; official registration stays external |
 | Agent directory, reviews rating line, Choose | Mock | seeded list, `Mock-up, sample data` label |
 | Cost check / advance-tax figures | Mock | sample figures only; "estimate, confirm with ZRA" |
 | Notification status from the outbox | Real, read-only | `GET /notifications` + `NotificationStatus.tsx`; `sms_mock` outcomes say "nothing sent"; no recipient address returned |
-| Zamtel Money fee payment screen | Mock | over an existing invoice; no integration |
+| Manual invoice payment capture | Real | `PaymentCapture.tsx` over `GET/POST /invoices`; off-platform observation only, no provider; scoped importer reads; `docs/api/invoice-payment.json` |
+| Zamtel Money fee payment screen | Mock | static sample screen only; real integration stays roadmap |
 | Agent review inbox | Real | `AgentReviews.tsx` over `GET /reviews`; state, revision and query from the API; no rating line |
 | Manual driver check-in (assigned driver, event only) | Real | `POST /shipments/:id/assign-driver`, `POST /shipments/:id/check-in`; narrow `driver` role, `driver-checkins.e2e.spec.ts`, phone-first `DriverCheckIn.tsx`; `docs/api/driver-checkin.json` |
 | Border-ready arrival/congestion illustration | Mock | labelled "illustrative, not live data" |
@@ -169,8 +170,8 @@ Branch `feat/importer-self-service`; small commits; synthetic data only. See
   adds the role, `shipments.driver_user_id` and `shipment_events.source='driver'`;
   staff assign a tenant driver; the assigned driver records an append-only event
   without changing the stage. Permissions are
-  `self:read`, `shipment:read`, `shipment:checkin` only. Phone-first UI is still
-  in progress.
+  `self:read`, `shipment:read`, `shipment:checkin` only. The phone-first
+  `DriverCheckIn.tsx` UI is done.
 - **Four demo logins + split sign-in (done):** local-only seed hashes
   `DEMO_PASSWORD` for agent, importer, admin (`platform_admin`) and driver; an
   extra importer supports isolation checks. The sign-in page has the form on the
@@ -179,12 +180,16 @@ Branch `feat/importer-self-service`; small commits; synthetic data only. See
 - **Real staff/driver workflows (done):** `AgentReviews.tsx` reads the review
   API; `DriverCheckIn.tsx` records a manual check-in through the scoped API and
   reloads the event timeline. `NotificationStatus.tsx` reads recorded delivery
-   outcomes from `GET /notifications` and states that the SMS mock sends nothing.
+  outcomes from `GET /notifications` and states that the SMS mock sends nothing.
   Registry guidance is also real: each tenant configures its own steps, nothing
-  is seeded, and unverified rows are labelled as guidance only. The static
-  Agent reviews, Cross check-in, SMS status and registry guidance mock screens
-  are no longer shown.
-- **Outstanding:** payment capture workflow, final docs and push to `master`.
+  is seeded, and unverified rows are labelled as guidance only.
+- **Real payment capture (done):** `PaymentCapture.tsx` lists agency-issued
+  invoices and lets staff record a payment observed off-platform. No provider is
+  called, no money moves, and the seeded amount is an agency service fee only —
+  never duty, VAT or a ZRA assessment. Billing reads are scoped to the assigned
+  importer. Only the SIM sign-up/PIN and Zamtel Money screens remain labelled
+  static mocks.
+- **Outstanding:** final verification and push to `master`.
 
 ## 10. Verification gates and handoff
 

@@ -1,0 +1,95 @@
+{
+  "$comment": "Z Clear — manual payment capture on an agency-issued invoice. Synthetic sample only. The amount is an agency service fee, not duty, VAT, tax or a ZRA assessment. No payment provider is called.",
+  "endpoints": {
+    "list": {
+      "method": "GET",
+      "path": "/api/v1/invoices?limit=50",
+      "permission": "invoice:read",
+      "scope": "Staff see tenant invoices; client_viewer sees only invoices on shipments where importer_user_id is their user id."
+    },
+    "get": {
+      "method": "GET",
+      "path": "/api/v1/invoices/:id",
+      "permission": "invoice:read",
+      "scope": "Same importer scoping as list; unrelated importers receive 404."
+    },
+    "payments": {
+      "method": "GET",
+      "path": "/api/v1/invoices/:id/payments",
+      "permission": "invoice:read",
+      "scope": "Append-only payment rows for a visible invoice."
+    },
+    "record": {
+      "method": "POST",
+      "path": "/api/v1/invoices/:id/payments",
+      "permission": "payment:record",
+      "throttle": "60 per minute",
+      "scope": "Agency roles only; importers and drivers cannot record payments."
+    }
+  },
+  "sampleRequest": {
+    "amountMinor": 60000,
+    "method": "mobile_money",
+    "reference": "DEMO-OFFPLATFORM-001",
+    "paidOn": "2026-11-27",
+    "note": "Manual observation only; no money was moved by Z Clear."
+  },
+  "sampleResponse": {
+    "id": "01920000-0000-7000-8000-00000000d00b",
+    "shipmentId": "01920000-0000-7000-8000-00000000d005",
+    "number": "INV-0001",
+    "status": "paid",
+    "currency": "ZMW",
+    "totalMinor": 60000,
+    "amountPaidMinor": 60000,
+    "balanceMinor": 0,
+    "notes": "Synthetic demo: agency clearance service fee only. Not a ZRA assessment; no duty or VAT included.",
+    "vatVerificationStatus": "NEEDS_VERIFICATION",
+    "issuedAt": "2026-11-27T08:00:00.000Z",
+    "lines": [
+      {
+        "chargeType": "agency_fee",
+        "description": "Agency clearance service fee (synthetic)",
+        "lineAmountMinor": 60000
+      }
+    ],
+    "payments": [
+      {
+        "id": "0199f2b0-0000-7000-8000-000000000031",
+        "amountMinor": 60000,
+        "method": "mobile_money",
+        "reference": "DEMO-OFFPLATFORM-001",
+        "paidOn": "2026-11-27",
+        "note": "Manual observation only; no money was moved by Z Clear."
+      }
+    ]
+  },
+  "guardrails": [
+    "The seeded demo amount is a labelled agency service fee only; no customs duty, VAT, tax or assessment is invented.",
+    "Recording a payment is a manual observation of money paid off-platform. There is no Zamtel Money, bank or card integration and no money moves in this app.",
+    "Payments are append-only; balances and status are derived from recorded payments and are never edited directly.",
+    "Issued invoices are immutable. A wrong invoice is voided with a reason and reissued.",
+    "Every payment record emits a payment.recorded audit entry and a notification outbox event.",
+    "Invoice and quote reads are scoped to the importer assigned to the shipment; an unrelated importer receives an empty list or 404.",
+    "Drivers have no invoice, quote or payment permissions."
+  ],
+  "errorExamples": {
+    "wrongRole": {
+      "status": 403,
+      "body": { "error": { "code": "FORBIDDEN", "message": "Not permitted" } }
+    },
+    "otherImporterInvoice": {
+      "status": 404,
+      "body": { "error": { "code": "NOT_FOUND", "message": "Invoice not found" } }
+    },
+    "draftOrVoidInvoice": {
+      "status": 409,
+      "body": {
+        "error": {
+          "code": "CONFLICT",
+          "message": "Payments can only be recorded against an issued invoice"
+        }
+      }
+    }
+  }
+}

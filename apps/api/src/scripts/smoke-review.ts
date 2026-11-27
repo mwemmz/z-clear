@@ -48,6 +48,35 @@ async function main(): Promise<void> {
   const importer = await login(IMPORTER_EMAIL, password);
   const otherImporter = await login(OTHER_IMPORTER_EMAIL, password);
 
+  // Read-only checks for the other real demo workflows. No payment is recorded
+  // here: that would mutate the seeded invoice and break a repeatable smoke.
+  const guidance = await server().get('/api/v1/guidance').set('Authorization', `Bearer ${agent}`);
+  if (guidance.status !== 200 || !Array.isArray(guidance.body)) {
+    fail('list guidance', guidance.status, guidance.body);
+  }
+  const staffInvoices = await server()
+    .get('/api/v1/invoices')
+    .set('Authorization', `Bearer ${agent}`);
+  if (staffInvoices.status !== 200 || !Array.isArray(staffInvoices.body)) {
+    fail('list invoices', staffInvoices.status, staffInvoices.body);
+  }
+  const assignedInvoices = await server()
+    .get('/api/v1/invoices')
+    .set('Authorization', `Bearer ${importer}`);
+  if (assignedInvoices.status !== 200 || !Array.isArray(assignedInvoices.body)) {
+    fail('list assigned invoices', assignedInvoices.status, assignedInvoices.body);
+  }
+  const invoiceNumber = 'INV-0001';
+  const has = (body: unknown): boolean =>
+    Array.isArray(body) && body.some((row: { number?: string }) => row.number === invoiceNumber);
+  if (!has(staffInvoices.body) || !has(assignedInvoices.body)) {
+    fail('seeded agency invoice missing', 200, {
+      staffCount: staffInvoices.body.length,
+      importerCount: assignedInvoices.body.length,
+    });
+  }
+  console.log('smoke: guidance and scoped invoice reads OK (agency service fee only)');
+
   // 1. Send. After a reseed a review may already be in flight (the seed ships
   // one in_review revision), so on 409 the existing revision is queried and
   // revised first — the smoke then continues on the new draft revision.
