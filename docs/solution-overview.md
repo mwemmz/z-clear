@@ -23,16 +23,23 @@ JWT access + rotating refresh, RBAC; append-only audit log and shipment-event
 timeline; shipments with one-tap stage updates; document checklists, private
 tenant-scoped uploads and signed downloads behind a storage provider; quotes,
 ZMW invoices (immutable once issued), recorded payments and per-tenant invoice
-numbers; React/Vite phone-first case-file header, role badge and stage history.
+numbers; importer review (send/query/revise/approve, deterministic draft check,
+stale-approval rejection, append-only points ledger); a one-way handoff artifact
+and audit entry; authenticated invoice PDF snapshots; an append-only notification
+outbox behind a provider seam (email off by default); agency-owned document
+requirements with RLS; a configurable ClamAV provider that fails closed; and a
+React/Vite phone-first case-file header, role badge and stage history.
 
-**Mocked (sample data, not built):** agent directory and rating line, draft
-send/check/query/correct/approve screens, points update, SMS status messages,
-Zamtel Money fee payment, Cross truck check-in, and 3-step registry guidance.
-These are labelled `Mock-up, sample data` and announced aloud in the demo.
+**Mocked (sample data, not built):** six static screens in `apps/web/src/mockups/`
+— agent directory and rating line, SIM sign-up/PIN, 3-step registry guidance,
+SMS status, Zamtel Money fee payment, agent reviews and Cross check-in. They
+carry a `MOCK` badge, say "sample data only — no API calls", and are announced
+aloud in the demo.
 
-**Roadmap, not built:** ASYCUDA handoff export, Cross check-in/border-ready
-flag, cell-tower tracking, Deliver forecasts/trade indicators, Zamtel Money
-integration, local languages, real SIM verification. See `docs/roadmap.md`.
+**Roadmap, not built:** a polished downloadable handoff file and review UI,
+Cross check-in/border-ready UI, cell-tower tracking, Deliver forecasts/trade
+indicators, Zamtel Money integration, local languages, real SIM verification.
+See `docs/roadmap.md`.
 
 ## Tools used
 
@@ -70,7 +77,7 @@ flagged `NEEDS_VERIFICATION`, not a verified ZRA figure.
 
 ## Next steps
 
-Verify VAT against a current ZRA source; build the one-way handoff export and
-invoice PDF delivery; add email notifications; replace the no-op scanner with
-a real AV job; add document-requirement management. Keep phases 0-2 lean until
-the owner validation gate passes.
+Verify VAT against a current ZRA source; add a downloadable handoff file and
+review UI, a document-requirements management UI, a web view for the review
+flow, and real email credentials/webhook configuration; exercise Docker and a
+live ClamAV daemon. Keep phases 0-2 lean until the owner validation gate passes.

@@ -102,8 +102,10 @@ Nothing here talks to ASYCUDA.
 
 - Each module exposes a service interface; controllers validate and delegate.
 - Stateless app servers. No in-memory session state. Safe to run N replicas.
-- Slow or external work runs as background jobs (PDF, notifications, file
-  scanning, exports). Jobs are idempotent and retry-safe.
+- PDF rendering, handoff artifacts and notification delivery run synchronously
+  today; a Postgres-backed job table is the path for slow external work (for
+  example AV scanning) when latency warrants it. Jobs must be idempotent and
+  retry-safe.
 - API-first, versioned REST under `/api/v1`. OpenAPI is generated from code
   (`apps/api/src/openapi.ts`), never hand-written.
 - Config over code: checklists, fee structures, stage labels and export field
@@ -180,6 +182,30 @@ docs/           Supplemental docs (performance, runbook, ai-safety — later)
 - The optional AI wording step is behind `FEATURE_AI` with a fixed fallback
   template; no model is wired, so behaviour never depends on an external
   service. Filing remains manual in ASYCUDA World.
+
+**Phase 5 (done):** case-file surface plus the remaining handoff slices.
+
+- `POST /shipments/:id/handoff-export` returns a versioned, read-only JSON
+  artifact (shipment, stage events, issued invoice lines) and audits
+  `handoff.export_created`. It is data for an agent to key into ASYCUDA World by
+  hand: no outbound call, no scraping and no live status feed. `integrations/`
+  stays empty.
+- `GET /invoices/:id/pdf` renders an immutable PDF snapshot from the stored
+  invoice and audits `invoice.pdf_generated`; rendering is synchronous, so no
+  job table is needed yet.
+- `notification_outbox` is append-only and RLS-protected. `NotificationsService`
+  resolves recipients from tenant users, calls a provider, then appends the
+  outcome. `mock` is the default; `email` uses a configurable webhook and fails
+  closed without `NOTIFICATION_FROM`/`NOTIFICATION_WEBHOOK_URL`. SMS/WhatsApp
+  throw as roadmap. Billing and review controllers emit events.
+- `document_requirements` now has tenant-scoped list/create/update/delete
+  endpoints with zod validation, `document:read|write` permissions and audit
+  rows. The table ships empty; agencies configure their own checklist.
+- `SCAN_PROVIDER=clamav` selects an INSTREAM client for an external clamd;
+  unreachable or timed-out scans report `failed`, keeping downloads blocked.
+  Default `noop` reports `skipped` because no daemon is bundled.
+- `export:create` is granted to owner/staff/admin roles only; importers cannot
+  generate a handoff artifact.
 
 **Phase 4 (done):** quotes and invoices.
 

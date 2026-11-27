@@ -6,7 +6,7 @@ working software and do not claim they are integrated with any external system.
 
 | Item | One line | Guardrail |
 |---|---|---|
-| ASYCUDA handoff export | Generate a clean one-way file an agent can key into ASYCUDA World. | **Roadmap, not built.** No integration, scraping or automation of ASYCUDA; `integrations/` stays empty. |
+| Polished handoff file and review UI | Turn the existing one-way JSON artifact into a downloadable file with an agent review screen. | **Roadmap, not built.** The API artifact exists; no integration, scraping or automation of ASYCUDA; `integrations/` stays empty. |
 | Cross (truck check-in, border-ready flag) | An agent-entered check-in and a border-ready indicator for a truck. | **Roadmap, not built.** Manual status only; no live border or ZRA feed and no claim of official status. |
 | Cell-tower tracking | Optional location updates derived from cell-tower data. | **Roadmap, not built.** Needs legal authority and explicit driver consent before any design or data collection; nothing collected in the prototype. |
 | Deliver (forecasts, trade indicators) | Aggregate arrival and trade indicators for planning. | **Roadmap, not built.** Needs ZRA data and approval; aggregate, consented data only, never individual consignments. |

@@ -12,17 +12,22 @@ pnpm install
 pnpm build
 cp .env.example .env          # edit values locally; never commit real secrets
 pnpm --filter @zclear/api db:migrate
+pnpm --filter @zclear/api build
+DATABASE_URL=postgresql://app:change_me@localhost:5432/clearing_dev \
+  node apps/api/dist/scripts/seed-review-demo.js
 pnpm dev                      # API :3000, web :5173 (web proxies /api)
 ```
 
-- Migrations are in `apps/api/migrations` and run through `node-pg-migrate`
-  against `DATABASE_MIGRATION_URL`. They create the schema, RLS policies,
-  versioned config tables and the `NEEDS_VERIFICATION` VAT seed.
-- **TODO (Dev 1): replace this line with the exact reset-and-seed script name**
-  once supplied. Until then, seed only synthetic tenants/users/shipments by a
-  documented local script; do not hand-enter data into a shared database.
-- To start clean locally, recreate an empty database, re-run `db:migrate`, then
-  run the seed script. Never drop a database you do not own.
+- The repo's migrations are the source of truth: `apps/api/migrations` runs
+  through `node-pg-migrate` against `DATABASE_MIGRATION_URL`. They create the
+  schema, RLS policies, versioned config tables and the `NEEDS_VERIFICATION`
+  VAT seed.
+- `seed-review-demo.ts` is the local reset/seed script added by Dev 1. It
+  upserts fixed synthetic tenants, users, a draft shipment, an in-flight review
+  revision and a points entry. It refuses to run when `NODE_ENV=production`.
+- `smoke-review.ts` is the real-API smoke check for the importer review flow.
+- To start clean locally, recreate an empty database you own, re-run
+  `db:migrate`, then run the seed script. Never drop a database you do not own.
 - API tests boot their own ephemeral PostgreSQL; Docker is not required for
   tests. Docker/compose has not been verified locally.
 
@@ -38,30 +43,37 @@ pnpm dev                      # API :3000, web :5173 (web proxies /api)
    reads "Importer / client".
 5. To switch roles quickly, sign out between runs; the demo token is held in
    `sessionStorage` only.
+6. The **MOCKUPS** toggle in the app shell reveals six static labelled screens
+   (SIM sign-up/PIN, registry guidance, SMS status, Zamtel Money payment, agent
+   reviews, Cross check-in). Each has a `MOCK` badge and says "sample data only
+   — no API calls". Announce each one aloud as "this screen is a mock-up".
 
 ## 3. Exact click-by-click demo order
 
 Follow this order; the spoken lines are in `docs/demo-script.md`.
 
 1. **Importer picks an agent (mock).** Show the directory/rating card from
-   Dev 1's `mockups/` folder. Say "this screen is a mock-up". If the folder is
-   not available, show the slide with `Mock-up, sample data` instead.
-2. **Agent sends a draft (mock).** Show the draft-send screen. Say it is a mock-up.
-3. **Draft check flags the quantity (mock).** Show the check result highlighting
-   the quantity mismatch. Say it is a mock-up.
-4. **Importer queries (mock).** Show the query screen. Say it is a mock-up.
-5. **Agent corrects (mock).** Show the corrected draft. Say it is a mock-up.
-6. **Importer approves (mock).** Show the approval screen. Say it is a mock-up.
-7. **Points update (mock).** Show the agent rating/points line. Say it is a
-   mock-up.
+   Dev 1's `mockups/`. Say "this screen is a mock-up".
+2. **Agent sends a draft (real API).** Use the seeded shipment and
+   `POST /api/v1/shipments/:id/review/send`. The draft check runs
+   deterministically; a blocked draft stays a draft and sends nothing.
+3. **Draft check flags the quantity (real API).** Show the `draftFindings` from
+   the review summary. The rule is code, not a customs validation.
+4. **Importer queries (real API).** `POST /api/v1/reviews/:id/query`.
+5. **Agent corrects (real API).** `POST /api/v1/reviews/:id/revise`, then send
+   again. Material edits bump review freshness; stale approvals are rejected.
+6. **Importer approves (real API).** `POST /api/v1/reviews/:id/approve`. One
+   append-only points entry is written per earned event.
+7. **Points / directory card (mock screen).** The points ledger is real in the
+   API; the directory card showing the rating line is a static mock-up. Say
+   "this screen is a mock-up".
 8. **Roadmap close (slide, 20 seconds).** Show `docs/roadmap.md`. Read the items
    as "Roadmap, not built".
 
-Optional, only if asked or if time remains: sign in as an agent and show the
-**real** case-file header (reference, client, route/goods, current stage) and
-the read-only stage-history timeline. These come from the API, not a mock-up.
-Do not show an "Activity" list: there is no audit-log read endpoint, so the
-stage timeline is shown instead.
+Optional, only if asked or if time remains: show the **real** case-file header
+(reference, client, route/goods, current stage) and the read-only stage-history
+timeline from the API. Do not show an "Activity" list: there is no audit-log read
+endpoint, so the stage timeline is shown instead.
 
 ## 4. What is real, mocked and roadmap
 
@@ -73,23 +85,35 @@ stage timeline is shown instead.
   `GET /api/v1/shipments/:id`.
 - Append-only stage timeline from `GET /api/v1/shipments/:id/events` (embedded
   in the detail response). Stage updates are manual and one-tap.
-- Document checklists/uploads behind private storage, with a scan-status gate
-  (the default scanner is a no-op — say so if asked).
+- Document checklists/uploads behind private storage, with a scan-status gate.
+  Default scanner is a no-op (`skipped`); `SCAN_PROVIDER=clamav` talks to an
+  external daemon and fails closed when it is unreachable.
 - Quotes, invoices, recorded payments and per-tenant invoice numbering in the
-  API. VAT is config, flagged `NEEDS_VERIFICATION`.
+  API. VAT is config, flagged `NEEDS_VERIFICATION`. Invoices have an
+  authenticated PDF snapshot download (`GET /api/v1/invoices/:id/pdf`).
+- Importer review: send → query → revise → approve, deterministic draft check,
+  stale-approval rejection, append-only points ledger.
+- One-way handoff artifact: `POST /api/v1/shipments/:id/handoff-export` returns
+  versioned JSON for an agent to key into ASYCUDA World by hand, with an audit
+  entry. It is not a submission and there is no live link.
+- Notification outbox: events from invoice issue/payment and review
+  send/query/approve append delivery outcomes; the pilot channel is email via a
+  configurable webhook. Default provider is `mock` and nothing is sent.
+- Agency-owned document-requirement configuration endpoints with RLS and audit.
 - Phone-first case-file header, role badge and stage timeline in `apps/web`.
 
 **Mocked (sample data, not built):**
 
-- Agent directory, rating line, draft send/check/query/correct/approve screens,
-  points update, SMS status messages, Zamtel Money fee payment, Cross check-in,
-  3-step registry guidance. None of these are implemented in `apps/web`.
+- The six screens in `apps/web/src/mockups/`: agent directory/rating, SIM sign-up
+  and PIN, registry guidance, SMS status, Zamtel Money fee payment, agent
+  reviews and Cross check-in. They carry a `MOCK` badge and use sample data only.
 - Use `Mock-up, sample data` on screen and say "this screen is a mock-up" aloud.
 
 **Roadmap, not built:**
 
-- Every row in `docs/roadmap.md`, including ASYCUDA handoff export, cell-tower
-  tracking, Zamtel Money integration and real SIM verification.
+- Every row in `docs/roadmap.md`, including a polished downloadable handoff
+  file/UI, Cross check-in UI, cell-tower tracking, Zamtel Money integration and
+  real SIM verification.
 
 ## 5. Before you record
 

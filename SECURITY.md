@@ -71,6 +71,25 @@ data. Full detail in `docs/ai-safety.md` (Phase 8, not built).
 - The optional AI wording step is flag-gated (`FEATURE_AI`), has a fixed
   fallback and would receive no tools and no other tenants' data.
 
+### Handoff, PDF and notifications (Phase 5, shipped)
+
+- Handoff export is an authenticated, tenant-scoped, permission-gated
+  (`export:create`) read-only artifact. It contains no duty/tax figures the
+  agency did not enter, and makes no outbound call to ASYCUDA World. Every
+  export writes an audit entry.
+- Invoice PDFs are rendered from the stored immutable snapshot; the download is
+  authorized per request, served as an attachment with a safe filename, and
+  audited. No generated PDF is publicly addressable.
+- Notification recipients are resolved from active tenant users at emit time —
+  no real addresses or phone numbers exist in code, fixtures or tests (unit
+  tests use `example.com` placeholders only). Delivery
+  outcomes are append-only. `mock` sends nothing; `email` requires configured
+  sender and webhook and sends a minimal `{from, to, subject, text}` payload with
+  an optional bearer token from configuration. Unimplemented channels fail
+  closed at boot.
+- Document requirements are tenant-owned config behind RLS and
+  `document:read|write`; client viewers can read but never change them.
+
 ### Files and documents (Phase 3, shipped)
 - Private, tenant-scoped storage behind a provider interface: in-memory for
   dev/test, S3-compatible (R2/MinIO) for production. Keys are namespaced
@@ -83,8 +102,10 @@ data. Full detail in `docs/ai-safety.md` (Phase 8, not built).
   Responses are `Content-Disposition: attachment` with `X-Content-Type-Options:
   nosniff`; uploaded HTML/SVG is never rendered inline.
 - A scan-status gate blocks download while a file is `pending`, `infected` or
-  `failed`. The default scanner is a no-op (`skipped`); a real malware scanner
-  is an open item.
+  `failed`. Default `SCAN_PROVIDER=noop` reports `skipped` because no daemon is
+  bundled; `SCAN_PROVIDER=clamav` talks INSTREAM to an external clamd and reports
+  `failed` on timeout or connection error, so a broken scanner never silently
+  unlocks a file.
 - Uploads and downloads carry tighter per-IP throttles (30/min and 60/min) than
   the global 120/min default, and the multipart reader is capped at one file per
   request.
