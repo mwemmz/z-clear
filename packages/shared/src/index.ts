@@ -5,3 +5,4 @@ export * from './billing';
 export * from './pricing';
 export * from './importer-case';
 export * from './checklist';
+export * from './case-status';
