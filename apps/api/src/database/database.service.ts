@@ -34,6 +34,23 @@ export class DatabaseService implements OnModuleDestroy {
     });
   }
 
+  /**
+   * Same tenant transaction, plus the acting user id. Used only by the
+   * appointment transfer so its SECURITY DEFINER function can verify that the
+   * caller really owns the case before moving it between tenants.
+   */
+  async withTenantAsUser<T>(
+    tenantId: string,
+    userId: string,
+    fn: (trx: Transaction<Database>) => Promise<T>,
+  ): Promise<T> {
+    return this.kysely.transaction().execute(async (trx) => {
+      await sql`select set_config('app.tenant_id', ${tenantId}, true)`.execute(trx);
+      await sql`select set_config('app.user_id', ${userId}, true)`.execute(trx);
+      return fn(trx);
+    });
+  }
+
   async onModuleDestroy(): Promise<void> {
     await this.db?.destroy();
   }

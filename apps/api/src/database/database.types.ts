@@ -371,6 +371,33 @@ export interface ReviewPointsTable {
   created_at: Timestamp;
 }
 
+export interface AgentProfilesTable {
+  id: string;
+  tenant_id: string;
+  user_id: string;
+  agency_name: string;
+  location: string;
+  service_area: Nullable<string>;
+  languages: Nullable<string>;
+  notes: Nullable<string>;
+  /** SIMULATED until a real ZRA source is verified. Never a live ZRA status. */
+  licence_status: Generated<'SIMULATED' | 'VERIFIED'>;
+  is_published: Generated<boolean>;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
+export interface AppointmentsTable {
+  id: string;
+  tenant_id: string;
+  case_id: string;
+  importer_user_id: string;
+  agent_user_id: string;
+  from_tenant_id: string;
+  consent_text: string;
+  created_at: Timestamp;
+}
+
 export interface Database {
   tenants: TenantsTable;
   users: UsersTable;
@@ -394,4 +421,6 @@ export interface Database {
   notification_outbox: NotificationOutboxTable;
   importer_reviews: ImporterReviewsTable;
   review_points: ReviewPointsTable;
+  agent_profiles: AgentProfilesTable;
+  appointments: AppointmentsTable;
 }
