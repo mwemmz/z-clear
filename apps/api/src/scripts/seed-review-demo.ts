@@ -1,18 +1,24 @@
 /**
  * Local demo-data reset (src/scripts/seed-review-demo.ts).
  *
- * Creates the importer-review demo state: one agent, an assigned importer, an
- * unrelated importer, one draft shipment with an in-flight review revision and
- * one seeded points entry. Synthetic data only — names, emails and the TPINs
- * are invented placeholders, and no duty/tax/fee numbers are used anywhere.
+ * Creates the demo state used by the prototype: one agent, an admin, an
+ * assigned importer, an unrelated importer (for isolation checks), a driver,
+ * one shipment with an in-flight review revision and one seeded points entry.
+ * Synthetic data only — names, emails, phone numbers and TPINs are invented
+ * placeholders, and no duty/tax/fee numbers are used anywhere.
  *
  * Usage (after pnpm --filter @zclear/api build):
- *   DATABASE_URL=postgresql://... node dist/scripts/seed-review-demo.js
+ *   DATABASE_URL=postgresql://... DEMO_PASSWORD=<local-demo-password> \
+ *     node dist/scripts/seed-review-demo.js
  *
- * This is a *reset for local demo data only*: it upserts fixed demo rows and
+ * The password comes only from DEMO_PASSWORD; it is never hardcoded in the app
+ * or logged. This is a *local demo reset*: it upserts fixed demo rows and
  * refuses to run in production.
  */
+import 'dotenv/config';
 import { Client } from 'pg';
+import type { Role } from '../common/roles';
+import { PasswordService } from '../modules/auth/password.service';
 
 const TENANT_ID = '01920000-0000-7000-8000-00000000d001';
 const AGENT_ID = '01920000-0000-7000-8000-00000000d002';
@@ -22,19 +28,91 @@ const SHIPMENT_ID = '01920000-0000-7000-8000-00000000d005';
 const EVENT_ID = '01920000-0000-7000-8000-00000000d006';
 const REVIEW_ID = '01920000-0000-7000-8000-00000000d007';
 const POINTS_ID = '01920000-0000-7000-8000-00000000d008';
+const ADMIN_ID = '01920000-0000-7000-8000-00000000d009';
+const DRIVER_ID = '01920000-0000-7000-8000-00000000d00a';
 
 // Synthetic TPINs: clearly fake, digits only. The shipment TPIN matches the
 // assigned importer's on purpose; the other importer carries a different one.
 const AGENT_EMAIL = 'agent@demo-clearing.example';
 const IMPORTER_EMAIL = 'importer@kafuemetals.example';
 const OTHER_IMPORTER_EMAIL = 'other.importer@sunshine-trading.example';
+const ADMIN_EMAIL = 'admin@demo-clearing.example';
+const DRIVER_EMAIL = 'driver@demo-clearing.example';
+
+export interface DemoUser {
+  id: string;
+  email: string;
+  role: Role;
+  label: string;
+  tpin: string | null;
+  phone: string | null;
+}
+
+/** The four demo logins shown on the login page's role guide. */
+export const DEMO_LOGINS: readonly DemoUser[] = [
+  {
+    id: AGENT_ID,
+    email: AGENT_EMAIL,
+    role: 'agent_staff',
+    label: 'Clearing agent',
+    tpin: null,
+    phone: '+260900000001',
+  },
+  {
+    id: IMPORTER_ID,
+    email: IMPORTER_EMAIL,
+    role: 'client_viewer',
+    label: 'Importer / client',
+    tpin: '1001111222',
+    phone: '+260900000002',
+  },
+  {
+    id: ADMIN_ID,
+    email: ADMIN_EMAIL,
+    role: 'platform_admin',
+    label: 'Platform admin',
+    tpin: null,
+    phone: null,
+  },
+  {
+    id: DRIVER_ID,
+    email: DRIVER_EMAIL,
+    role: 'driver',
+    label: 'Driver',
+    tpin: null,
+    phone: null,
+  },
+];
+
+/** Extra importer used by isolation tests; not one of the four demo logins. */
+export const DEMO_USERS: readonly DemoUser[] = [
+  ...DEMO_LOGINS,
+  {
+    id: OTHER_IMPORTER_ID,
+    email: OTHER_IMPORTER_EMAIL,
+    role: 'client_viewer',
+    label: 'Unrelated importer (isolation check)',
+    tpin: '2002222333',
+    phone: null,
+  },
+];
+
+/** Password is supplied by the operator; no credential is stored in source. */
+export function demoPassword(): string {
+  const password = process.env.DEMO_PASSWORD;
+  if (!password || password.length < 8) {
+    throw new Error('DEMO_PASSWORD must be set to at least 8 characters for local demo seeding');
+  }
+  return password;
+}
 
 async function main(): Promise<void> {
-  const url = process.env.DATABASE_URL;
-  if (!url) throw new Error('DATABASE_URL is required');
   if (process.env.NODE_ENV === 'production') {
     throw new Error('Refusing to seed demo data in production');
   }
+  const url = process.env.DATABASE_URL;
+  if (!url) throw new Error('DATABASE_URL is required');
+  const passwordHash = await new PasswordService().hash(demoPassword());
   const db = new Client({ connectionString: url });
   await db.connect();
   try {
@@ -64,31 +142,36 @@ async function main(): Promise<void> {
        on conflict (id) do update set name = excluded.name`,
       [TENANT_ID],
     );
-    // Demo password hashes are deliberately invalid Argon2 strings: fixtures,
-    // not logins. Real users are created through POST /users.
-    for (const [id, email, role, tpin] of [
-      [AGENT_ID, AGENT_EMAIL, 'agent_staff', null],
-      [IMPORTER_ID, IMPORTER_EMAIL, 'client_viewer', '1001111222'],
-      [OTHER_IMPORTER_ID, OTHER_IMPORTER_EMAIL, 'client_viewer', '2002222333'],
-    ] as const) {
+    for (const user of DEMO_USERS) {
       await db.query(
-        `insert into users (id, tenant_id, email, password_hash, role, tpin)
-         values ($1, $2, $3, 'demo-fixture-not-a-real-password-hash', $4, $5)
-         on conflict (id) do update set email = excluded.email, role = excluded.role, tpin = excluded.tpin`,
-        [id, TENANT_ID, email, role, tpin],
+        `insert into users (id, tenant_id, email, password_hash, role, tpin, phone, is_active)
+         values ($1, $2, $3, $4, $5, $6, $7, true)
+         on conflict (id) do update set
+           email = excluded.email, password_hash = excluded.password_hash,
+           role = excluded.role, tpin = excluded.tpin, phone = excluded.phone,
+           is_active = true`,
+        [user.id, TENANT_ID, user.email, passwordHash, user.role, user.tpin, user.phone],
       );
     }
 
     await db.query(
       `insert into shipments (id, tenant_id, reference, client_name, client_contact, type,
-         origin, destination, consignment, importer_user_id, assigned_agent_id)
+         origin, destination, consignment, importer_user_id, assigned_agent_id, driver_user_id)
        values ($1, $2, 'DEMO-IMPORT-0001', 'Kafue Metals Ltd', 'imports@kafuemetals.example',
-         'import', 'Durban', 'Lusaka', $3::jsonb, $4, $5)
+         'import', 'Durban', 'Lusaka', $3::jsonb, $4, $5, $6)
        on conflict (id) do update set
          reference = excluded.reference, client_name = excluded.client_name,
          consignment = excluded.consignment, importer_user_id = excluded.importer_user_id,
-         assigned_agent_id = excluded.assigned_agent_id, review_freshness = 0`,
-      [SHIPMENT_ID, TENANT_ID, JSON.stringify({ tpin: '1001111222' }), IMPORTER_ID, AGENT_ID],
+         assigned_agent_id = excluded.assigned_agent_id,
+         driver_user_id = excluded.driver_user_id, review_freshness = 0`,
+      [
+        SHIPMENT_ID,
+        TENANT_ID,
+        JSON.stringify({ tpin: '1001111222' }),
+        IMPORTER_ID,
+        AGENT_ID,
+        DRIVER_ID,
+      ],
     );
     await db.query(
       `insert into shipment_events (id, tenant_id, shipment_id, from_stage, to_stage, note, source, actor_user_id)
@@ -116,9 +199,8 @@ async function main(): Promise<void> {
 
     await db.query('commit');
     console.log(
-      `Seed complete. Agent ${AGENT_EMAIL} | importer ${IMPORTER_EMAIL} (assigned) | ` +
-        `unrelated importer ${OTHER_IMPORTER_EMAIL} | shipment DEMO-IMPORT-0001 | ` +
-        `review in_review | 10 seeded points`,
+      `Seed complete. Demo logins: ${DEMO_LOGINS.map((user) => `${user.label} ${user.email}`).join(' | ')} | ` +
+        'shipment DEMO-IMPORT-0001 | review in_review | 10 seeded points',
     );
   } catch (error) {
     await db.query('rollback');
@@ -128,4 +210,9 @@ async function main(): Promise<void> {
   }
 }
 
-void main();
+if (require.main === module) {
+  void main().catch((error: unknown) => {
+    console.error(error instanceof Error ? error.message : error);
+    process.exitCode = 1;
+  });
+}

@@ -169,9 +169,13 @@ Branch `feat/importer-self-service`; small commits; synthetic data only. See
   without changing the stage. Permissions are
   `self:read`, `shipment:read`, `shipment:checkin` only. Phone-first UI is still
   in progress.
-- **Outstanding:** four demo logins, split login panel, real in-scope workflows
-  for agent reviews/registry guidance/SMS status/payment capture/driver UI,
-  final docs and push to `master`.
+- **Four demo logins + split sign-in (done):** local-only seed hashes
+  `DEMO_PASSWORD` for agent, importer, admin (`platform_admin`) and driver; an
+  extra importer supports isolation checks. The sign-in page has the form on the
+  left and a short role guide on the right, with no credentials in source. See
+  `docs/demo-accounts.md`.
+- **Outstanding:** real in-scope workflows for agent reviews/registry
+  guidance/SMS status/payment capture/driver UI, final docs and push to `master`.
 
 ## 10. Verification gates and handoff
 

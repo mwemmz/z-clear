@@ -16,7 +16,8 @@ World.
 | Document checklists, private storage, signed downloads, scan-status gate | **Real** | Phase 3; default scanner is a no-op (`skipped`) |
 | Quotes, ZMW invoices, payments, per-tenant numbering, VAT config | **Real** | Phase 4; VAT 16% flagged `NEEDS_VERIFICATION` |
 | Importer review: send → query → revise → approve, draft check, points ledger | **Real** | Dev 1's `reviews` module, `reviews.e2e.spec.ts` |
-| Phone-first UI: role badge, case-file header, read-only stage timeline | **Real** | `apps/web/src/App.tsx`, `App.spec.tsx` |
+| Phone-first UI: role badge, case-file header, read-only stage timeline, split sign-in role guide | **Real** | `apps/web/src/App.tsx`, `App.spec.tsx`; no credentials embedded in the UI |
+| Four local-only demo logins (agent, importer, admin, driver) | **Real** | `seed-review-demo.ts` hashes `DEMO_PASSWORD`; `docs/demo-accounts.md`; production seed refused |
 | Importer self-service: typed own cases, labelled checklist, agent appointment, plain-language case status, valuation query, compliance assistant, SMS mock interface | **Real, branch `feat/importer-self-service`** | `FUTURE_PLANS.md` section 9; samples in `docs/api/case-status.json`, `docs/api/valuation-query.json` and `docs/api/compliance.json` |
 | SMS notification interface (`sms_mock`) | **Real, sends nothing** | Outbox records skipped outcomes with tenant phone data; `sms`/`whatsapp` fail closed |
 | Compliance assistant + illustrative estimator | **Real, estimator refuses by default** | Agency-owned prompts with provenance; only external `VERIFIED` rules produce a figure, `SAMPLE` mode labelled do-not-pay-or-file; `docs/ai-safety.md` |

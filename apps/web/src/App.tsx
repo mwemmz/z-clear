@@ -23,6 +23,7 @@ const ROLE_LABELS: Record<string, string> = {
   agent_staff: 'Clearing agent',
   client_viewer: 'Importer / client',
   platform_admin: 'Platform admin',
+  driver: 'Driver',
 };
 
 function display(value: unknown): string {
@@ -194,27 +195,54 @@ export function App() {
       )}
 
       {!token && (
-        <section aria-labelledby="signin-heading" className="card">
-          <h2 id="signin-heading">Sign in</h2>
-          <form className="login" onSubmit={(event) => void handleLogin(event)}>
-            <label htmlFor="email">Email</label>
-            <input id="email" name="email" type="email" autoComplete="username" required />
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-            />
-            <button type="submit" disabled={busy}>
-              {busy ? 'Signing in…' : 'Sign in'}
-            </button>
-          </form>
-          <p className="hint">
-            Demo sign-in uses credentials issued by your agency. No credentials are hardcoded in the
-            app.
-          </p>
+        <section className="login-panel" aria-label="Sign in to Z Clear">
+          <div className="card login-panel__form">
+            <h2 id="signin-heading">Sign in</h2>
+            <form className="login" onSubmit={(event) => void handleLogin(event)}>
+              <label htmlFor="email">Email</label>
+              <input id="email" name="email" type="email" autoComplete="username" required />
+              <label htmlFor="password">Password</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+              />
+              <button type="submit" disabled={busy}>
+                {busy ? 'Signing in…' : 'Sign in'}
+              </button>
+            </form>
+            <p className="hint">
+              Credentials are issued by your demo facilitator, not stored in the app.
+            </p>
+          </div>
+          <aside className="login-panel__guide" aria-labelledby="login-guide-heading">
+            <h2 id="login-guide-heading">Four demo roles</h2>
+            <p>Each login opens only the work its role is allowed to do.</p>
+            <ul className="login-panel__roles">
+              <li>
+                <strong>Clearing agent</strong>
+                <span>Reviews the case, asks questions and records invoices and payments.</span>
+              </li>
+              <li>
+                <strong>Importer / client</strong>
+                <span>Sees only their own case, checklist and approval questions.</span>
+              </li>
+              <li>
+                <strong>Platform admin</strong>
+                <span>Sets up the demo workspace and checks all tenant workflows.</span>
+              </li>
+              <li>
+                <strong>Driver</strong>
+                <span>Sees an assigned shipment and records one manual check-in.</span>
+              </li>
+            </ul>
+            <p className="hint">
+              Ask your facilitator for the sample email and password. Customs assessment and release
+              still happen in ASYCUDA World.
+            </p>
+          </aside>
         </section>
       )}
 

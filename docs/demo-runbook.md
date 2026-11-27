@@ -10,11 +10,10 @@ API. Real vs mocked vs roadmap is listed at the end.
 corepack enable
 pnpm install
 pnpm build
-cp .env.example .env          # edit values locally; never commit real secrets
+cp .env.example .env          # set DATABASE_URL, DATABASE_MIGRATION_URL and DEMO_PASSWORD locally
 pnpm --filter @zclear/api db:migrate
 pnpm --filter @zclear/api build
-DATABASE_URL=postgresql://app:change_me@localhost:5432/clearing_dev \
-  node apps/api/dist/scripts/seed-review-demo.js
+node apps/api/dist/scripts/seed-review-demo.js
 pnpm dev                      # API :3000, web :5173 (web proxies /api)
 ```
 
@@ -22,10 +21,13 @@ pnpm dev                      # API :3000, web :5173 (web proxies /api)
   through `node-pg-migrate` against `DATABASE_MIGRATION_URL`. They create the
   schema, RLS policies, versioned config tables and the `NEEDS_VERIFICATION`
   VAT seed.
-- `seed-review-demo.ts` is the local reset/seed script added by Dev 1. It
-  upserts fixed synthetic tenants, users, a draft shipment, an in-flight review
-  revision and a points entry. It refuses to run when `NODE_ENV=production`.
+- `seed-review-demo.ts` is the local reset/seed script. It upserts fixed
+  synthetic tenants, four demo logins, one extra importer for isolation checks,
+  a shipment, an in-flight review revision and a points entry. It hashes
+  `DEMO_PASSWORD` for the demo users, never logs it and refuses to run when
+  `NODE_ENV=production`. See `docs/demo-accounts.md` for the sample emails.
 - `smoke-review.ts` is the real-API smoke check for the importer review flow.
+  It uses `DEMO_PASSWORD` (or `SMOKE_PASSWORD`) and sends no credential from source.
 - To start clean locally, recreate an empty database you own, re-run
   `db:migrate`, then run the seed script. Never drop a database you do not own.
 - API tests boot their own ephemeral PostgreSQL; Docker is not required for
@@ -35,15 +37,19 @@ pnpm dev                      # API :3000, web :5173 (web proxies /api)
 
 1. Open `http://localhost:5173` in a browser and set DevTools device emulation
    to a small phone width (for example 390 x 844).
-2. The app shows a sign-in form. Use credentials issued by the demo seed — none
-   are hardcoded in the source.
-3. **Agent view:** sign in as `agency_owner` or `agent_staff`. The header badge
-   reads "Agency owner" or "Clearing agent".
-4. **Importer view:** sign out, then sign in as `client_viewer`. The header badge
-   reads "Importer / client".
-5. To switch roles quickly, sign out between runs; the demo token is held in
+2. The sign-in page has the form on the left and a short role guide on the right.
+   Use one of the four synthetic logins in `docs/demo-accounts.md`; no email,
+   password or autofill value is hardcoded in the app.
+3. **Agent view:** sign in as the demo clearing agent (`agent_staff`). The header
+   badge reads "Clearing agent".
+4. **Importer view:** sign out, then sign in as the demo importer
+   (`client_viewer`). The header badge reads "Importer / client".
+5. **Admin and driver:** sign in as the demo admin (`platform_admin`) or driver
+   (`driver`). The driver sees only the assigned shipment and can record a
+   manual check-in.
+6. To switch roles quickly, sign out between runs; the demo token is held in
    `sessionStorage` only.
-6. The **MOCKUPS** toggle in the app shell reveals six static labelled screens
+7. The **MOCKUPS** toggle in the app shell reveals six static labelled screens
    (SIM sign-up/PIN, registry guidance, SMS status, Zamtel Money payment, agent
    reviews, Cross check-in). Each has a `MOCK` badge and says "sample data only
    — no API calls". Announce each one aloud as "this screen is a mock-up".

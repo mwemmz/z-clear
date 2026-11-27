@@ -28,9 +28,12 @@ stale-approval rejection, append-only points ledger); a one-way handoff artifact
 and audit entry; authenticated invoice PDF snapshots; an append-only notification
 outbox behind a provider seam (email off by default); agency-owned document
 requirements with RLS; a configurable ClamAV provider that fails closed; an
-importer compliance assistant and VERIFIED-only illustrative estimator; and a
-React/Vite phone-first case-file header, role badge and stage history. The
-SMS notification interface is a local mock that sends nothing.
+importer compliance assistant and VERIFIED-only illustrative estimator; a
+tenant-scoped driver role with manual, append-only check-ins that never change
+the stage or touch ASYCUDA; four local-only synthetic demo logins seeded with
+`DEMO_PASSWORD`; and a React/Vite phone-first case-file header, role badge,
+stage history and split sign-in page with a role guide and no embedded
+credentials. The SMS notification interface is a local mock that sends nothing.
 
 **Mocked (sample data, not built):** six static screens in `apps/web/src/mockups/`
 — agent directory and rating line, SIM sign-up/PIN, 3-step registry guidance,
@@ -39,9 +42,9 @@ carry a `MOCK` badge, say "sample data only — no API calls", and are announced
 aloud in the demo.
 
 **Roadmap, not built:** a polished downloadable handoff file and review UI,
-Cross check-in/border-ready UI, cell-tower tracking, Deliver forecasts/trade
-indicators, Zamtel Money integration, local languages, real SIM verification.
-See `docs/roadmap.md`.
+border-ready arrival/congestion UI (the manual check-in API is Real), cell-tower
+tracking, Deliver forecasts/trade indicators, Zamtel Money integration, local
+languages, real SIM verification. See `docs/roadmap.md`.
 
 ## Tools used
 

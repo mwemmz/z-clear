@@ -15,11 +15,11 @@
  * Usage (after pnpm --filter @zclear/api build, with the API running):
  *   API_BASE_URL=http://localhost:3000 node dist/scripts/smoke-review.js
  *
- * Requires the demo users from src/scripts/seed-review-demo.ts to exist and have
- * real password hashes. The seed script deliberately writes invalid hashes, so
- * before running this script update the demo users' passwords (or create them
- * through the API). See src/scripts/seed-review-demo.ts for the fixed ids/emails.
+ * Requires the demo users from src/scripts/seed-review-demo.ts to exist. The
+ * seed hashes DEMO_PASSWORD for all demo users, so supply the same value here
+ * (SMOKE_PASSWORD may override it). No credential is hardcoded in source.
  */
+import 'dotenv/config';
 import request from 'supertest';
 
 const BASE = process.env.API_BASE_URL ?? 'http://localhost:3000';
@@ -28,7 +28,6 @@ const AGENT_EMAIL = 'agent@demo-clearing.example';
 const IMPORTER_EMAIL = 'importer@kafuemetals.example';
 const OTHER_IMPORTER_EMAIL = 'other.importer@sunshine-trading.example';
 const SHIPMENT_ID = '01920000-0000-7000-8000-00000000d005';
-const PASSWORD = process.env.SMOKE_PASSWORD ?? 'demo-only-password';
 
 const server = () => request(BASE);
 
@@ -36,16 +35,18 @@ function fail(step: string, status: number, body: unknown): never {
   throw new Error(`SMOKE FAILED at ${step}: HTTP ${status} ${JSON.stringify(body).slice(0, 300)}`);
 }
 
-async function login(email: string): Promise<string> {
-  const res = await server().post('/api/v1/auth/login').send({ email, password: PASSWORD });
+async function login(email: string, password: string): Promise<string> {
+  const res = await server().post('/api/v1/auth/login').send({ email, password });
   if (res.status !== 200) fail(`login ${email}`, res.status, res.body);
   return (res.body as { accessToken: string }).accessToken;
 }
 
 async function main(): Promise<void> {
-  const agent = await login(AGENT_EMAIL);
-  const importer = await login(IMPORTER_EMAIL);
-  const otherImporter = await login(OTHER_IMPORTER_EMAIL);
+  const password = process.env.SMOKE_PASSWORD ?? process.env.DEMO_PASSWORD;
+  if (!password) throw new Error('Set DEMO_PASSWORD (or SMOKE_PASSWORD) for the smoke check');
+  const agent = await login(AGENT_EMAIL, password);
+  const importer = await login(IMPORTER_EMAIL, password);
+  const otherImporter = await login(OTHER_IMPORTER_EMAIL, password);
 
   // 1. Send. After a reseed a review may already be in flight (the seed ships
   // one in_review revision), so on 409 the existing revision is queried and

@@ -213,6 +213,17 @@ describe('App', () => {
     expect(screen.queryByTestId('role-badge')).not.toBeInTheDocument();
   });
 
+  it('shows a four-role sign-in guide without embedding credentials', () => {
+    stubApi();
+    render(<App />);
+    expect(screen.getByRole('heading', { name: 'Four demo roles' })).toBeInTheDocument();
+    expect(screen.getByText('Clearing agent')).toBeInTheDocument();
+    expect(screen.getByText('Importer / client')).toBeInTheDocument();
+    expect(screen.getByText('Platform admin')).toBeInTheDocument();
+    expect(screen.getByText('Driver')).toBeInTheDocument();
+    expect(document.body.textContent).not.toContain('@');
+  });
+
   it('shows the signed-in role and the case file from the shipment endpoint', async () => {
     stubApi();
     render(<App />);
