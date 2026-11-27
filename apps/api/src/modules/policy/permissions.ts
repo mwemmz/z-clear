@@ -19,6 +19,12 @@ export const PERMISSIONS = [
   // Importers may open their own case before an agent is appointed. The
   // service always sets importer_user_id to the caller; no other role gets it.
   'case:create',
+  // Importers browse a curated, published directory and appoint an agent with
+  // explicit consent. The tenant transfer itself is validated in the database.
+  'agent_directory:read',
+  'case:appoint',
+  // Agencies publish their own directory profile.
+  'agent_profile:manage',
   'document:read',
   'document:write',
   'file:read',
@@ -54,6 +60,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'shipment:create',
     'shipment:update',
     'shipment:stage',
+    'agent_profile:manage',
     'document:read',
     'document:write',
     'file:read',
@@ -73,6 +80,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
   agent_staff: [
     'tenant:read',
     'user:read',
+    'agent_profile:manage',
     'shipment:read',
     'shipment:create',
     'shipment:update',
@@ -96,6 +104,8 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
   client_viewer: [
     'shipment:read',
     'case:create',
+    'agent_directory:read',
+    'case:appoint',
     'document:read',
     'file:read',
     'quote:read',
@@ -109,6 +119,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
   platform_admin: [
     'tenant:read',
     'tenant:update',
+    'agent_profile:manage',
     'user:read',
     'user:create',
     'user:update',

@@ -6,6 +6,7 @@ import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
 import { StorageModule } from './storage/storage.module';
 import { AccessGuard } from './modules/policy/access.guard';
+import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BillingModule } from './modules/billing/billing.module';
@@ -34,6 +35,7 @@ import { UsersModule } from './modules/users/users.module';
     StorageModule,
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
     AuditModule,
+    AppointmentsModule,
     NotificationsModule,
     AuthModule,
     TenantsModule,
