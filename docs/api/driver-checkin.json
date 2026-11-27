@@ -1,0 +1,49 @@
+{
+  "$comment": "Z Clear — manual driver check-in. Synthetic sample only. This records an agency-owned observation in the case timeline; there is no live border feed and no ASYCUDA/ZRA update.",
+  "endpoints": {
+    "assignDriver": {
+      "method": "POST",
+      "path": "/api/v1/shipments/:id/assign-driver",
+      "permission": "shipment:update",
+      "scope": "Agency staff only. The driver must be an active user of the same tenant. The assignment is audited as shipment.driver_assigned."
+    },
+    "checkIn": {
+      "method": "POST",
+      "path": "/api/v1/shipments/:id/check-in",
+      "permission": "shipment:checkin",
+      "scope": "Only the driver assigned to this shipment in this tenant can check in. Unassigned, other-tenant and other-role requests are denied. Throttled to 30 per minute."
+    }
+  },
+  "sampleRequest": {
+    "borderPost": "Kasumbalesa",
+    "note": "Synthetic sample check-in"
+  },
+  "sampleResponse": {
+    "id": "0199f2b0-0000-7000-8000-000000000009",
+    "fromStage": "docs_received",
+    "toStage": "docs_received",
+    "note": "Border check-in at Kasumbalesa: Synthetic sample check-in",
+    "source": "driver",
+    "actorUserId": "0199f2b0-0000-7000-8000-000000000008",
+    "createdAt": "2026-11-27T10:30:00.000Z"
+  },
+  "guardrails": [
+    "The stage is unchanged: a check-in is an observation, not a customs decision, a release or an assessment.",
+    "Check-ins are append-only shipment_events with source=driver; the state change also writes an audit entry.",
+    "Drivers have no access to invoices, reviews, quotes, exports or documents; their shipment list and detail are limited to assigned cases."
+  ],
+  "errorExamples": {
+    "unassignedShipment": {
+      "status": 404,
+      "body": { "error": { "code": "NOT_FOUND", "message": "Shipment not found" } }
+    },
+    "wrongRole": {
+      "status": 403,
+      "body": { "error": { "code": "FORBIDDEN", "message": "Not permitted" } }
+    },
+    "invalidInput": {
+      "status": 400,
+      "body": { "error": { "code": "VALIDATION_ERROR", "message": "Invalid request" } }
+    }
+  }
+}

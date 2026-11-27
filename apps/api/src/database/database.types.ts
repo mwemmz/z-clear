@@ -78,6 +78,8 @@ export interface ShipmentsTable {
   importer_user_id: Nullable<string>;
   /** Agent staff member responsible for the review workflow. */
   assigned_agent_id: Nullable<string>;
+  /** Driver who may record a manual border check-in. */
+  driver_user_id: Nullable<string>;
   /** Bumped on material edits; review revisions pin their baseline. */
   review_freshness: Generated<number>;
   is_active: Generated<boolean>;
@@ -94,7 +96,7 @@ export interface ShipmentEventsTable {
   from_stage: Nullable<ShipmentStatus>;
   to_stage: ShipmentStatus;
   note: Nullable<string>;
-  source: Generated<'manual' | 'system'>;
+  source: Generated<'manual' | 'system' | 'driver'>;
   actor_user_id: Nullable<string>;
   created_at: Timestamp;
 }

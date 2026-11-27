@@ -75,6 +75,24 @@ export const updateStageSchema = z
     path: ['holdReason'],
   });
 
+/** Assign a tenant driver to a shipment. Staff-only, audited. */
+export const assignDriverSchema = z
+  .object({
+    driverId: z.string().uuid(),
+  })
+  .strict();
+
+/**
+ * Manual border check-in recorded by the assigned driver. No live border feed,
+ * no ASYCUDA update and no stage change: it is an event in the case timeline.
+ */
+export const checkInSchema = z
+  .object({
+    borderPost: z.string().trim().min(1).max(200),
+    note: note.optional(),
+  })
+  .strict();
+
 export const listShipmentsSchema = z
   .object({
     stage: z.enum(SHIPMENT_STATUSES).optional(),
@@ -88,6 +106,8 @@ export type CreateShipmentInput = z.infer<typeof createShipmentSchema>;
 export type UpdateShipmentInput = z.infer<typeof updateShipmentSchema>;
 export type UpdateStageInput = z.infer<typeof updateStageSchema>;
 export type ListShipmentsQuery = z.infer<typeof listShipmentsSchema>;
+export type AssignDriverInput = z.infer<typeof assignDriverSchema>;
+export type CheckInInput = z.infer<typeof checkInSchema>;
 
 export interface ShipmentSummary {
   id: string;
@@ -102,6 +122,7 @@ export interface ShipmentSummary {
   consignment: Record<string, unknown>;
   importerUserId: string | null;
   assignedAgentId: string | null;
+  driverUserId: string | null;
   reviewFreshness: number;
   createdAt: string;
   updatedAt: string;

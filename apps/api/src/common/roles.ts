@@ -1,4 +1,10 @@
-export const ROLES = ['agency_owner', 'agent_staff', 'client_viewer', 'platform_admin'] as const;
+export const ROLES = [
+  'agency_owner',
+  'agent_staff',
+  'client_viewer',
+  'platform_admin',
+  'driver',
+] as const;
 export type Role = (typeof ROLES)[number];
 
 export function isRole(value: string): value is Role {

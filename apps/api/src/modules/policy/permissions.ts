@@ -16,6 +16,8 @@ export const PERMISSIONS = [
   'shipment:create',
   'shipment:update',
   'shipment:stage',
+  // Drivers record a manual border check-in on the shipment assigned to them.
+  'shipment:checkin',
   // Importers may open their own case before an agent is appointed. The
   // service always sets importer_user_id to the caller; no other role gets it.
   'case:create',
@@ -155,6 +157,9 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'compliance:read',
     'self:read',
   ],
+  // Narrow role: see only shipments assigned to this driver and record a
+  // manual check-in. No invoices, reviews, quotes, files or export access.
+  driver: ['self:read', 'shipment:read', 'shipment:checkin'],
 };
 
 export function roleHasPermissions(role: Role, required: readonly Permission[]): boolean {

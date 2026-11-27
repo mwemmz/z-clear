@@ -11,6 +11,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { z } from 'zod';
 import type { Request } from 'express';
 import { ZodValidationPipe } from '../../common/validation/zod-validation.pipe';
@@ -19,10 +20,14 @@ import type { AuthenticatedUser } from '../auth/auth.types';
 import type { RequestMeta } from '../auth/auth.service';
 import { ShipmentsService } from './shipments.service';
 import {
+  assignDriverSchema,
+  checkInSchema,
   createShipmentSchema,
   listShipmentsSchema,
   updateShipmentSchema,
   updateStageSchema,
+  type AssignDriverInput,
+  type CheckInInput,
   type CreateShipmentInput,
   type ListShipmentsQuery,
   type ShipmentDetail,
@@ -93,6 +98,35 @@ export class ShipmentsController {
     @Req() req: Request,
   ): Promise<ShipmentSummary> {
     return this.shipments.updateStage(user.tenantId, user.userId, id, body, metaOf(req));
+  }
+
+  @RequirePermissions('shipment:update')
+  @Post(':id/assign-driver')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Assign a tenant driver to a shipment' })
+  assignDriver(
+    @Param('id', uuidParam) id: string,
+    @Body(new ZodValidationPipe(assignDriverSchema)) body: AssignDriverInput,
+    @CurrentUser() user: AuthenticatedUser,
+    @Req() req: Request,
+  ): Promise<ShipmentSummary> {
+    return this.shipments.assignDriver(user.tenantId, user.userId, id, body, metaOf(req));
+  }
+
+  @RequirePermissions('shipment:checkin')
+  @Post(':id/check-in')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @ApiOperation({
+    summary: 'Record a manual border check-in on the shipment assigned to the driver',
+  })
+  checkIn(
+    @Param('id', uuidParam) id: string,
+    @Body(new ZodValidationPipe(checkInSchema)) body: CheckInInput,
+    @CurrentUser() user: AuthenticatedUser,
+    @Req() req: Request,
+  ): Promise<ShipmentEventSummary> {
+    return this.shipments.checkIn(user.tenantId, user.userId, id, body, metaOf(req));
   }
 
   @RequirePermissions('shipment:read')

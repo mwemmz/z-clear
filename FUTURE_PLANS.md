@@ -132,7 +132,8 @@ labelled "Mock-up, sample data"; `Roadmap` means slide-only.
 | Cost check / advance-tax figures | Mock | sample figures only; "estimate, confirm with ZRA" |
 | SMS/USSD-style status messages | Mock | sample messages; `sms_mock` outbox interface only, no real provider |
 | Zamtel Money fee payment screen | Mock | over an existing invoice; no integration |
-| Cross check-in, border-ready, arrival/congestion | Mock | labelled "illustrative, not live data" |
+| Manual driver check-in (assigned driver, event only) | Real API | `POST /shipments/:id/assign-driver`, `POST /shipments/:id/check-in`; narrow `driver` role and `driver-checkins.e2e.spec.ts`; `docs/api/driver-checkin.json` |
+| Border-ready arrival/congestion illustration | Mock | labelled "illustrative, not live data" |
 | Local-language strings | Mock, could | only if speaker-checked; else Roadmap |
 | Polished handoff file/UI | Roadmap | only the "ready" state and JSON artifact are Real |
 | Cell-tower tracking | Roadmap | needs legal authority and driver consent |
@@ -155,6 +156,22 @@ Branch `feat/importer-self-service`; small commits; synthetic data only. See
 | 5 | Valuation-disagree information flow + query to agent (API + web) | Done (`882776e`, `4b50ee8`, `0f8b1a2`) |
 | 6 | Notification SMS interface + mock implementation | Done (`8065235`) |
 | 7 | Pre-import compliance assistant + VERIFIED-only estimator | Done (`5ec14ea`, `4703302`, `d46bd8a`) |
+
+### Final owner request (in progress)
+
+- **Free Render plan:** API `plan: free`; no database in the Blueprint; Neon
+  supplies `DATABASE_URL` and `DATABASE_MIGRATION_URL`; paid-only
+  `preDeployCommand` removed and idempotent migrations/grants moved to
+  `startCommand` (`76ac514`).
+- **Tenant `driver` role and manual check-in (Real API, done):** new migration
+  adds the role, `shipments.driver_user_id` and `shipment_events.source='driver'`;
+  staff assign a tenant driver; the assigned driver records an append-only event
+  without changing the stage. Permissions are
+  `self:read`, `shipment:read`, `shipment:checkin` only. Phone-first UI is still
+  in progress.
+- **Outstanding:** four demo logins, split login panel, real in-scope workflows
+  for agent reviews/registry guidance/SMS status/payment capture/driver UI,
+  final docs and push to `master`.
 
 ## 10. Verification gates and handoff
 

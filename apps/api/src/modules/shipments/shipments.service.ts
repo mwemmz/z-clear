@@ -10,6 +10,8 @@ import { AuditService } from '../audit/audit.service';
 import type { RequestMeta } from '../auth/auth.service';
 import {
   MATERIAL_SHIPMENT_FIELDS,
+  type AssignDriverInput,
+  type CheckInInput,
   type CreateShipmentInput,
   type ListShipmentsQuery,
   type ShipmentDetail,
@@ -34,6 +36,7 @@ const SHIPMENT_COLUMNS = [
   'consignment',
   'importer_user_id',
   'assigned_agent_id',
+  'driver_user_id',
   'review_freshness',
   'created_at',
   'updated_at',
@@ -66,6 +69,8 @@ export class ShipmentsService {
         .where('is_active', '=', true);
       if (viewer?.role === 'client_viewer') {
         builder = builder.where('importer_user_id', '=', viewer.userId);
+      } else if (viewer?.role === 'driver') {
+        builder = builder.where('driver_user_id', '=', viewer.userId);
       }
       if (query.stage) {
         builder = builder.where('stage', '=', query.stage);
@@ -98,6 +103,8 @@ export class ShipmentsService {
       let builder = trx.selectFrom('shipments').select(SHIPMENT_COLUMNS).where('id', '=', id);
       if (viewer?.role === 'client_viewer') {
         builder = builder.where('importer_user_id', '=', viewer.userId);
+      } else if (viewer?.role === 'driver') {
+        builder = builder.where('driver_user_id', '=', viewer.userId);
       }
       const row = await builder.executeTakeFirst();
       if (!row) throw ApiError.notFound('Shipment not found');
@@ -314,6 +321,114 @@ export class ShipmentsService {
     });
   }
 
+  /**
+   * Assigns a tenant driver to a shipment. Staff-only; the driver cannot assign
+   * themselves. Assignment is required before any check-in can be recorded.
+   */
+  async assignDriver(
+    tenantId: string,
+    actorUserId: string,
+    id: string,
+    input: AssignDriverInput,
+    meta: RequestMeta,
+  ): Promise<ShipmentSummary> {
+    return this.db.withTenant(tenantId, async (trx) => {
+      const driver = await trx
+        .selectFrom('users')
+        .select(['id', 'role', 'is_active'])
+        .where('id', '=', input.driverId)
+        .where('tenant_id', '=', tenantId)
+        .executeTakeFirst();
+      if (!driver || !driver.is_active || driver.role !== 'driver') {
+        throw ApiError.validation('Driver not found in this tenant', [
+          { field: 'driverId', issue: 'must reference an active tenant driver' },
+        ]);
+      }
+
+      const row = await trx
+        .updateTable('shipments')
+        .set({ driver_user_id: input.driverId, updated_by: actorUserId, updated_at: new Date() })
+        .where('id', '=', id)
+        .returning(SHIPMENT_COLUMNS)
+        .executeTakeFirst();
+      if (!row) throw ApiError.notFound('Shipment not found');
+
+      await this.audit.recordInTransaction(trx, {
+        tenantId,
+        actorUserId,
+        action: 'shipment.driver_assigned',
+        entityType: 'shipment',
+        entityId: id,
+        metadata: { driverId: input.driverId },
+        ip: meta.ip,
+        userAgent: meta.userAgent,
+      });
+      return toSummary(row);
+    });
+  }
+
+  /**
+   * Records a manual border check-in from the assigned driver as an append-only
+   * timeline event. The stage is deliberately unchanged: this is a recorded
+   * observation, not a customs decision, a release or an ASYCUDA update.
+   */
+  async checkIn(
+    tenantId: string,
+    actorUserId: string,
+    id: string,
+    input: CheckInInput,
+    meta: RequestMeta,
+  ): Promise<ShipmentEventSummary> {
+    return this.db.withTenant(tenantId, async (trx) => {
+      const shipment = await trx
+        .selectFrom('shipments')
+        .select(['stage', 'driver_user_id'])
+        .where('id', '=', id)
+        .where('driver_user_id', '=', actorUserId)
+        .executeTakeFirst();
+      if (!shipment) throw ApiError.notFound('Shipment not found');
+
+      const noteText = [
+        `Border check-in at ${input.borderPost}`,
+        ...(input.note ? [input.note] : []),
+      ].join(': ');
+      const event = await trx
+        .insertInto('shipment_events')
+        .values({
+          id: uuidv7(),
+          tenant_id: tenantId,
+          shipment_id: id,
+          from_stage: shipment.stage,
+          to_stage: shipment.stage,
+          note: noteText,
+          source: 'driver',
+          actor_user_id: actorUserId,
+        })
+        .returning([
+          'id',
+          'from_stage',
+          'to_stage',
+          'note',
+          'source',
+          'actor_user_id',
+          'created_at',
+        ])
+        .executeTakeFirstOrThrow();
+
+      await this.audit.recordInTransaction(trx, {
+        tenantId,
+        actorUserId,
+        action: 'shipment.check_in',
+        entityType: 'shipment',
+        entityId: id,
+        metadata: { borderPost: input.borderPost, eventId: event.id },
+        ip: meta.ip,
+        userAgent: meta.userAgent,
+      });
+      return toEventSummary(event);
+    });
+  }
+
   async listEvents(
     tenantId: string,
     id: string,
@@ -323,6 +438,8 @@ export class ShipmentsService {
       let builder = trx.selectFrom('shipments').select('id').where('id', '=', id);
       if (viewer?.role === 'client_viewer') {
         builder = builder.where('importer_user_id', '=', viewer.userId);
+      } else if (viewer?.role === 'driver') {
+        builder = builder.where('driver_user_id', '=', viewer.userId);
       }
       const shipment = await builder.executeTakeFirst();
       if (!shipment) throw ApiError.notFound('Shipment not found');
@@ -398,6 +515,7 @@ function toSummary(row: {
   consignment: Record<string, unknown>;
   importer_user_id: string | null;
   assigned_agent_id: string | null;
+  driver_user_id: string | null;
   review_freshness: number;
   created_at: Date;
   updated_at: Date;
@@ -415,6 +533,7 @@ function toSummary(row: {
     consignment: row.consignment ?? {},
     importerUserId: row.importer_user_id,
     assignedAgentId: row.assigned_agent_id,
+    driverUserId: row.driver_user_id,
     reviewFreshness: row.review_freshness,
     createdAt: row.created_at.toISOString(),
     updatedAt: row.updated_at.toISOString(),
