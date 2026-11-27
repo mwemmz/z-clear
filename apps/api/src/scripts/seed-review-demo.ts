@@ -30,6 +30,19 @@ const REVIEW_ID = '01920000-0000-7000-8000-00000000d007';
 const POINTS_ID = '01920000-0000-7000-8000-00000000d008';
 const ADMIN_ID = '01920000-0000-7000-8000-00000000d009';
 const DRIVER_ID = '01920000-0000-7000-8000-00000000d00a';
+const INVOICE_ID = '01920000-0000-7000-8000-00000000d00b';
+const INVOICE_LINE_ID = '01920000-0000-7000-8000-00000000d00c';
+
+/**
+ * Synthetic agency service fee only — not a customs assessment, duty, VAT or a
+ * payable amount. The demo uses it solely to show manual payment capture.
+ */
+export const DEMO_INVOICE = {
+  id: INVOICE_ID,
+  number: 'INV-0001',
+  amountMinor: 60_000,
+  note: 'Synthetic demo: agency clearance service fee only. Not a ZRA assessment; no duty or VAT included.',
+} as const;
 
 // Synthetic TPINs: clearly fake, digits only. The shipment TPIN matches the
 // assigned importer's on purpose; the other importer carries a different one.
@@ -197,10 +210,45 @@ async function main(): Promise<void> {
       [POINTS_ID, TENANT_ID, AGENT_ID, SHIPMENT_ID, REVIEW_ID],
     );
 
+    // One issued invoice with a labelled agency service amount only. No duty,
+    // VAT or ZRA assessment figure is invented for the demo.
+    await db.query(
+      `insert into invoices (id, tenant_id, shipment_id, number, currency, status, issue_date,
+         notes, vat_rate_bp, vat_verification_status, subtotal_minor, tax_minor, total_minor,
+         amount_paid_minor, issued_at, created_by, updated_by)
+       values ($1, $2, $3, $4, 'ZMW', 'issued', CURRENT_DATE, $5, 0, 'NEEDS_VERIFICATION',
+         $6, 0, $6, 0, now(), $7, $7)
+       on conflict (id) do nothing`,
+      [
+        INVOICE_ID,
+        TENANT_ID,
+        SHIPMENT_ID,
+        DEMO_INVOICE.number,
+        DEMO_INVOICE.note,
+        DEMO_INVOICE.amountMinor,
+        AGENT_ID,
+      ],
+    );
+    await db.query(
+      `insert into invoice_lines (id, tenant_id, invoice_id, charge_type_code, description,
+         quantity, unit_amount_minor, line_amount_minor, is_taxable, tax_minor, sort_order)
+       values ($1, $2, $3, 'agency_fee', 'Agency clearance service fee (synthetic)',
+         1, $4, $4, false, 0, 1)
+       on conflict (id) do nothing`,
+      [INVOICE_LINE_ID, TENANT_ID, INVOICE_ID, DEMO_INVOICE.amountMinor],
+    );
+    await db.query(
+      `insert into invoice_counters (tenant_id, last_number) values ($1, 1)
+       on conflict (tenant_id) do update
+         set last_number = greatest(invoice_counters.last_number, excluded.last_number)`,
+      [TENANT_ID],
+    );
+
     await db.query('commit');
     console.log(
       `Seed complete. Demo logins: ${DEMO_LOGINS.map((user) => `${user.label} ${user.email}`).join(' | ')} | ` +
-        'shipment DEMO-IMPORT-0001 | review in_review | 10 seeded points',
+        'shipment DEMO-IMPORT-0001 | review in_review | 10 seeded points | ' +
+        `issued invoice ${DEMO_INVOICE.number} (agency service fee only, not a ZRA assessment)`,
     );
   } catch (error) {
     await db.query('rollback');

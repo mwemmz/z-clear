@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { DEMO_LOGINS, DEMO_USERS, demoPassword } from './seed-review-demo';
+import { DEMO_INVOICE, DEMO_LOGINS, DEMO_USERS, demoPassword } from './seed-review-demo';
 
 const originalPassword = process.env.DEMO_PASSWORD;
 
@@ -19,6 +19,13 @@ describe('local demo seed', () => {
     expect(DEMO_LOGINS.every((user) => user.email.endsWith('.example'))).toBe(true);
     expect(new Set(DEMO_LOGINS.map((user) => user.email)).size).toBe(DEMO_LOGINS.length);
     expect(new Set(DEMO_USERS.map((user) => user.id)).size).toBe(DEMO_USERS.length);
+  });
+
+  it('seeds only a labelled agency service amount, never a customs assessment', () => {
+    expect(DEMO_INVOICE.amountMinor).toBeGreaterThan(0);
+    expect(DEMO_INVOICE.note).toMatch(/agency clearance service fee only/);
+    expect(DEMO_INVOICE.note).toMatch(/not a ZRA assessment/i);
+    expect(DEMO_INVOICE.note).toMatch(/no duty or VAT/);
   });
 
   it('takes the demo password only from the environment', () => {
