@@ -13,6 +13,7 @@ import { BillingModule } from './modules/billing/billing.module';
 import { CasesModule } from './modules/cases/cases.module';
 import { ComplianceModule } from './modules/compliance/compliance.module';
 import { DocumentsModule } from './modules/documents/documents.module';
+import { GuidanceModule } from './modules/guidance/guidance.module';
 import { HandoffModule } from './modules/handoff/handoff.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { RequirementsModule } from './modules/requirements/requirements.module';
@@ -46,6 +47,7 @@ import { UsersModule } from './modules/users/users.module';
     ComplianceModule,
     DocumentsModule,
     RequirementsModule,
+    GuidanceModule,
     BillingModule,
     ReviewsModule,
     HandoffModule,

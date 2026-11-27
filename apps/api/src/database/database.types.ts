@@ -180,6 +180,21 @@ export interface DocumentRequirementsTable {
   updated_at: Timestamp;
 }
 
+export interface RegistryGuidanceTable {
+  id: string;
+  tenant_id: string;
+  step_key: string;
+  title: string;
+  detail: Nullable<string>;
+  sort_order: Generated<number>;
+  is_active: Generated<boolean>;
+  source_url: Nullable<string>;
+  effective_date: Nullable<Date>;
+  verification_status: Generated<VerificationStatus>;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
 export interface ChargeTypesTable {
   code: string;
   label: string;
@@ -415,6 +430,7 @@ export interface Database {
   documents: DocumentsTable;
   files: FilesTable;
   document_requirements: DocumentRequirementsTable;
+  registry_guidance: RegistryGuidanceTable;
   charge_types: ChargeTypesTable;
   tax_rates: TaxRatesTable;
   quotes: QuotesTable;

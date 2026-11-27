@@ -1,0 +1,73 @@
+{
+  "$comment": "Z Clear — registry guidance. Synthetic sample only. These steps are agency configuration, not a ZRA list or an assessment. Nothing is filed with ZRA or ASYCUDA.",
+  "endpoints": {
+    "list": {
+      "method": "GET",
+      "path": "/api/v1/guidance",
+      "permission": "guidance:read",
+      "query": "includeInactive=false by default"
+    },
+    "create": {
+      "method": "POST",
+      "path": "/api/v1/guidance",
+      "permission": "guidance:write",
+      "throttle": "60 per minute"
+    },
+    "update": {
+      "method": "PATCH",
+      "path": "/api/v1/guidance/:id",
+      "permission": "guidance:write"
+    },
+    "remove": {
+      "method": "DELETE",
+      "path": "/api/v1/guidance/:id",
+      "permission": "guidance:write"
+    }
+  },
+  "sampleRequest": {
+    "stepKey": "tpin_registration",
+    "title": "TPIN registration",
+    "detail": "Agency guidance only; confirm current requirements with ZRA.",
+    "sortOrder": 1,
+    "sourceUrl": "https://example.com/agency-guidance",
+    "effectiveDate": "2026-11-01",
+    "verificationStatus": "NEEDS_VERIFICATION"
+  },
+  "sampleResponse": [
+    {
+      "id": "0199f2b0-0000-7000-8000-000000000030",
+      "stepKey": "tpin_registration",
+      "title": "TPIN registration",
+      "detail": "Agency guidance only; confirm current requirements with ZRA.",
+      "sortOrder": 1,
+      "isActive": true,
+      "sourceUrl": "https://example.com/agency-guidance",
+      "effectiveDate": "2026-11-01",
+      "verificationStatus": "NEEDS_VERIFICATION",
+      "isVerified": false
+    }
+  ],
+  "guardrails": [
+    "No guidance rows are seeded by the platform; a new tenant sees an empty list.",
+    "VERIFIED is rejected by zod and the UI unless a sourceUrl is present; unverified rows are labelled 'Needs verification'.",
+    "Every create/update/delete writes an audit entry; rows are tenant-scoped with RLS.",
+    "Importers may read guidance but may not change it; drivers have no access.",
+    "The UI says nothing is filed with ZRA and customs stays manual in ASYCUDA World."
+  ],
+  "errorExamples": {
+    "verifiedWithoutSource": {
+      "status": 400,
+      "body": {
+        "error": { "code": "VALIDATION_ERROR", "message": "VERIFIED requires a sourceUrl" }
+      }
+    },
+    "otherTenantRow": {
+      "status": 404,
+      "body": { "error": { "code": "NOT_FOUND", "message": "Guidance step not found" } }
+    },
+    "wrongRole": {
+      "status": 403,
+      "body": { "error": { "code": "FORBIDDEN", "message": "Not permitted" } }
+    }
+  }
+}
