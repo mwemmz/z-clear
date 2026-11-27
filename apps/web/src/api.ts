@@ -1,6 +1,9 @@
 import type {
   CaseStatusAnswer,
+  ImporterReviewAction,
+  ImporterReviewState,
   PersonalisedChecklist,
+  RecordedValuation,
   ShipmentStatus,
   ShipmentType,
 } from '@zclear/shared';
@@ -87,6 +90,26 @@ export interface CaseStatus {
   notice: string;
 }
 
+export interface CaseValuation {
+  caseId: string;
+  recorded: RecordedValuation | null;
+  notice: string;
+  review: {
+    id: string;
+    revision: number;
+    state: ImporterReviewState;
+    query: string | null;
+    allowedActions: ImporterReviewAction[];
+  } | null;
+}
+
+export interface ReviewQueryResult {
+  id: string;
+  revision: number;
+  state: ImporterReviewState;
+  query: string | null;
+}
+
 export interface AppointmentResult {
   agencyTenantId: string;
   mustReauthenticate: true;
@@ -165,6 +188,17 @@ export const api = {
 
   getCaseStatus(token: string, caseId: string): Promise<CaseStatus> {
     return request(`/cases/${encodeURIComponent(caseId)}/status`, token);
+  },
+
+  getCaseValuation(token: string, caseId: string): Promise<CaseValuation> {
+    return request(`/cases/${encodeURIComponent(caseId)}/valuation`, token);
+  },
+
+  queryReview(token: string, reviewId: string, message: string): Promise<ReviewQueryResult> {
+    return request(`/reviews/${encodeURIComponent(reviewId)}/query`, token, {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+    });
   },
 
   listAgentProfiles(token: string): Promise<AgentDirectoryEntry[]> {

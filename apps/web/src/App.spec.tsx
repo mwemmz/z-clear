@@ -55,7 +55,8 @@ function stubApi(
     role: overrides.role ?? 'agent_staff',
   };
   const shipment = { ...summary, assignedAgentId: overrides.assignedAgentId ?? null };
-  const fetchMock = vi.fn(async (input: RequestInfo | URL, _init?: RequestInit) => {
+  let queryPosted = false;
+  const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     if (url.endsWith('/api/v1/auth/login')) {
       return overrides.loginStatus
@@ -86,6 +87,36 @@ function stubApi(
     }
     if (url.endsWith('/api/v1/appointments')) {
       return jsonResponse({ agencyTenantId: 't2', mustReauthenticate: true }, 201);
+    }
+    if (url.endsWith('/api/v1/cases/s1/valuation')) {
+      return jsonResponse({
+        caseId: 's1',
+        recorded: {
+          label: 'Value you recorded',
+          description: 'Packaged maize flour',
+          amountMinor: 32000000,
+          currency: 'ZMW',
+          formatted: 'K 320,000.00',
+        },
+        notice:
+          'This is the value recorded on your case, not a customs assessment. Z Clear does not decide customs value, assess duty or tax, or send anything to ZRA. Customs value is decided in ASYCUDA World.',
+        review: {
+          id: 'r1',
+          revision: 1,
+          state: queryPosted ? 'queried' : 'in_review',
+          query: queryPosted ? 'The value does not match my records.' : null,
+          allowedActions: queryPosted ? [] : ['query'],
+        },
+      });
+    }
+    if (url.endsWith('/api/v1/reviews/r1/query') && init?.method === 'POST') {
+      queryPosted = true;
+      return jsonResponse({
+        id: 'r1',
+        revision: 1,
+        state: 'queried',
+        query: 'The value does not match my records.',
+      });
     }
     if (url.endsWith('/api/v1/cases/s1/status')) {
       return jsonResponse({
@@ -217,6 +248,31 @@ describe('App', () => {
     );
   });
 
+  it('lets an importer query the agent when the recorded value is disputed', async () => {
+    const fetchMock = stubApi({ role: 'client_viewer' });
+    render(<App />);
+    await signIn();
+
+    expect(await screen.findByTestId('valuation-amount')).toHaveTextContent(/320/);
+    expect(screen.getByTestId('valuation-notice')).toHaveTextContent(/not a customs assessment/);
+    fireEvent.change(screen.getByLabelText(/If this is not what you meant/), {
+      target: { value: 'The value does not match my records.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send question to my agent' }));
+
+    expect(await screen.findByTestId('valuation-confirmation')).toHaveTextContent(/recorded/);
+    expect(await screen.findByTestId('recorded-question')).toHaveTextContent(
+      'The value does not match my records.',
+    );
+    const call = fetchMock.mock.calls.find(
+      ([url, init]) => String(url).endsWith('/api/v1/reviews/r1/query') && init?.method === 'POST',
+    );
+    expect(call).toBeDefined();
+    expect(JSON.parse(String(call?.[1]?.body))).toEqual({
+      message: 'The value does not match my records.',
+    });
+  });
+
   it('does not show the importer checklist to agent staff', async () => {
     stubApi();
     render(<App />);
@@ -225,6 +281,7 @@ describe('App', () => {
     expect(await screen.findByTestId('case-reference')).toBeInTheDocument();
     expect(screen.queryByText('Your document checklist')).not.toBeInTheDocument();
     expect(screen.queryByTestId('case-status-answers')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('recorded-valuation')).not.toBeInTheDocument();
   });
 
   it('lets an importer open a typed case before any agent is appointed', async () => {

@@ -295,6 +295,30 @@ body {
   margin: 0.15rem 0 0;
 }
 
+/* --- Importer valuation question --- */
+.valuation {
+  margin: 0 0 0.75rem;
+}
+
+.valuation dt {
+  font-weight: 600;
+}
+
+.valuation dd {
+  margin: 0.15rem 0 0.6rem;
+}
+
+.valuation-form textarea {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  color: var(--fg);
+  font: inherit;
+  margin: 0.35rem 0 0.75rem;
+  padding: 0.55rem 0.65rem;
+  width: 100%;
+}
+
 /* --- Importer agent directory --- */
 .agent-options {
   border: 0;
