@@ -45,6 +45,7 @@ export interface ShipmentSummary {
   destination: string | null;
   consignment: Record<string, unknown>;
   assignedAgentId: string | null;
+  driverUserId?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -110,6 +111,20 @@ export interface ReviewQueryResult {
   revision: number;
   state: ImporterReviewState;
   query: string | null;
+}
+
+/** Staff inbox view backed by GET /reviews; no rating or directory data here. */
+export interface AgentReviewSummary {
+  id: string;
+  shipmentId: string;
+  revision: number;
+  state: ImporterReviewState;
+  message: string | null;
+  query: string | null;
+  isStale: boolean;
+  allowedActions: ImporterReviewAction[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ComplianceAssistantResult {
@@ -184,6 +199,23 @@ export const api = {
 
   getShipment(token: string, id: string): Promise<ShipmentDetail> {
     return request(`/shipments/${encodeURIComponent(id)}`, token);
+  },
+
+  checkInShipment(
+    token: string,
+    shipmentId: string,
+    input: { borderPost: string; note?: string },
+  ): Promise<ShipmentEventSummary> {
+    return request(`/shipments/${encodeURIComponent(shipmentId)}/check-in`, token, {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
+  },
+
+  listReviews(token: string, shipmentId?: string): Promise<AgentReviewSummary[]> {
+    const query = new URLSearchParams({ limit: '50' });
+    if (shipmentId) query.set('shipmentId', shipmentId);
+    return request(`/reviews?${query.toString()}`, token);
   },
 
   createCase(token: string, input: CreateCaseInput): Promise<ShipmentSummary> {

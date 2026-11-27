@@ -12,7 +12,8 @@ World.
 |---|---|---|
 | Tenancy, Argon2id auth, JWT + refresh, RBAC, RLS, audit log | **Real** | Phase 1 modules and cross-tenant e2e tests |
 | Shipments, one-tap stage updates, append-only `shipment_events` | **Real** | `apps/api/src/modules/shipments`, `shipments.e2e.spec.ts` |
-| Tenant-scoped `driver` role and manual border check-in | **Real API, UI pending** | `1738000000000_driver-checkins.js`, `driver-checkins.e2e.spec.ts`, `docs/api/driver-checkin.json`; no stage change, no live border feed |
+| Tenant-scoped `driver` role and manual border check-in | **Real** | `1738000000000_driver-checkins.js`, `driver-checkins.e2e.spec.ts`, `DriverCheckIn.tsx`, `docs/api/driver-checkin.json`; no stage change, no live border feed |
+| Agent review inbox | **Real** | `AgentReviews.tsx` over `GET /reviews`; state, revision and query come from the API; no mock rating data |
 | Document checklists, private storage, signed downloads, scan-status gate | **Real** | Phase 3; default scanner is a no-op (`skipped`) |
 | Quotes, ZMW invoices, payments, per-tenant numbering, VAT config | **Real** | Phase 4; VAT 16% flagged `NEEDS_VERIFICATION` |
 | Importer review: send → query → revise → approve, draft check, points ledger | **Real** | Dev 1's `reviews` module, `reviews.e2e.spec.ts` |

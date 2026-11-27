@@ -49,10 +49,11 @@ pnpm dev                      # API :3000, web :5173 (web proxies /api)
    manual check-in.
 6. To switch roles quickly, sign out between runs; the demo token is held in
    `sessionStorage` only.
-7. The **MOCKUPS** toggle in the app shell reveals six static labelled screens
-   (SIM sign-up/PIN, registry guidance, SMS status, Zamtel Money payment, agent
-   reviews, Cross check-in). Each has a `MOCK` badge and says "sample data only
-   — no API calls". Announce each one aloud as "this screen is a mock-up".
+7. Agency staff and drivers now see real review-inbox and check-in cards backed
+   by the API. The **MOCKUPS** toggle reveals four remaining static labelled
+   screens (SIM sign-up/PIN, registry guidance, SMS status, Zamtel Money
+   payment). Each has a `MOCK` badge and says "sample data only — no API calls".
+   Announce each one aloud as "this screen is a mock-up".
 
 ## 3. Exact click-by-click demo order
 

@@ -56,6 +56,7 @@ function stubApi(
   };
   const shipment = { ...summary, assignedAgentId: overrides.assignedAgentId ?? null };
   let queryPosted = false;
+  let checkInPosted = false;
   const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     if (url.endsWith('/api/v1/auth/login')) {
@@ -68,8 +69,78 @@ function stubApi(
     }
     if (url.endsWith('/api/v1/auth/me')) return jsonResponse(user);
     if (url.endsWith('/api/v1/shipments?limit=50')) return jsonResponse([shipment]);
+    if (url.endsWith('/api/v1/shipments/s1/check-in') && init?.method === 'POST') {
+      checkInPosted = true;
+      const body = JSON.parse(String(init.body ?? '{}')) as { borderPost: string; note?: string };
+      return jsonResponse({
+        id: 'e2',
+        fromStage: summary.stage,
+        toStage: summary.stage,
+        note: `Border check-in at ${body.borderPost}`,
+        source: 'driver',
+        actorUserId: 'u1',
+        createdAt: '2026-11-27T10:30:00.000Z',
+      });
+    }
     if (url.endsWith('/api/v1/shipments/s1')) {
-      return jsonResponse({ ...detail, assignedAgentId: shipment.assignedAgentId });
+      return jsonResponse({
+        ...detail,
+        assignedAgentId: shipment.assignedAgentId,
+        events: checkInPosted
+          ? [
+              ...detail.events,
+              {
+                id: 'e2',
+                fromStage: summary.stage,
+                toStage: summary.stage,
+                note: 'Border check-in at Kasumbalesa',
+                source: 'driver',
+                actorUserId: 'u1',
+                createdAt: '2026-11-27T10:30:00.000Z',
+              },
+            ]
+          : detail.events,
+      });
+    }
+    if (url.endsWith('/api/v1/reviews?limit=50')) {
+      return jsonResponse([
+        {
+          id: 'r1',
+          shipmentId: 's1',
+          revision: 3,
+          state: 'in_review',
+          message: 'Please confirm the shipment details.',
+          query: null,
+          wording: null,
+          wordingSource: 'fixed',
+          sentAt: '2026-11-27T09:00:00.000Z',
+          queriedAt: null,
+          approvedAt: null,
+          isStale: false,
+          allowedActions: ['query', 'approve'],
+          draftFindings: [],
+          createdAt: '2026-11-27T09:00:00.000Z',
+          updatedAt: '2026-11-27T09:00:00.000Z',
+        },
+        {
+          id: 'r2',
+          shipmentId: 's1',
+          revision: 4,
+          state: 'queried',
+          message: 'Corrected details.',
+          query: 'Is the destination still Lusaka?',
+          wording: null,
+          wordingSource: 'fixed',
+          sentAt: '2026-11-27T10:00:00.000Z',
+          queriedAt: '2026-11-27T10:10:00.000Z',
+          approvedAt: null,
+          isStale: false,
+          allowedActions: ['send'],
+          draftFindings: [],
+          createdAt: '2026-11-27T10:00:00.000Z',
+          updatedAt: '2026-11-27T10:10:00.000Z',
+        },
+      ]);
     }
     if (url.endsWith('/api/v1/agent-profiles')) {
       return jsonResponse([
@@ -235,6 +306,48 @@ describe('App', () => {
     expect(screen.getByTestId('case-route')).toHaveTextContent('Dar es Salaam → Lusaka');
     expect(screen.getByTestId('case-goods')).toHaveTextContent('goods: Maize');
     expect(screen.getByTestId('case-stage')).toHaveTextContent('Duty paid');
+  });
+
+  it('shows agency staff a real review inbox backed by GET /reviews', async () => {
+    const fetchMock = stubApi();
+    render(<App />);
+    await signIn();
+
+    expect(await screen.findByText('Review inbox')).toBeInTheDocument();
+    expect(await screen.findByText('Waiting for importer')).toBeInTheDocument();
+    expect(screen.getByText('Answer importer query')).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/reviews?limit=50'),
+      expect.any(Object),
+    );
+  });
+
+  it('does not show the staff review inbox to an importer', async () => {
+    stubApi({ role: 'client_viewer' });
+    render(<App />);
+    await signIn();
+
+    expect(await screen.findByTestId('case-reference')).toBeInTheDocument();
+    expect(screen.queryByText('Review inbox')).not.toBeInTheDocument();
+  });
+
+  it('lets the assigned driver record a manual check-in without changing the stage', async () => {
+    const fetchMock = stubApi({ role: 'driver' });
+    render(<App />);
+    await signIn();
+
+    expect(await screen.findByTestId('role-badge')).toHaveTextContent('Driver');
+    expect(await screen.findByText('Driver check-in')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Border post'), {
+      target: { value: 'Kasumbalesa' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Record check-in' }));
+
+    expect(await screen.findByTestId('checkin-status')).toHaveTextContent('stage is unchanged');
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/shipments/s1/check-in'),
+      expect.objectContaining({ method: 'POST' }),
+    );
   });
 
   it('shows the read-only stage timeline and no audit activity list', async () => {

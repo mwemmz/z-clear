@@ -3,22 +3,21 @@ import { render, screen } from '@testing-library/react';
 import { Mockups } from './index';
 
 describe('mockups', () => {
-  it('renders all six labelled mock screens with the MOCK badge', () => {
+  it('renders the four remaining labelled mock screens with the MOCK badge', () => {
     render(<Mockups />);
     const labels = [
       'Zamtel SIM sign-up & PIN',
       'Registry guidance',
       'SMS status updates',
       'Zamtel Money fee payment',
-      'Agent reviews',
-      'Cross check-in',
     ];
     for (const label of labels) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
-    expect(screen.getAllByText('MOCK')).toHaveLength(6);
-    // Sample-data note appears on each screen.
-    expect(screen.getAllByText(/Sample data only/)).toHaveLength(6);
+    expect(screen.getAllByText('MOCK')).toHaveLength(4);
+    expect(screen.getAllByText(/Sample data only/)).toHaveLength(4);
+    expect(screen.queryByText('Agent reviews')).not.toBeInTheDocument();
+    expect(screen.queryByText('Cross check-in')).not.toBeInTheDocument();
   });
 
   it('never presents customs figures as payable in the demo payment screen', () => {

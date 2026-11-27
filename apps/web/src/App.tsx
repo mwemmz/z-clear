@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { SHIPMENT_STATUS_LABELS } from '@zclear/shared';
 import { AgentDirectory } from './AgentDirectory';
+import { AgentReviews } from './AgentReviews';
 import { CaseForm } from './CaseForm';
 import { CaseStatus } from './CaseStatus';
 import { Checklist } from './Checklist';
+import { DriverCheckIn } from './DriverCheckIn';
 import { Mockups } from './mockups';
 import { ComplianceAssistant } from './ComplianceAssistant';
 import { ValuationQuery } from './ValuationQuery';
@@ -285,6 +287,10 @@ export function App() {
             </nav>
           )}
 
+          {['agent_staff', 'agency_owner', 'platform_admin'].includes(user.role) && (
+            <AgentReviews token={token} shipments={shipments} />
+          )}
+
           {detail && (
             <>
               <section aria-labelledby="case-heading" className="card">
@@ -311,6 +317,17 @@ export function App() {
                   </p>
                 )}
               </section>
+
+              {user.role === 'driver' && (
+                <DriverCheckIn
+                  token={token}
+                  shipment={detail}
+                  onCheckedIn={async () => {
+                    const updated = await api.getShipment(token, detail.id);
+                    setDetail(updated);
+                  }}
+                />
+              )}
 
               {user.role === 'client_viewer' && <CaseStatus token={token} caseId={detail.id} />}
 

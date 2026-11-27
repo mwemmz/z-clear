@@ -132,7 +132,8 @@ labelled "Mock-up, sample data"; `Roadmap` means slide-only.
 | Cost check / advance-tax figures | Mock | sample figures only; "estimate, confirm with ZRA" |
 | SMS/USSD-style status messages | Mock | sample messages; `sms_mock` outbox interface only, no real provider |
 | Zamtel Money fee payment screen | Mock | over an existing invoice; no integration |
-| Manual driver check-in (assigned driver, event only) | Real API | `POST /shipments/:id/assign-driver`, `POST /shipments/:id/check-in`; narrow `driver` role and `driver-checkins.e2e.spec.ts`; `docs/api/driver-checkin.json` |
+| Agent review inbox | Real | `AgentReviews.tsx` over `GET /reviews`; state, revision and query from the API; no rating line |
+| Manual driver check-in (assigned driver, event only) | Real | `POST /shipments/:id/assign-driver`, `POST /shipments/:id/check-in`; narrow `driver` role, `driver-checkins.e2e.spec.ts`, phone-first `DriverCheckIn.tsx`; `docs/api/driver-checkin.json` |
 | Border-ready arrival/congestion illustration | Mock | labelled "illustrative, not live data" |
 | Local-language strings | Mock, could | only if speaker-checked; else Roadmap |
 | Polished handoff file/UI | Roadmap | only the "ready" state and JSON artifact are Real |
@@ -174,8 +175,12 @@ Branch `feat/importer-self-service`; small commits; synthetic data only. See
   extra importer supports isolation checks. The sign-in page has the form on the
   left and a short role guide on the right, with no credentials in source. See
   `docs/demo-accounts.md`.
-- **Outstanding:** real in-scope workflows for agent reviews/registry
-  guidance/SMS status/payment capture/driver UI, final docs and push to `master`.
+- **Real staff/driver workflows (done):** `AgentReviews.tsx` reads the review
+  API; `DriverCheckIn.tsx` records a manual check-in through the scoped API and
+  reloads the event timeline. The static Agent reviews and Cross check-in mock
+  screens are no longer shown.
+- **Outstanding:** registry guidance, SMS status and payment capture workflows,
+  final docs and push to `master`.
 
 ## 10. Verification gates and handoff
 
