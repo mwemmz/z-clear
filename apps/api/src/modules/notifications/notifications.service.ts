@@ -2,7 +2,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import { uuidv7 } from '../../common/ids';
 import { DatabaseService } from '../../database/database.service';
 import { AuditService } from '../audit/audit.service';
+import type { Role } from '../../common/roles';
 import type { RequestMeta } from '../auth/auth.service';
+import type { ListNotificationsQuery, NotificationView } from './notifications.dto';
 import {
   NOTIFICATION_PROVIDER_TOKEN,
   type DeliveryResult,
@@ -107,6 +109,55 @@ export class NotificationsService {
         ip: input.meta.ip,
         userAgent: input.meta.userAgent,
       });
+    });
+  }
+
+  /**
+   * Newest-first outbox view. Importers only see outcomes addressed to them;
+   * staff see every outcome in their tenant. Recipient addresses are never
+   * selected, and the whole query runs in the tenant RLS context.
+   */
+  async list(
+    tenantId: string,
+    viewer: { role: Role; userId: string },
+    query: ListNotificationsQuery,
+  ): Promise<NotificationView[]> {
+    return this.db.withTenant(tenantId, async (trx) => {
+      let builder = trx
+        .selectFrom('notification_outbox')
+        .select([
+          'id',
+          'event_type',
+          'entity_type',
+          'entity_id',
+          'channel',
+          'status',
+          'detail',
+          'subject',
+          'created_at',
+        ]);
+      if (viewer.role === 'client_viewer') {
+        builder = builder.where('recipient_user_id', '=', viewer.userId);
+      }
+      if (query.eventType) builder = builder.where('event_type', '=', query.eventType);
+      if (query.status) builder = builder.where('status', '=', query.status);
+      if (query.channel) builder = builder.where('channel', '=', query.channel);
+      const rows = await builder
+        .orderBy('created_at', 'desc')
+        .limit(query.limit)
+        .offset(query.offset)
+        .execute();
+      return rows.map((row) => ({
+        id: row.id,
+        eventType: row.event_type,
+        entityType: row.entity_type,
+        entityId: row.entity_id,
+        channel: row.channel,
+        status: row.status,
+        detail: row.detail,
+        subject: row.subject,
+        createdAt: row.created_at.toISOString(),
+      }));
     });
   }
 

@@ -47,6 +47,9 @@ export const PERMISSIONS = [
   // Importers read the compliance assistant and request an illustrative
   // estimate. Both are read-only computations scoped to the caller's own case.
   'compliance:read',
+  // Read-only delivery outcomes from the provider seam. No recipient address
+  // is returned; importers are further scoped to their own outbox rows.
+  'notification:read',
   'self:read',
 ] as const;
 
@@ -84,6 +87,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'review:query',
     'review:approve',
     'compliance:read',
+    'notification:read',
     'self:read',
   ],
   agent_staff: [
@@ -109,6 +113,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'review:query',
     'review:approve',
     'compliance:read',
+    'notification:read',
     'self:read',
   ],
   client_viewer: [
@@ -126,6 +131,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'review:read',
     'review:query',
     'compliance:read',
+    'notification:read',
     'self:read',
   ],
   platform_admin: [
@@ -155,6 +161,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'review:query',
     'review:approve',
     'compliance:read',
+    'notification:read',
     'self:read',
   ],
   // Narrow role: see only shipments assigned to this driver and record a

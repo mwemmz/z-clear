@@ -1,0 +1,46 @@
+{
+  "$comment": "Z Clear — notification status. Synthetic sample only. These are recorded provider outcomes, not proof of delivery; the sms_mock channel sends nothing.",
+  "endpoint": {
+    "method": "GET",
+    "path": "/api/v1/notifications",
+    "permission": "notification:read",
+    "query": {
+      "eventType": "optional exact event type",
+      "status": "optional: sent | skipped | failed",
+      "channel": "optional: email | mock | sms_mock",
+      "limit": "1..100, default 50",
+      "offset": ">= 0, default 0"
+    },
+    "scope": "Agency staff and platform admins see their tenant's outcomes. Importers see only outcomes addressed to them. Drivers are denied. Every query runs inside the tenant RLS context."
+  },
+  "sampleResponse": [
+    {
+      "id": "0199f2b0-0000-7000-8000-000000000020",
+      "eventType": "review.sent",
+      "entityType": "importer_review",
+      "entityId": "0199f2b0-0000-7000-8000-000000000012",
+      "channel": "sms_mock",
+      "status": "skipped",
+      "detail": "SMS mock: interface only, nothing sent",
+      "subject": "Review ready for shipment 0199f2b0-0000-7000-8000-000000000001",
+      "createdAt": "2026-11-27T09:00:00.000Z"
+    },
+    {
+      "id": "0199f2b0-0000-7000-8000-000000000021",
+      "eventType": "invoice.issued",
+      "entityType": "invoice",
+      "entityId": "0199f2b0-0000-7000-8000-000000000013",
+      "channel": "mock",
+      "status": "skipped",
+      "detail": "mock provider: nothing sent",
+      "subject": "Invoice INV-0001 issued",
+      "createdAt": "2026-11-27T10:05:00.000Z"
+    }
+  ],
+  "guardrails": [
+    "No recipient email or phone is selected or returned by this endpoint.",
+    "The append-only outbox is never updated or deleted through the API.",
+    "sms_mock and mock record skipped outcomes and transmit nothing; real SMS and WhatsApp providers are roadmap and fail closed.",
+    "The screen says 'recorded outcomes only' so a skipped row is never presented as a delivered message."
+  ]
+}

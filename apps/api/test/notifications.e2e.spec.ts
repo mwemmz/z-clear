@@ -26,6 +26,7 @@ describe('notifications (e2e)', () => {
   const staffA = uuidv7();
   const importerA = uuidv7();
   const ownerB = uuidv7();
+  const driverA = uuidv7();
   const shipmentA = uuidv7();
 
   beforeAll(async () => {
@@ -72,6 +73,13 @@ describe('notifications (e2e)', () => {
             email: `notify-importer-a-${tenantA}@example.com`,
             password_hash: hash,
             role: 'client_viewer',
+          },
+          {
+            id: driverA,
+            tenant_id: tenantA,
+            email: `notify-driver-a-${tenantA}@example.com`,
+            password_hash: hash,
+            role: 'driver',
           },
         ])
         .execute(),
@@ -233,5 +241,82 @@ describe('notifications (e2e)', () => {
     );
     expect(rows).toHaveLength(3);
     expect(rows.every((row) => row.entity_id === invoiceId)).toBe(true);
+  });
+
+  async function emitSms(eventType: string): Promise<void> {
+    const smsService = new NotificationsService(
+      db,
+      app.get(AuditService),
+      new SmsMockNotificationProvider(),
+    );
+    await smsService.emit({
+      tenantId: tenantA,
+      shipmentId: shipmentA,
+      eventType,
+      entityType: 'shipment',
+      entityId: shipmentA,
+      subject: 'Synthetic SMS subject',
+      body: 'Synthetic SMS body',
+      audience: 'both',
+      meta: { ip: '127.0.0.1', userAgent: 'test' },
+    });
+  }
+
+  it('lets staff read sms_mock outcomes without exposing recipient addresses', async () => {
+    await emitSms('test.outbox.staff');
+    const token = await tokenFor(`notify-staff-a-${tenantA}@example.com`);
+    const response = await server()
+      .get('/api/v1/notifications')
+      .query({ eventType: 'test.outbox.staff', channel: 'sms_mock' })
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    const rows = response.body as Record<string, unknown>[];
+    expect(rows).toHaveLength(3);
+    expect(rows.every((row) => row.status === 'skipped')).toBe(true);
+    expect(rows.every((row) => row.channel === 'sms_mock')).toBe(true);
+    expect(rows.every((row) => !('recipientEmail' in row) && !('recipientPhone' in row))).toBe(
+      true,
+    );
+    expect(rows.some((row) => String(row.detail).includes('interface only'))).toBe(true);
+  });
+
+  it('scopes an importer to their own outcomes', async () => {
+    await emitSms('test.outbox.importer');
+    const token = await tokenFor(`notify-importer-a-${tenantA}@example.com`);
+    const response = await server()
+      .get('/api/v1/notifications')
+      .query({ eventType: 'test.outbox.importer' })
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    expect(response.body).toHaveLength(1);
+    expect(response.body[0]).toMatchObject({ subject: 'Synthetic SMS subject', status: 'skipped' });
+  });
+
+  it('returns no rows to another tenant and denies the driver role', async () => {
+    await emitSms('test.outbox.scope');
+    const outsider = await tokenFor(`notify-owner-b-${tenantB}@example.com`);
+    const outsiderResponse = await server()
+      .get('/api/v1/notifications')
+      .query({ eventType: 'test.outbox.scope' })
+      .set('Authorization', `Bearer ${outsider}`)
+      .expect(200);
+    expect(outsiderResponse.body).toEqual([]);
+
+    const driver = await tokenFor(`notify-driver-a-${tenantA}@example.com`);
+    await server()
+      .get('/api/v1/notifications')
+      .set('Authorization', `Bearer ${driver}`)
+      .expect(403);
+  });
+
+  it('rejects an invalid page size', async () => {
+    const token = await tokenFor(`notify-owner-a-${tenantA}@example.com`);
+    await server()
+      .get('/api/v1/notifications')
+      .query({ limit: '0' })
+      .set('Authorization', `Bearer ${token}`)
+      .expect(400);
   });
 });
