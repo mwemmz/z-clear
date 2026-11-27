@@ -78,9 +78,9 @@ verification. Every line is labelled `Roadmap, not built`.
 
 Owner-supplied documents live under `docs/`: `roadmap.md`, `demo-runbook.md`,
 `demo-script.md`, `solution-overview.md`, `submission-checklist.md`,
-`organisers-email.md`. Sections 7-10 of the owner's additional instructions
-are **pending the workload plan file the owner will provide**; do not guess
-where they belong or claim anything is Real without that file's Real column.
+`organisers-email.md`. The owner's workload division has now been supplied and
+is recorded in sections 7-10 below, after the Mock policy section. Only items
+whose level is `Real` there may be claimed as built.
 
 ## Mock policy
 
@@ -93,6 +93,81 @@ where they belong or claim anything is Real without that file's Real column.
   request.
 - All data shown in demos must be synthetic. No real client, cargo, customs,
   payment or SIM data.
+
+## 7. Workload division (owner-supplied, received 27 Nov 2026)
+
+Two developers, 24-29 November 2026, all times CAT. Dev 1 owns `apps/api`, the
+migration and shared types; Dev 2 owns `apps/web`, the demo and the submission.
+Internal target was submit by Saturday 28 November 18:00 CAT; the portal lists
+29 November 23:59 CAT and the training kit lists 5 December 2026. **Deadline
+conflict is unresolved** — get it in writing from the organisers.
+
+Status against the repo at `a96e9bb` (the baseline in the division) is now
+superseded by `9731656`: the review/approval flow, assignment scoping, Draft
+check, points ledger, seed/smoke scripts, both phone-width views and the six
+labelled mock screens are **Real** and merged. The organiser email, audible
+demo video, final package and submission confirmation are Dev 2 / owner
+actions, not code.
+
+## 8. Feature scope — Real / Mock / Roadmap
+
+Only the `Real` level may be claimed as built. `Mock` means a static screen
+labelled "Mock-up, sample data"; `Roadmap` means slide-only.
+
+| Feature | Level | Status / evidence |
+|---|---|---|
+| Case file, roles, append-only audit trail | Real | Phase 1/2, `audit_logs` append-only trigger |
+| Guided checklist and document check (read-only) | Real | `GET /shipments/:id/documents`, `document_requirements` |
+| Draft check (flag wrong quantity, revision-bound) | Real | `checkDraft` in shared + review banner |
+| Importer approval / manual handoff gate | Real | send/query/revise/approve, exact-revision binding |
+| Importer access scoping (unrelated importer denied) | Real | service filter + `rls-isolation.e2e.spec.ts` |
+| Clear Points | Real | `review_points` append-only ledger |
+| TPIN mismatch rule (synthetic) | Real | digits shape check + stored synthetic TPIN |
+| Follow / delivery status from stage events | Real, read-only | `GET /shipments/:id/events` |
+| One-way handoff **JSON artifact** | Real | `POST /shipments/:id/handoff-export`; manual keying only |
+| Notifications (mock/email seam, outbox) | Real seam | `mock` default sends nothing; SMS is step 6 below |
+| AI wording step | Real seam, off | `FEATURE_AI`, fixed fallback, no model wired |
+| Registry: SIM/NRC, PIN, PACRA/ZRA guidance | Mock | `apps/web/src/mockups/`; official registration stays external |
+| Agent directory, reviews rating line, Choose | Mock | seeded list, `Mock-up, sample data` label |
+| Cost check / advance-tax figures | Mock | sample figures only; "estimate, confirm with ZRA" |
+| SMS/USSD-style status messages | Mock | sample messages; no provider |
+| Zamtel Money fee payment screen | Mock | over an existing invoice; no integration |
+| Cross check-in, border-ready, arrival/congestion | Mock | labelled "illustrative, not live data" |
+| Local-language strings | Mock, could | only if speaker-checked; else Roadmap |
+| Polished handoff file/UI | Roadmap | only the "ready" state and JSON artifact are Real |
+| Cell-tower tracking | Roadmap | needs legal authority and driver consent |
+| Forecasts, trade indicators | Roadmap | needs ZRA data and approval |
+| ASYCUDA/ZRA integration, scraping, automation | Roadmap, not built | out of scope; `integrations/` stays empty |
+| Duty/tax estimator | Not built | step 7 below; refuses unless tariff data is VERIFIED |
+
+## 9. Importer self-service build (owner's instruction, in progress)
+
+Branch `feat/importer-self-service`; small commits; synthetic data only. See
+`docs/adr-importer-self-service.md` for the STEP 0 decision.
+
+| Step | Deliverable | Status |
+|---|---|---|
+| STEP 0 | Design note comparing personal tenant vs holding space | Done (ADR written) |
+| 1 | Importer case creation, typed consignment, own-case permission (API + web) | In progress |
+| 2 | Personalised rules-based checklist (API + web) | Not started |
+| 3 | Agent directory + consented appointment (API + web) | Not started |
+| 4 | "My case" status answers from stages/hold/invoices/payments (web) | Not started |
+| 5 | Valuation-disagree information flow + query to agent (API + web) | Not started |
+| 6 | Notification SMS interface + mock implementation | Not started |
+| 7 | Pre-import compliance assistant + VERIFIED-only estimator | Not started |
+
+## 10. Verification gates and handoff
+
+- Every step: migration on a fresh DB and the previous schema, zod validation,
+  declared permission, audit entry for state changes, and e2e/web tests.
+- `pnpm verify` and `pnpm audit --audit-level high` before each commit; changing
+  a `VITE_` variable requires a web rebuild, not just a restart on Render.
+- Report per step: files, endpoints, permissions, migrations, pass/fail commands,
+  what is `Simulated, pending ZRA API`, what is `NEEDS_VERIFICATION`, blockers.
+- Never invent duty, VAT, fee or legal figures. Tariff/rule content carries a
+  source URL, effective date and verification status, and stays
+  `NEEDS_VERIFICATION` until checked against a current ZRA source.
+- No real customer, customs, payment, SIM or device data anywhere.
 
 ## Open items and verification gates
 
