@@ -8,5 +8,6 @@ import { WordingService } from './wording.service';
   imports: [AuthModule],
   controllers: [ReviewsController],
   providers: [ReviewsService, WordingService],
+  exports: [ReviewsService],
 })
 export class ReviewsModule {}

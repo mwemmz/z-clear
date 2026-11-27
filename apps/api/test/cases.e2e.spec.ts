@@ -447,6 +447,78 @@ describe('importer cases (e2e)', () => {
       .expect(400);
   });
 
+  it('shows recorded value and lets the importer query the agent through the review', async () => {
+    const token = await tokenFor(importerEmail);
+    const created = await server()
+      .post('/api/v1/cases')
+      .set('Authorization', `Bearer ${token}`)
+      .send(vehicleCase)
+      .expect(201);
+    const caseId = created.body.id as string;
+
+    const staffToken = await tokenFor(staffEmail);
+    const review = await server()
+      .post(`/api/v1/shipments/${caseId}/review/send`)
+      .set('Authorization', `Bearer ${staffToken}`)
+      .send({ message: 'Please confirm the vehicle details.' })
+      .expect(200);
+    const reviewId = review.body.id as string;
+    expect(review.body.state).toBe('in_review');
+
+    const before = await server()
+      .get(`/api/v1/cases/${caseId}/valuation`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    expect(before.body.recorded).toMatchObject({
+      label: 'Purchase price you recorded',
+      amountMinor: 1850000000,
+      currency: 'ZMW',
+    });
+    expect(before.body.notice).toContain('not a customs assessment');
+    expect(before.body.notice).toContain('ASYCUDA World');
+    expect(before.body.review).toMatchObject({ id: reviewId, state: 'in_review' });
+    expect(before.body.review.allowedActions).toContain('query');
+
+    const question = 'The purchase price on this case does not match my records.';
+    await server()
+      .post(`/api/v1/reviews/${reviewId}/query`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ message: question })
+      .expect(200);
+
+    const after = await server()
+      .get(`/api/v1/cases/${caseId}/valuation`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    expect(after.body.review).toMatchObject({ state: 'queried', query: question });
+    expect(after.body.review.allowedActions).not.toContain('query');
+  });
+
+  it('denies valuation reads to another importer and to agent staff', async () => {
+    const token = await tokenFor(importerEmail);
+    const created = await server()
+      .post('/api/v1/cases')
+      .set('Authorization', `Bearer ${token}`)
+      .send(vehicleCase)
+      .expect(201);
+    const caseId = created.body.id as string;
+
+    const otherToken = await tokenFor(otherEmail);
+    await server()
+      .get(`/api/v1/cases/${caseId}/valuation`)
+      .set('Authorization', `Bearer ${otherToken}`)
+      .expect(404);
+    const staffToken = await tokenFor(staffEmail);
+    await server()
+      .get(`/api/v1/cases/${caseId}/valuation`)
+      .set('Authorization', `Bearer ${staffToken}`)
+      .expect(403);
+    await server()
+      .get('/api/v1/cases/not-a-uuid/valuation')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(400);
+  });
+
   it('writes case.created and shipment.created audit rows', async () => {
     const rows = await db.withTenant(tenant, (trx) =>
       trx

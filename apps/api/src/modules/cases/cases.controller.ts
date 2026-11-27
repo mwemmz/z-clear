@@ -12,6 +12,7 @@ import {
   type CaseChecklist,
   type CaseStatus,
   type CaseSummary,
+  type CaseValuation,
   type CreateCaseInput,
 } from './cases.dto';
 
@@ -51,6 +52,18 @@ export class CasesController {
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<CaseStatus> {
     return this.cases.status(user.tenantId, user.userId, id);
+  }
+
+  @RequirePermissions('case:read')
+  @Get(':id/valuation')
+  @ApiOperation({
+    summary: 'Read the recorded value and query options for the importer’s own case',
+  })
+  valuation(
+    @Param('id', uuidParam) id: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<CaseValuation> {
+    return this.cases.valuation(user.tenantId, user.userId, id);
   }
 }
 

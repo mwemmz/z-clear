@@ -4,6 +4,8 @@ import {
   caseStatusAnswers,
   CASE_STATUS_NOTICE,
   personaliseChecklist,
+  recordedValuation,
+  VALUATION_NOTICE,
   type CurrencyCode,
 } from '@zclear/shared';
 import { formatDateOnly } from '../../common/dates';
@@ -12,8 +14,15 @@ import { uuidv7 } from '../../common/ids';
 import { DatabaseService } from '../../database/database.service';
 import type { RequestMeta } from '../auth/auth.service';
 import { AuditService } from '../audit/audit.service';
+import { ReviewsService } from '../reviews/reviews.service';
 import { ShipmentsService } from '../shipments/shipments.service';
-import type { CaseChecklist, CaseStatus, CaseSummary, CreateCaseInput } from './cases.dto';
+import type {
+  CaseChecklist,
+  CaseStatus,
+  CaseSummary,
+  CaseValuation,
+  CreateCaseInput,
+} from './cases.dto';
 
 /**
  * Importer-owned case reads and writes. Creation reuses the shipment write
@@ -26,6 +35,7 @@ import type { CaseChecklist, CaseStatus, CaseSummary, CreateCaseInput } from './
 export class CasesService {
   constructor(
     private readonly shipments: ShipmentsService,
+    private readonly reviews: ReviewsService,
     private readonly audit: AuditService,
     private readonly db: DatabaseService,
   ) {}
@@ -179,6 +189,40 @@ export class CasesService {
         missingMandatory,
       }),
       notice: CASE_STATUS_NOTICE,
+    };
+  }
+
+  /**
+   * Valuation-disagreement information for the importer. The amount is copied
+   * from the case they typed; it is never validated, assessed or compared with
+   * a tariff. The actual question is sent through the existing review query
+   * endpoint, which audits the state change and notifies the agency.
+   */
+  async valuation(tenantId: string, actorUserId: string, caseId: string): Promise<CaseValuation> {
+    const shipment = await this.shipments.get(tenantId, caseId, {
+      role: 'client_viewer',
+      userId: actorUserId,
+    });
+    const reviews = await this.reviews.list(
+      tenantId,
+      { role: 'client_viewer', userId: actorUserId },
+      { shipmentId: caseId, limit: 50, offset: 0 },
+    );
+    const review = reviews[0];
+
+    return {
+      caseId,
+      recorded: recordedValuation(shipment.consignment),
+      notice: VALUATION_NOTICE,
+      review: review
+        ? {
+            id: review.id,
+            revision: review.revision,
+            state: review.state,
+            query: review.query,
+            allowedActions: review.allowedActions,
+          }
+        : null,
     };
   }
 }

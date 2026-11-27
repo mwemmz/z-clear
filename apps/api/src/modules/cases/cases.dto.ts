@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import { caseConsignmentSchema } from '@zclear/shared';
-import type { CaseStatusAnswer, PersonalisedChecklist } from '@zclear/shared';
+import type {
+  CaseStatusAnswer,
+  ImporterReviewAction,
+  ImporterReviewState,
+  PersonalisedChecklist,
+  RecordedValuation,
+} from '@zclear/shared';
 import type { ShipmentSummary } from '../shipments/shipments.dto';
 
 /**
@@ -25,4 +31,22 @@ export interface CaseStatus {
   caseId: string;
   answers: CaseStatusAnswer[];
   notice: string;
+}
+
+/**
+ * Information shown when an importer disagrees with a recorded value. The
+ * query itself uses the existing review endpoint; this payload only exposes
+ * the recorded value, boundary notice and whether a query is currently legal.
+ */
+export interface CaseValuation {
+  caseId: string;
+  recorded: RecordedValuation | null;
+  notice: string;
+  review: {
+    id: string;
+    revision: number;
+    state: ImporterReviewState;
+    query: string | null;
+    allowedActions: ImporterReviewAction[];
+  } | null;
 }
