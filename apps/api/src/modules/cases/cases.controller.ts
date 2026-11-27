@@ -10,6 +10,7 @@ import { CasesService } from './cases.service';
 import {
   createCaseSchema,
   type CaseChecklist,
+  type CaseStatus,
   type CaseSummary,
   type CreateCaseInput,
 } from './cases.dto';
@@ -40,6 +41,16 @@ export class CasesController {
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<CaseChecklist> {
     return this.cases.checklist(user.tenantId, user.userId, id);
+  }
+
+  @RequirePermissions('case:read')
+  @Get(':id/status')
+  @ApiOperation({ summary: 'Read plain-language status answers for the importer’s own case' })
+  status(
+    @Param('id', uuidParam) id: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<CaseStatus> {
+    return this.cases.status(user.tenantId, user.userId, id);
   }
 }
 

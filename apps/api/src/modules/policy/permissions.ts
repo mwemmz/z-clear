@@ -19,6 +19,9 @@ export const PERMISSIONS = [
   // Importers may open their own case before an agent is appointed. The
   // service always sets importer_user_id to the caller; no other role gets it.
   'case:create',
+  // Importers read plain-language status answers for their own case only. The
+  // service applies the importer scope to the underlying shipment lookup.
+  'case:read',
   // Importers browse a curated, published directory and appoint an agent with
   // explicit consent. The tenant transfer itself is validated in the database.
   'agent_directory:read',
@@ -104,6 +107,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
   client_viewer: [
     'shipment:read',
     'case:create',
+    'case:read',
     'agent_directory:read',
     'case:appoint',
     'document:read',

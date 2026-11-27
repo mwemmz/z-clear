@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { caseConsignmentSchema, personaliseChecklist } from '@zclear/shared';
+import {
+  caseConsignmentSchema,
+  caseStatusAnswers,
+  CASE_STATUS_NOTICE,
+  personaliseChecklist,
+  type CurrencyCode,
+} from '@zclear/shared';
 import { formatDateOnly } from '../../common/dates';
 import { ApiError } from '../../common/errors/api-error';
 import { uuidv7 } from '../../common/ids';
@@ -7,7 +13,7 @@ import { DatabaseService } from '../../database/database.service';
 import type { RequestMeta } from '../auth/auth.service';
 import { AuditService } from '../audit/audit.service';
 import { ShipmentsService } from '../shipments/shipments.service';
-import type { CaseChecklist, CaseSummary, CreateCaseInput } from './cases.dto';
+import type { CaseChecklist, CaseStatus, CaseSummary, CreateCaseInput } from './cases.dto';
 
 /**
  * Importer-owned case reads and writes. Creation reuses the shipment write
@@ -131,5 +137,48 @@ export class CasesService {
         parsed.data.caseKind,
       );
     });
+  }
+
+  /**
+   * Importer-facing status answers. The case lookup is scoped as an importer,
+   * invoices come only from that case, and the pure helper turns those records
+   * into four questions/answers. It never calculates duty, tax or a legal
+   * requirement and never claims a customs decision has been made.
+   */
+  async status(tenantId: string, actorUserId: string, caseId: string): Promise<CaseStatus> {
+    const shipment = await this.shipments.get(tenantId, caseId, {
+      role: 'client_viewer',
+      userId: actorUserId,
+    });
+    const invoices = await this.db.withTenant(tenantId, (trx) =>
+      trx
+        .selectFrom('invoices')
+        .select(['number', 'status', 'currency', 'total_minor', 'amount_paid_minor'])
+        .where('shipment_id', '=', caseId)
+        .execute(),
+    );
+
+    // Older cases may not have a typed consignment; they still get status
+    // answers, just without a checklist count.
+    const typed = caseConsignmentSchema.safeParse(shipment.consignment);
+    const missingMandatory = typed.success
+      ? (await this.checklist(tenantId, actorUserId, caseId)).missingMandatory.length
+      : 0;
+
+    return {
+      caseId,
+      answers: caseStatusAnswers({
+        stage: shipment.stage,
+        holdReason: shipment.holdReason,
+        invoices: invoices.map((invoice) => ({
+          number: invoice.number,
+          status: invoice.status,
+          currency: invoice.currency as CurrencyCode,
+          balanceMinor: Math.max(0, invoice.total_minor - invoice.amount_paid_minor),
+        })),
+        missingMandatory,
+      }),
+      notice: CASE_STATUS_NOTICE,
+    };
   }
 }

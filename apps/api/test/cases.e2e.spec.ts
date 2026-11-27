@@ -332,6 +332,121 @@ describe('importer cases (e2e)', () => {
       .expect(404);
   });
 
+  it('answers the importer from the recorded hold, checklist and invoice balance', async () => {
+    const token = await tokenFor(importerEmail);
+    const created = await server()
+      .post('/api/v1/cases')
+      .set('Authorization', `Bearer ${token}`)
+      .send(vehicleCase)
+      .expect(201);
+    const caseId = created.body.id as string;
+
+    await db.withTenant(tenant, async (trx) => {
+      await trx
+        .updateTable('shipments')
+        .set({ stage: 'on_hold', hold_reason: 'Need a signed proof of purchase' })
+        .where('id', '=', caseId)
+        .execute();
+      await trx
+        .insertInto('invoices')
+        .values({
+          id: uuidv7(),
+          tenant_id: tenant,
+          shipment_id: caseId,
+          number: `INV-STATUS-${caseId.slice(0, 8)}`,
+          status: 'partially_paid',
+          total_minor: 100000,
+          amount_paid_minor: 40000,
+          created_by: staffId,
+          updated_by: staffId,
+        })
+        .execute();
+    });
+
+    const response = await server()
+      .get(`/api/v1/cases/${caseId}/status`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    const body = response.body as {
+      caseId: string;
+      answers: Array<{ question: string; answer: string }>;
+      notice: string;
+    };
+    expect(body.caseId).toBe(caseId);
+    expect(body.answers.map((item) => item.question)).toEqual([
+      'Where is my case?',
+      'Do you need anything from me?',
+      'What do I owe?',
+      'What happens next?',
+    ]);
+    expect(body.answers[0]?.answer).toContain('On hold');
+    expect(body.answers[1]?.answer).toContain('Need a signed proof of purchase');
+    expect(body.answers[2]?.answer).toMatch(/600\.00/);
+    expect(body.answers[2]?.answer).toContain('not a ZRA assessment');
+    expect(body.answers[3]?.answer).toContain('hold is resolved');
+    expect(body.notice).toContain('ASYCUDA World');
+  });
+
+  it('reports no invoice and one missing item without claiming a customs decision', async () => {
+    const token = await tokenFor(importerEmail);
+    const created = await server()
+      .post('/api/v1/cases')
+      .set('Authorization', `Bearer ${token}`)
+      .send(vehicleCase)
+      .expect(201);
+    const caseId = created.body.id as string;
+
+    await db.withTenant(tenant, (trx) =>
+      trx
+        .insertInto('documents')
+        .values({
+          id: uuidv7(),
+          tenant_id: tenant,
+          shipment_id: caseId,
+          doc_type: 'id_copy',
+          label: 'Identity copy',
+          created_by: importerId,
+          updated_by: importerId,
+        })
+        .execute(),
+    );
+
+    const response = await server()
+      .get(`/api/v1/cases/${caseId}/status`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    const answers = response.body.answers as Array<{ question: string; answer: string }>;
+    expect(answers[0]?.answer).toContain('Documents received');
+    expect(answers[1]?.answer).toContain('1 item still needed');
+    expect(answers[2]?.answer).toBe('No invoice has been issued for this case yet.');
+    expect(answers[3]?.answer).toContain('ASYCUDA World');
+  });
+
+  it('denies status reads to another importer and to agent staff', async () => {
+    const token = await tokenFor(importerEmail);
+    const created = await server()
+      .post('/api/v1/cases')
+      .set('Authorization', `Bearer ${token}`)
+      .send(vehicleCase)
+      .expect(201);
+    const caseId = created.body.id as string;
+
+    const otherToken = await tokenFor(otherEmail);
+    await server()
+      .get(`/api/v1/cases/${caseId}/status`)
+      .set('Authorization', `Bearer ${otherToken}`)
+      .expect(404);
+    const staffToken = await tokenFor(staffEmail);
+    await server()
+      .get(`/api/v1/cases/${caseId}/status`)
+      .set('Authorization', `Bearer ${staffToken}`)
+      .expect(403);
+    await server()
+      .get('/api/v1/cases/not-a-uuid/status')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(400);
+  });
+
   it('writes case.created and shipment.created audit rows', async () => {
     const rows = await db.withTenant(tenant, (trx) =>
       trx
