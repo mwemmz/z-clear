@@ -272,6 +272,37 @@ body {
   margin: 0.4rem 0 0;
 }
 
+.notice-list {
+  display: grid;
+  gap: 0.6rem;
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+}
+
+.notice-list__item {
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.65rem 0.75rem;
+}
+
+.notice-list__meta {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  gap: 0.4rem;
+}
+
+.notice-list__sub {
+  color: var(--muted);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
 .hint {
   color: var(--muted);
   font-size: 0.8rem;
@@ -664,21 +695,6 @@ body {
 
 .mock-steps .is-todo span {
   color: var(--muted);
-}
-
-.mock-sms {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 0.5rem;
-  font-size: 0.88rem;
-}
-
-.mock-sms__time {
-  color: var(--muted);
-  margin-right: 0.5rem;
-  font-variant-numeric: tabular-nums;
 }
 
 .mock-kv {

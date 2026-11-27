@@ -50,10 +50,12 @@ pnpm dev                      # API :3000, web :5173 (web proxies /api)
 6. To switch roles quickly, sign out between runs; the demo token is held in
    `sessionStorage` only.
 7. Agency staff and drivers now see real review-inbox and check-in cards backed
-   by the API. The **MOCKUPS** toggle reveals four remaining static labelled
-   screens (SIM sign-up/PIN, registry guidance, SMS status, Zamtel Money
-   payment). Each has a `MOCK` badge and says "sample data only — no API calls".
-   Announce each one aloud as "this screen is a mock-up".
+   by the API; staff and importers also see a notification status card reading
+   recorded outcomes from `GET /notifications` (the SMS mock sends nothing).
+   The **MOCKUPS** toggle reveals three remaining static labelled screens (SIM
+   sign-up/PIN, registry guidance, Zamtel Money payment). Each has a `MOCK`
+   badge and says "sample data only — no API calls". Announce each one aloud as
+   "this screen is a mock-up".
 
 ## 3. Exact click-by-click demo order
 
@@ -106,14 +108,16 @@ endpoint, so the stage timeline is shown instead.
 - Notification outbox: events from invoice issue/payment and review
   send/query/approve append delivery outcomes; the pilot channel is email via a
   configurable webhook. Default provider is `mock` and nothing is sent.
+  `GET /api/v1/notifications` returns those recorded outcomes without recipient
+  addresses, and the UI states that the SMS mock sends nothing.
 - Agency-owned document-requirement configuration endpoints with RLS and audit.
 - Phone-first case-file header, role badge and stage timeline in `apps/web`.
 
 **Mocked (sample data, not built):**
 
-- The six screens in `apps/web/src/mockups/`: agent directory/rating, SIM sign-up
-  and PIN, registry guidance, SMS status, Zamtel Money fee payment, agent
-  reviews and Cross check-in. They carry a `MOCK` badge and use sample data only.
+- The three screens in `apps/web/src/mockups/`: SIM sign-up and PIN, registry
+  guidance and Zamtel Money fee payment, plus the agent directory rating line.
+  They carry a `MOCK` badge and use sample data only.
 - Use `Mock-up, sample data` on screen and say "this screen is a mock-up" aloud.
 
 **Roadmap, not built:**

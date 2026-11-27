@@ -142,6 +142,21 @@ function stubApi(
         },
       ]);
     }
+    if (url.endsWith('/api/v1/notifications?limit=50')) {
+      return jsonResponse([
+        {
+          id: 'n1',
+          eventType: 'review.sent',
+          entityType: 'importer_review',
+          entityId: 'r1',
+          channel: 'sms_mock',
+          status: 'skipped',
+          detail: 'SMS mock: interface only, nothing sent',
+          subject: 'Review ready for shipment s1',
+          createdAt: '2026-11-27T09:00:00.000Z',
+        },
+      ]);
+    }
     if (url.endsWith('/api/v1/agent-profiles')) {
       return jsonResponse([
         {
@@ -306,6 +321,30 @@ describe('App', () => {
     expect(screen.getByTestId('case-route')).toHaveTextContent('Dar es Salaam → Lusaka');
     expect(screen.getByTestId('case-goods')).toHaveTextContent('goods: Maize');
     expect(screen.getByTestId('case-stage')).toHaveTextContent('Duty paid');
+  });
+
+  it('shows real outbox outcomes and states that the SMS mock sends nothing', async () => {
+    const fetchMock = stubApi();
+    render(<App />);
+    await signIn();
+
+    expect(await screen.findByText('Notification status')).toBeInTheDocument();
+    expect(await screen.findByTestId('notification-status-value')).toHaveTextContent('skipped');
+    expect(screen.getByText('Review sent')).toBeInTheDocument();
+    expect(screen.getByTestId('notification-notice')).toHaveTextContent(/sends nothing/);
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/notifications?limit=50'),
+      expect.any(Object),
+    );
+  });
+
+  it('does not show delivery outcomes to the driver role', async () => {
+    stubApi({ role: 'driver' });
+    render(<App />);
+    await signIn();
+
+    expect(await screen.findByTestId('case-reference')).toBeInTheDocument();
+    expect(screen.queryByText('Notification status')).not.toBeInTheDocument();
   });
 
   it('shows agency staff a real review inbox backed by GET /reviews', async () => {

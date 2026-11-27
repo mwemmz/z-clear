@@ -125,12 +125,12 @@ labelled "Mock-up, sample data"; `Roadmap` means slide-only.
 | TPIN mismatch rule (synthetic) | Real | digits shape check + stored synthetic TPIN |
 | Follow / delivery status from stage events | Real, read-only | `GET /shipments/:id/events` |
 | One-way handoff **JSON artifact** | Real | `POST /shipments/:id/handoff-export`; manual keying only |
-| Notifications (mock/sms_mock/email seam, outbox) | Real seam | `mock` and `sms_mock` send nothing; SMS/WhatsApp fail closed |
+| Notifications (mock/sms_mock/email seam, outbox) | Real seam | `mock` and `sms_mock` send nothing; SMS/WhatsApp fail closed; `GET /notifications` is a scoped read of recorded outcomes |
 | AI wording steps | Real seam, off | `FEATURE_AI`, fixed fallback, no model wired; `docs/ai-safety.md` |
 | Registry: SIM/NRC, PIN, PACRA/ZRA guidance | Mock | `apps/web/src/mockups/`; official registration stays external |
 | Agent directory, reviews rating line, Choose | Mock | seeded list, `Mock-up, sample data` label |
 | Cost check / advance-tax figures | Mock | sample figures only; "estimate, confirm with ZRA" |
-| SMS/USSD-style status messages | Mock | sample messages; `sms_mock` outbox interface only, no real provider |
+| Notification status from the outbox | Real, read-only | `GET /notifications` + `NotificationStatus.tsx`; `sms_mock` outcomes say "nothing sent"; no recipient address returned |
 | Zamtel Money fee payment screen | Mock | over an existing invoice; no integration |
 | Agent review inbox | Real | `AgentReviews.tsx` over `GET /reviews`; state, revision and query from the API; no rating line |
 | Manual driver check-in (assigned driver, event only) | Real | `POST /shipments/:id/assign-driver`, `POST /shipments/:id/check-in`; narrow `driver` role, `driver-checkins.e2e.spec.ts`, phone-first `DriverCheckIn.tsx`; `docs/api/driver-checkin.json` |
@@ -178,8 +178,11 @@ Branch `feat/importer-self-service`; small commits; synthetic data only. See
 - **Real staff/driver workflows (done):** `AgentReviews.tsx` reads the review
   API; `DriverCheckIn.tsx` records a manual check-in through the scoped API and
   reloads the event timeline. The static Agent reviews and Cross check-in mock
-  screens are no longer shown.
-- **Outstanding:** registry guidance, SMS status and payment capture workflows,
+  screens are no longer shown. `NotificationStatus.tsx` reads recorded delivery
+   outcomes from `GET /notifications` and states that the SMS mock sends nothing.
+   The static Agent reviews, Cross check-in and SMS status mock screens are no
+   longer shown.
+- **Outstanding:** registry guidance and payment capture workflows,
   final docs and push to `master`.
 
 ## 10. Verification gates and handoff

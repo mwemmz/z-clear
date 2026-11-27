@@ -8,6 +8,7 @@ import { Checklist } from './Checklist';
 import { DriverCheckIn } from './DriverCheckIn';
 import { Mockups } from './mockups';
 import { ComplianceAssistant } from './ComplianceAssistant';
+import { NotificationStatus } from './NotificationStatus';
 import { ValuationQuery } from './ValuationQuery';
 import {
   api,
@@ -266,6 +267,8 @@ export function App() {
       {token && user && shipments.length === 0 && !busy && (
         <p className="empty">No shipments are available for this account yet.</p>
       )}
+
+      {token && user && user.role !== 'driver' && <NotificationStatus token={token} />}
 
       {token && user && shipments.length > 0 && (
         <>

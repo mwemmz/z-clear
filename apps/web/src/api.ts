@@ -127,6 +127,19 @@ export interface AgentReviewSummary {
   updatedAt: string;
 }
 
+/** Append-only delivery outcome. The API never returns a recipient address. */
+export interface NotificationView {
+  id: string;
+  eventType: string;
+  entityType: string | null;
+  entityId: string | null;
+  channel: 'email' | 'mock' | 'sms_mock';
+  status: 'sent' | 'skipped' | 'failed';
+  detail: string | null;
+  subject: string;
+  createdAt: string;
+}
+
 export interface ComplianceAssistantResult {
   caseId: string;
   prompts: CompliancePrompt[];
@@ -216,6 +229,10 @@ export const api = {
     const query = new URLSearchParams({ limit: '50' });
     if (shipmentId) query.set('shipmentId', shipmentId);
     return request(`/reviews?${query.toString()}`, token);
+  },
+
+  listNotifications(token: string): Promise<NotificationView[]> {
+    return request('/notifications?limit=50', token);
   },
 
   createCase(token: string, input: CreateCaseInput): Promise<ShipmentSummary> {

@@ -21,9 +21,10 @@ World.
 | Four local-only demo logins (agent, importer, admin, driver) | **Real** | `seed-review-demo.ts` hashes `DEMO_PASSWORD`; `docs/demo-accounts.md`; production seed refused |
 | Importer self-service: typed own cases, labelled checklist, agent appointment, plain-language case status, valuation query, compliance assistant, SMS mock interface | **Real, branch `feat/importer-self-service`** | `FUTURE_PLANS.md` section 9; samples in `docs/api/case-status.json`, `docs/api/valuation-query.json` and `docs/api/compliance.json` |
 | SMS notification interface (`sms_mock`) | **Real, sends nothing** | Outbox records skipped outcomes with tenant phone data; `sms`/`whatsapp` fail closed |
+| Notification status UI and scoped read endpoint | **Real** | `GET /notifications` + `NotificationStatus.tsx`; no recipient address returned; importers see only their own outcomes |
 | Compliance assistant + illustrative estimator | **Real, estimator refuses by default** | Agency-owned prompts with provenance; only external `VERIFIED` rules produce a figure, `SAMPLE` mode labelled do-not-pay-or-file; `docs/ai-safety.md` |
-| Six static labelled mock screens behind a demo toggle | **Mocked** | `apps/web/src/mockups/` — `MOCK` badge, sample data only |
-| Agent directory, draft-screen visuals, SMS/Zamtel/Cross screens | **Mocked** | Static screens; no live provider or registry |
+| Three static labelled mock screens behind a demo toggle | **Mocked** | `apps/web/src/mockups/` — `MOCK` badge, sample data only |
+| Agent directory, draft-screen visuals, Zamtel screens | **Mocked** | Static screens; no live provider or registry |
 | One-way handoff artifact + PDF snapshot + notification outbox + requirements API | **Real** | Phase 5 slices added in this handoff (tests below) |
 | ClamAV INSTREAM provider behind config | **Real seam, external daemon required** | `SCAN_PROVIDER=clamav`; default `noop` reports `skipped` |
 | Roadmap items (polished handoff file/UI, Cross, tracking, Deliver, etc.) | **Roadmap, not built** | `docs/roadmap.md` |
