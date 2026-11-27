@@ -21,7 +21,7 @@ function service(rules: TariffRule[], sampleMode: boolean): ComplianceService {
   return new ComplianceService(
     {} as CasesService,
     {} as ShipmentsService,
-    { all: () => rules } as TariffRulesProvider,
+    { all: () => rules } as unknown as TariffRulesProvider,
     new ComplianceWordingService(loadEnv({})),
     { ...loadEnv({}), COMPLIANCE_SAMPLE_MODE: sampleMode },
   );
@@ -101,7 +101,7 @@ describe('ComplianceService.assistant', () => {
     const service = new ComplianceService(
       cases,
       shipments,
-      { all: () => [] } as TariffRulesProvider,
+      { all: () => [] } as unknown as TariffRulesProvider,
       new ComplianceWordingService(loadEnv({})),
       loadEnv({}),
     );
