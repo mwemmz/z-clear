@@ -20,6 +20,10 @@ describe('loadEnv', () => {
     expect(env.FEATURE_AI).toBe(true);
   });
 
+  it('accepts the local SMS mock provider value in the enum', () => {
+    expect(loadEnv({ NOTIFICATION_PROVIDER: 'sms_mock' }).NOTIFICATION_PROVIDER).toBe('sms_mock');
+  });
+
   it('throws a readable error on invalid values', () => {
     expect(() => loadEnv({ API_PORT: 'not-a-port' } as NodeJS.ProcessEnv)).toThrow(
       /Invalid environment configuration/,

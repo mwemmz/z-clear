@@ -31,6 +31,8 @@ export interface UsersTable {
   locked_until: Nullable<Date>;
   /** Importer tax number (TPIN). Synthetic in demo data. */
   tpin: Nullable<string>;
+  /** Optional contact number for the SMS mock interface. Never logged. */
+  phone: Nullable<string>;
   created_at: Timestamp;
   updated_at: Timestamp;
   created_by: Nullable<string>;
@@ -310,7 +312,8 @@ export interface NotificationOutboxTable {
   entity_id: Nullable<string>;
   recipient_user_id: Nullable<string>;
   recipient_email: string;
-  channel: 'email' | 'mock';
+  recipient_phone: Nullable<string>;
+  channel: 'email' | 'mock' | 'sms_mock';
   subject: string;
   body: string;
   status: 'sent' | 'skipped' | 'failed';

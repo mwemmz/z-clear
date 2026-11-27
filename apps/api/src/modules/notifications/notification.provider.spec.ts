@@ -5,6 +5,7 @@ import { loadEnv } from '../../config/env';
 import {
   EmailWebhookNotificationProvider,
   MockNotificationProvider,
+  SmsMockNotificationProvider,
   notificationProviderFromEnv,
 } from './notification.provider';
 
@@ -43,6 +44,18 @@ describe('notification providers', () => {
       body: 'body',
     });
     expect(result.status).toBe('skipped');
+  });
+
+  it('SMS mock records a skipped outcome without sending anything', async () => {
+    const provider = new SmsMockNotificationProvider();
+    expect(provider.channel).toBe('sms_mock');
+    const result = await provider.send({
+      to: '+260970000000',
+      subject: 'Case update',
+      body: 'Your case moved to review.',
+    });
+    expect(result.status).toBe('skipped');
+    expect(result.detail).toMatch(/nothing sent/);
   });
 
   it('email webhook posts a provider-neutral payload with a bearer token', async () => {
@@ -90,15 +103,27 @@ describe('notification providers', () => {
     expect(result.detail).toContain('500');
   });
 
-  it('factory fails closed for unimplemented providers', () => {
-    const env = {
+  it.each(['sms', 'whatsapp'] as const)(
+    'factory fails closed for unimplemented provider %s',
+    (name) => {
+      const env = {
+        ...loadEnv({}),
+        FEATURE_NOTIFICATIONS: true,
+        NOTIFICATION_PROVIDER: name,
+        NOTIFICATION_FROM: 'sender@example.com',
+        NOTIFICATION_WEBHOOK_URL: 'https://example.com/notify',
+      };
+      expect(() => notificationProviderFromEnv(env)).toThrow(/roadmap, not implemented/);
+    },
+  );
+
+  it('factory returns the SMS mock when configured and the feature is on', () => {
+    const provider = notificationProviderFromEnv({
       ...loadEnv({}),
       FEATURE_NOTIFICATIONS: true,
-      NOTIFICATION_PROVIDER: 'sms' as const,
-      NOTIFICATION_FROM: 'sender@example.com',
-      NOTIFICATION_WEBHOOK_URL: 'https://example.com/notify',
-    };
-    expect(() => notificationProviderFromEnv(env)).toThrow(/roadmap, not implemented/);
+      NOTIFICATION_PROVIDER: 'sms_mock',
+    });
+    expect(provider.channel).toBe('sms_mock');
   });
 
   it('factory returns the mock provider when the feature is off', () => {

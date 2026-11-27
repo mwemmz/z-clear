@@ -8,7 +8,9 @@ import { AppModule } from '../src/app.module';
 import { requestIdMiddleware } from '../src/common/http/request-id.middleware';
 import { ApiExceptionsFilter } from '../src/common/errors/api-exceptions.filter';
 import { DatabaseService } from '../src/database/database.service';
+import { AuditService } from '../src/modules/audit/audit.service';
 import { PasswordService } from '../src/modules/auth/password.service';
+import { SmsMockNotificationProvider } from '../src/modules/notifications/notification.provider';
 import { NotificationsService } from '../src/modules/notifications/notifications.service';
 import { uuidv7 } from '../src/common/ids';
 
@@ -55,6 +57,7 @@ describe('notifications (e2e)', () => {
             email: `notify-owner-a-${tenantA}@example.com`,
             password_hash: hash,
             role: 'agency_owner',
+            phone: '+260970000001',
           },
           {
             id: staffA,
@@ -151,6 +154,44 @@ describe('notifications (e2e)', () => {
     );
     expect(audit).toHaveLength(1);
     expect((audit[0]?.metadata as { recipientCount: number }).recipientCount).toBe(3);
+  });
+
+  it('SMS mock records the phone from tenant data and skips users without one', async () => {
+    const smsService = new NotificationsService(
+      db,
+      app.get(AuditService),
+      new SmsMockNotificationProvider(),
+    );
+    await smsService.emit({
+      tenantId: tenantA,
+      shipmentId: shipmentA,
+      eventType: 'test.sms_mock.event',
+      entityType: 'shipment',
+      entityId: shipmentA,
+      subject: 'Synthetic SMS subject',
+      body: 'Synthetic SMS body',
+      audience: 'both',
+      meta: { ip: '127.0.0.1', userAgent: 'test' },
+    });
+
+    const rows = await db.withTenant(tenantA, (trx) =>
+      trx
+        .selectFrom('notification_outbox')
+        .select(['recipient_user_id', 'recipient_phone', 'status', 'channel', 'detail'])
+        .where('event_type', '=', 'test.sms_mock.event')
+        .execute(),
+    );
+    expect(rows).toHaveLength(3);
+    expect(rows.every((row) => row.channel === 'sms_mock')).toBe(true);
+    expect(rows.every((row) => row.status === 'skipped')).toBe(true);
+
+    const ownerRow = rows.find((row) => row.recipient_user_id === ownerA);
+    expect(ownerRow?.recipient_phone).toBe('+260970000001');
+    expect(ownerRow?.detail).toMatch(/interface only/);
+
+    const withoutPhone = rows.filter((row) => row.recipient_user_id !== ownerA);
+    expect(withoutPhone.every((row) => row.recipient_phone === null)).toBe(true);
+    expect(withoutPhone.every((row) => row.detail?.includes('no phone number on file'))).toBe(true);
   });
 
   it('never resolves a recipient from another tenant', async () => {

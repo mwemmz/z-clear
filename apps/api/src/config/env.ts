@@ -31,7 +31,9 @@ export const envSchema = z.object({
   COOKIE_SECURE: booleanish.default(false),
   COOKIE_DOMAIN: z.string().optional(),
 
-  NOTIFICATION_PROVIDER: z.enum(['mock', 'sms', 'whatsapp', 'email']).default('mock'),
+  // `sms_mock` is a local interface only. `sms`/`whatsapp` remain fail-closed
+  // until a real provider is explicitly approved and implemented.
+  NOTIFICATION_PROVIDER: z.enum(['mock', 'sms_mock', 'sms', 'whatsapp', 'email']).default('mock'),
   /** Pilot channel is email. Delivered through a configurable webhook endpoint. */
   NOTIFICATION_FROM: z.string().default(''),
   NOTIFICATION_WEBHOOK_URL: z.string().url().optional(),

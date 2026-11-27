@@ -1,8 +1,12 @@
 import type { AppEnv } from '../../config/env';
 
-export type NotificationChannel = 'email' | 'mock';
+export type NotificationChannel = 'email' | 'mock' | 'sms_mock';
 export type DeliveryStatus = 'sent' | 'skipped' | 'failed';
 
+/**
+ * `to` is the address appropriate to the channel: an email address for email,
+ * a phone number for `sms_mock`. The service resolves both from tenant data.
+ */
 export interface NotificationMessage {
   to: string;
   subject: string;
@@ -31,6 +35,20 @@ export class MockNotificationProvider implements NotificationProvider {
 
   async send(_message: NotificationMessage): Promise<DeliveryResult> {
     return { status: 'skipped', detail: 'mock provider: nothing sent' };
+  }
+}
+
+/**
+ * Local SMS interface: records a skipped outcome in the append-only outbox and
+ * sends nothing. It exists so the phone-first workflow can be demonstrated and
+ * tested without a real SMS/WhatsApp provider. Phone numbers come from tenant
+ * users at emit time; none are stored in code or fixtures.
+ */
+export class SmsMockNotificationProvider implements NotificationProvider {
+  readonly channel = 'sms_mock' as const;
+
+  async send(_message: NotificationMessage): Promise<DeliveryResult> {
+    return { status: 'skipped', detail: 'SMS mock: interface only, nothing sent' };
   }
 }
 
@@ -96,7 +114,10 @@ export function notificationProviderFromEnv(env: AppEnv): NotificationProvider {
       env.NOTIFICATION_TIMEOUT_MS,
     );
   }
+  if (env.NOTIFICATION_PROVIDER === 'sms_mock') {
+    return new SmsMockNotificationProvider();
+  }
   throw new Error(
-    `Notification provider '${env.NOTIFICATION_PROVIDER}' is roadmap, not implemented; use mock or email`,
+    `Notification provider '${env.NOTIFICATION_PROVIDER}' is roadmap, not implemented; use mock, sms_mock or email`,
   );
 }

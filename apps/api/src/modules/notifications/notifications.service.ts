@@ -26,6 +26,7 @@ export interface EmitNotificationInput {
 interface Recipient {
   userId: string;
   email: string;
+  phone: string | null;
 }
 
 /**
@@ -45,14 +46,25 @@ export class NotificationsService {
     const recipients = await this.recipients(input);
 
     const outcomes: Array<Recipient & DeliveryResult> = await Promise.all(
-      recipients.map(async (recipient) => ({
-        ...recipient,
-        ...(await this.provider.send({
-          to: recipient.email,
-          subject: input.subject,
-          body: input.body,
-        })),
-      })),
+      recipients.map(async (recipient) => {
+        // The SMS mock needs a phone number; never fall back to emailing it or
+        // invent a number. A missing phone is recorded as a skipped outcome.
+        if (this.provider.channel === 'sms_mock' && !recipient.phone) {
+          return {
+            ...recipient,
+            status: 'skipped' as const,
+            detail: 'SMS mock: no phone number on file',
+          };
+        }
+        return {
+          ...recipient,
+          ...(await this.provider.send({
+            to: this.provider.channel === 'sms_mock' ? recipient.phone! : recipient.email,
+            subject: input.subject,
+            body: input.body,
+          })),
+        };
+      }),
     );
 
     await this.db.withTenant(input.tenantId, async (trx) => {
@@ -67,6 +79,7 @@ export class NotificationsService {
             entity_id: input.entityId,
             recipient_user_id: outcome.userId,
             recipient_email: outcome.email,
+            recipient_phone: this.provider.channel === 'sms_mock' ? outcome.phone : null,
             channel: this.provider.channel,
             subject: input.subject,
             body: input.body,
@@ -104,11 +117,11 @@ export class NotificationsService {
       if (input.audience === 'agency' || input.audience === 'both') {
         const agency = await trx
           .selectFrom('users')
-          .select(['id', 'email'])
+          .select(['id', 'email', 'phone'])
           .where('role', 'in', ['agency_owner', 'agent_staff'])
           .execute();
         for (const user of agency) {
-          found.set(user.id, { userId: user.id, email: user.email });
+          found.set(user.id, { userId: user.id, email: user.email, phone: user.phone });
         }
       }
 
@@ -121,11 +134,15 @@ export class NotificationsService {
         if (shipment?.importer_user_id) {
           const importer = await trx
             .selectFrom('users')
-            .select(['id', 'email'])
+            .select(['id', 'email', 'phone'])
             .where('id', '=', shipment.importer_user_id)
             .executeTakeFirst();
           if (importer) {
-            found.set(importer.id, { userId: importer.id, email: importer.email });
+            found.set(importer.id, {
+              userId: importer.id,
+              email: importer.email,
+              phone: importer.phone,
+            });
           }
         }
       }
