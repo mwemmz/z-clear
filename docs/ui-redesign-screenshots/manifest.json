@@ -1,0 +1,663 @@
+{
+  "generatedAt": "2026-11-28T06:37:02.031Z",
+  "base": "http://127.0.0.1:3000",
+  "screenshots": [
+    {
+      "name": "360-light-importer.png",
+      "viewport": "360x800",
+      "theme": "light",
+      "screen": "importer",
+      "url": "http://127.0.0.1:3000/design?screen=importer",
+      "diagnostics": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "360-light-case.png",
+      "viewport": "360x800",
+      "theme": "light",
+      "screen": "case",
+      "url": "http://127.0.0.1:3000/design?screen=case",
+      "diagnostics": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "360-light-review.png",
+      "viewport": "360x800",
+      "theme": "light",
+      "screen": "review",
+      "url": "http://127.0.0.1:3000/design?screen=review",
+      "diagnostics": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "360-light-agents.png",
+      "viewport": "360x800",
+      "theme": "light",
+      "screen": "agents",
+      "url": "http://127.0.0.1:3000/design?screen=agents",
+      "diagnostics": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "360-light-agent-workspace.png",
+      "viewport": "360x800",
+      "theme": "light",
+      "screen": "agent-workspace",
+      "url": "http://127.0.0.1:3000/design?screen=agent-workspace",
+      "diagnostics": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "360-light-mocks.png",
+      "viewport": "360x800",
+      "theme": "light",
+      "screen": "mocks",
+      "url": "http://127.0.0.1:3000/design?screen=mocks",
+      "diagnostics": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "360-light-profile.png",
+      "viewport": "360x800",
+      "theme": "light",
+      "screen": "profile",
+      "url": "http://127.0.0.1:3000/design?screen=profile",
+      "diagnostics": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "360-dark-importer.png",
+      "viewport": "360x800",
+      "theme": "dark",
+      "screen": "importer",
+      "url": "http://127.0.0.1:3000/design?screen=importer",
+      "diagnostics": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "360-dark-case.png",
+      "viewport": "360x800",
+      "theme": "dark",
+      "screen": "case",
+      "url": "http://127.0.0.1:3000/design?screen=case",
+      "diagnostics": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "360-dark-review.png",
+      "viewport": "360x800",
+      "theme": "dark",
+      "screen": "review",
+      "url": "http://127.0.0.1:3000/design?screen=review",
+      "diagnostics": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "360-dark-agents.png",
+      "viewport": "360x800",
+      "theme": "dark",
+      "screen": "agents",
+      "url": "http://127.0.0.1:3000/design?screen=agents",
+      "diagnostics": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "360-dark-agent-workspace.png",
+      "viewport": "360x800",
+      "theme": "dark",
+      "screen": "agent-workspace",
+      "url": "http://127.0.0.1:3000/design?screen=agent-workspace",
+      "diagnostics": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "360-dark-mocks.png",
+      "viewport": "360x800",
+      "theme": "dark",
+      "screen": "mocks",
+      "url": "http://127.0.0.1:3000/design?screen=mocks",
+      "diagnostics": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "360-dark-profile.png",
+      "viewport": "360x800",
+      "theme": "dark",
+      "screen": "profile",
+      "url": "http://127.0.0.1:3000/design?screen=profile",
+      "diagnostics": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "360-cocoa-importer.png",
+      "viewport": "360x800",
+      "theme": "cocoa",
+      "screen": "importer",
+      "url": "http://127.0.0.1:3000/design?screen=importer",
+      "diagnostics": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "360-cocoa-case.png",
+      "viewport": "360x800",
+      "theme": "cocoa",
+      "screen": "case",
+      "url": "http://127.0.0.1:3000/design?screen=case",
+      "diagnostics": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "360-cocoa-review.png",
+      "viewport": "360x800",
+      "theme": "cocoa",
+      "screen": "review",
+      "url": "http://127.0.0.1:3000/design?screen=review",
+      "diagnostics": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "360-cocoa-agents.png",
+      "viewport": "360x800",
+      "theme": "cocoa",
+      "screen": "agents",
+      "url": "http://127.0.0.1:3000/design?screen=agents",
+      "diagnostics": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "360-cocoa-agent-workspace.png",
+      "viewport": "360x800",
+      "theme": "cocoa",
+      "screen": "agent-workspace",
+      "url": "http://127.0.0.1:3000/design?screen=agent-workspace",
+      "diagnostics": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "360-cocoa-mocks.png",
+      "viewport": "360x800",
+      "theme": "cocoa",
+      "screen": "mocks",
+      "url": "http://127.0.0.1:3000/design?screen=mocks",
+      "diagnostics": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "360-cocoa-profile.png",
+      "viewport": "360x800",
+      "theme": "cocoa",
+      "screen": "profile",
+      "url": "http://127.0.0.1:3000/design?screen=profile",
+      "diagnostics": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "1280-light-importer.png",
+      "viewport": "1280x900",
+      "theme": "light",
+      "screen": "importer",
+      "url": "http://127.0.0.1:3000/design?screen=importer",
+      "diagnostics": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "1280-light-case.png",
+      "viewport": "1280x900",
+      "theme": "light",
+      "screen": "case",
+      "url": "http://127.0.0.1:3000/design?screen=case",
+      "diagnostics": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "1280-light-review.png",
+      "viewport": "1280x900",
+      "theme": "light",
+      "screen": "review",
+      "url": "http://127.0.0.1:3000/design?screen=review",
+      "diagnostics": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "1280-light-agents.png",
+      "viewport": "1280x900",
+      "theme": "light",
+      "screen": "agents",
+      "url": "http://127.0.0.1:3000/design?screen=agents",
+      "diagnostics": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "1280-light-agent-workspace.png",
+      "viewport": "1280x900",
+      "theme": "light",
+      "screen": "agent-workspace",
+      "url": "http://127.0.0.1:3000/design?screen=agent-workspace",
+      "diagnostics": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "1280-light-mocks.png",
+      "viewport": "1280x900",
+      "theme": "light",
+      "screen": "mocks",
+      "url": "http://127.0.0.1:3000/design?screen=mocks",
+      "diagnostics": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "1280-light-profile.png",
+      "viewport": "1280x900",
+      "theme": "light",
+      "screen": "profile",
+      "url": "http://127.0.0.1:3000/design?screen=profile",
+      "diagnostics": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "1280-dark-importer.png",
+      "viewport": "1280x900",
+      "theme": "dark",
+      "screen": "importer",
+      "url": "http://127.0.0.1:3000/design?screen=importer",
+      "diagnostics": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "1280-dark-case.png",
+      "viewport": "1280x900",
+      "theme": "dark",
+      "screen": "case",
+      "url": "http://127.0.0.1:3000/design?screen=case",
+      "diagnostics": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "1280-dark-review.png",
+      "viewport": "1280x900",
+      "theme": "dark",
+      "screen": "review",
+      "url": "http://127.0.0.1:3000/design?screen=review",
+      "diagnostics": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "1280-dark-agents.png",
+      "viewport": "1280x900",
+      "theme": "dark",
+      "screen": "agents",
+      "url": "http://127.0.0.1:3000/design?screen=agents",
+      "diagnostics": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "1280-dark-agent-workspace.png",
+      "viewport": "1280x900",
+      "theme": "dark",
+      "screen": "agent-workspace",
+      "url": "http://127.0.0.1:3000/design?screen=agent-workspace",
+      "diagnostics": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "1280-dark-mocks.png",
+      "viewport": "1280x900",
+      "theme": "dark",
+      "screen": "mocks",
+      "url": "http://127.0.0.1:3000/design?screen=mocks",
+      "diagnostics": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "1280-dark-profile.png",
+      "viewport": "1280x900",
+      "theme": "dark",
+      "screen": "profile",
+      "url": "http://127.0.0.1:3000/design?screen=profile",
+      "diagnostics": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "1280-cocoa-importer.png",
+      "viewport": "1280x900",
+      "theme": "cocoa",
+      "screen": "importer",
+      "url": "http://127.0.0.1:3000/design?screen=importer",
+      "diagnostics": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "1280-cocoa-case.png",
+      "viewport": "1280x900",
+      "theme": "cocoa",
+      "screen": "case",
+      "url": "http://127.0.0.1:3000/design?screen=case",
+      "diagnostics": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "1280-cocoa-review.png",
+      "viewport": "1280x900",
+      "theme": "cocoa",
+      "screen": "review",
+      "url": "http://127.0.0.1:3000/design?screen=review",
+      "diagnostics": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "1280-cocoa-agents.png",
+      "viewport": "1280x900",
+      "theme": "cocoa",
+      "screen": "agents",
+      "url": "http://127.0.0.1:3000/design?screen=agents",
+      "diagnostics": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "1280-cocoa-agent-workspace.png",
+      "viewport": "1280x900",
+      "theme": "cocoa",
+      "screen": "agent-workspace",
+      "url": "http://127.0.0.1:3000/design?screen=agent-workspace",
+      "diagnostics": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "1280-cocoa-mocks.png",
+      "viewport": "1280x900",
+      "theme": "cocoa",
+      "screen": "mocks",
+      "url": "http://127.0.0.1:3000/design?screen=mocks",
+      "diagnostics": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "1280-cocoa-profile.png",
+      "viewport": "1280x900",
+      "theme": "cocoa",
+      "screen": "profile",
+      "url": "http://127.0.0.1:3000/design?screen=profile",
+      "diagnostics": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "horizontalOverflow": false,
+        "tooSmall": [],
+        "unlabelledIconButtons": [],
+        "clipped": []
+      }
+    },
+    {
+      "name": "1280-light-gallery.png",
+      "viewport": "1280x900",
+      "theme": "light",
+      "screen": "gallery",
+      "url": "http://127.0.0.1:3000/design"
+    }
+  ],
+  "motion": {
+    "throttled": {
+      "frames": 33,
+      "maxGap": 17,
+      "avgGap": 17,
+      "startedAnimations": [
+        {
+          "name": "stage-advance",
+          "duration": 420,
+          "playState": "running",
+          "currentTime": 0
+        }
+      ],
+      "endedAnimations": []
+    },
+    "reducedMotion": {
+      "duration": "1e-05s",
+      "animations": 0
+    }
+  }
+}

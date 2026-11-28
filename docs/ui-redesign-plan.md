@@ -120,3 +120,13 @@ All wrapped in MockScreen with “Mock-up, sample data”; figures say “Sample
 4. Mocks, `/design` gallery, docs and screenshot/contrast/bundle verification.
 
 No API contracts change. Real data remains labelled real; mocks remain labelled mock. Duty, VAT and fee figures remain sample-only and `NEEDS_VERIFICATION` where applicable.
+
+## Verification
+
+`pnpm verify` passes. Web JS grew from `106.07 kB` gzip before the redesign to
+`128.46 kB`, an increase of `22.39 kB` gzip, below the `~40 kB` budget. The
+dev-only gallery is tree-shaken from the production build. Screenshots for every preview
+screen at `360x800` and `1280x900` in all three themes are in
+`docs/ui-redesign-screenshots`; the capture manifest records zero overflow,
+undersized controls, unlabelled icon buttons and clipped text. The stage-track
+animation was checked at 4x CPU throttling and disabled under reduced motion.
