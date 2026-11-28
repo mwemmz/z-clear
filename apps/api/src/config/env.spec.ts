@@ -36,4 +36,22 @@ describe('loadEnv', () => {
     } as NodeJS.ProcessEnv);
     expect(corsOrigins(env)).toEqual(['https://a.test', 'https://b.test']);
   });
+
+  it('requires a strong hosted password when the one-shot seed flag is on in production', () => {
+    const production = {
+      NODE_ENV: 'production',
+      AUTH_JWT_SECRET: 'a-strong-unique-jwt-secret-value',
+      DATABASE_URL: 'postgresql://app:secret@localhost:5432/clearing',
+      HOSTED_DEMO_SEED_ONCE: 'true',
+    } as NodeJS.ProcessEnv;
+    expect(() => loadEnv(production)).toThrow(/HOSTED_DEMO_PASSWORD/);
+    const env = loadEnv({
+      ...production,
+      HOSTED_DEMO_PASSWORD: 'hosted-demo-password-value',
+    } as NodeJS.ProcessEnv);
+    expect(env.HOSTED_DEMO_SEED_ONCE).toBe(true);
+    expect(loadEnv({ ...production, HOSTED_DEMO_SEED_ONCE: 'false' })).toMatchObject({
+      HOSTED_DEMO_SEED_ONCE: false,
+    });
+  });
 });

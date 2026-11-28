@@ -3,9 +3,13 @@ import {
   DEMO_INVOICE,
   DEMO_LOGINS,
   DEMO_USERS,
+  HOSTED_SEED_VERSION,
   demoPassword,
   hostedDemoPassword,
+  hostedSeedAlreadyApplied,
+  markSeedApplied,
   resolveSeedPassword,
+  type SeedQueryClient,
 } from './seed-review-demo';
 
 const originalPassword = process.env.DEMO_PASSWORD;
@@ -76,5 +80,32 @@ describe('demo seed', () => {
     expect(() => resolveSeedPassword({ hosted: true, nodeEnv: 'development' })).toThrow(
       /requires NODE_ENV=production/,
     );
+  });
+
+  it('detects an existing hosted seed marker', async () => {
+    const queries: Array<{ text: string; values?: unknown[] }> = [];
+    const db: SeedQueryClient = {
+      async query(text, values) {
+        queries.push({ text, values });
+        return { rowCount: 1 };
+      },
+    };
+    expect(await hostedSeedAlreadyApplied(db)).toBe(true);
+    expect(queries[0]?.text).toMatch(/demo_seed_state/);
+    expect(queries[0]?.values).toHaveLength(1);
+  });
+
+  it('writes the marker inside the seed transaction', async () => {
+    const queries: Array<{ text: string; values?: unknown[] }> = [];
+    const db: SeedQueryClient = {
+      async query(text, values) {
+        queries.push({ text, values });
+        return { rowCount: 1 };
+      },
+    };
+    await markSeedApplied(db, HOSTED_SEED_VERSION);
+    expect(queries[0]?.text).toMatch(/insert into demo_seed_state/);
+    expect(queries[0]?.text).toMatch(/on conflict \(tenant_id\) do update/);
+    expect(queries[0]?.values?.[1]).toBe(HOSTED_SEED_VERSION);
   });
 });

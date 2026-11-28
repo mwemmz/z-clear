@@ -50,6 +50,11 @@ export const envSchema = z.object({
   FEATURE_AI: booleanish.default(false),
   FEATURE_NOTIFICATIONS: booleanish.default(false),
 
+  // Opt-in hosted demo seed. Runs once on the first boot after deployment and
+  // is skipped thereafter by a tenant-owned DB marker. Never enabled locally.
+  HOSTED_DEMO_SEED_ONCE: booleanish.default(false),
+  HOSTED_DEMO_PASSWORD: z.string().optional(),
+
   // File storage. `memory` is the dev/test default; production uses an
   // S3-compatible bucket (private only). Uploads are never public.
   STORAGE_DRIVER: z.enum(['memory', 's3']).default('memory'),
@@ -114,6 +119,13 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): AppEnv {
     }
     if (!env.DATABASE_URL) {
       problems.push('DATABASE_URL is required in production.');
+    }
+    if (env.HOSTED_DEMO_SEED_ONCE) {
+      if (!env.HOSTED_DEMO_PASSWORD || env.HOSTED_DEMO_PASSWORD.length < 12) {
+        problems.push(
+          'HOSTED_DEMO_PASSWORD must be at least 12 characters when HOSTED_DEMO_SEED_ONCE=true.',
+        );
+      }
     }
     if (env.STORAGE_DRIVER === 's3') {
       if (!env.S3_BUCKET) problems.push('S3_BUCKET is required when STORAGE_DRIVER=s3.');

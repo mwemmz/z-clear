@@ -41,15 +41,20 @@ describe('Render blueprint', () => {
     expect(blueprint).not.toContain('preDeployCommand:');
   });
 
-  it('never seeds demo data during normal API startup', () => {
-    expect(blueprint).not.toContain('HOSTED_DEMO_SEED_ONCE');
-    expect(blueprint).not.toContain('db:seed:hosted');
-  });
-
-  it('declares the hosted demo password as a Render secret for the one-off job', () => {
-    expect(blueprint).toMatch(/- key: HOSTED_DEMO_PASSWORD\s+sync: false/);
+  it('runs the hosted seed at startup behind an explicit flag', () => {
+    expect(blueprint).toContain('HOSTED_DEMO_SEED_ONCE');
+    expect(blueprint).toMatch(/- key: HOSTED_DEMO_SEED_ONCE\s+value: 'true'/);
+    expect(blueprint).toContain('db:seed:hosted');
+    const conditionalSeed = blueprint.match(
+      /if \[ "\$HOSTED_DEMO_SEED_ONCE" = "true" \]; then[\s\S]*?db:seed:hosted[\s\S]*?fi/,
+    );
+    expect(conditionalSeed).not.toBeNull();
     expect(apiPackage.scripts?.['db:seed:hosted']).toBe(
       'node dist/scripts/seed-review-demo.js --hosted',
     );
+  });
+
+  it('declares the hosted demo password as a Render secret', () => {
+    expect(blueprint).toMatch(/- key: HOSTED_DEMO_PASSWORD\s+sync: false/);
   });
 });

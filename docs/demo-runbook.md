@@ -26,9 +26,9 @@ pnpm dev                      # API :3000, web :5173 (web proxies /api)
   a shipment, an in-flight review revision, a points entry and one issued
   invoice for a labelled synthetic agency service fee. It hashes
   `DEMO_PASSWORD` for the demo users, never logs it and refuses to run when
-  `NODE_ENV=production`. The same data can be created on Render once via the
-  explicit hosted job using `HOSTED_DEMO_PASSWORD`; normal startup never seeds
-  demo data. See `docs/demo-accounts.md` for the sample emails.
+  `NODE_ENV=production`. The same data is created on Render's first deploy via
+  the explicit hosted path using `HOSTED_DEMO_PASSWORD`; a DB marker skips later
+  boots. See `docs/demo-accounts.md` for the sample emails.
 - `smoke-review.ts` is the real-API smoke check for the importer review flow.
   It uses `DEMO_PASSWORD` (or `SMOKE_PASSWORD`) and sends no credential from source.
 - To start clean locally, recreate an empty database you own, re-run

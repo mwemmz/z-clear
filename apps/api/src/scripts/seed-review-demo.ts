@@ -11,15 +11,15 @@
  *   DATABASE_URL=postgresql://... DEMO_PASSWORD=<local-demo-password> \
  *     node dist/scripts/seed-review-demo.js
  *
- * Hosted one-off job on Render (HOSTED_DEMO_PASSWORD comes from the service
+ * Hosted seed on Render (HOSTED_DEMO_PASSWORD comes from the service
  * environment; no credential is passed on the command line):
  *   corepack pnpm --filter @zclear/api db:seed:hosted
  *
  * The password comes only from DEMO_PASSWORD locally, or HOSTED_DEMO_PASSWORD
  * in the explicit `--hosted` mode; it is never hardcoded in the app or logged.
  * The default path is a *local demo reset* and refuses to run in production.
- * The hosted path seeds the same fixed synthetic tenant once, only when an
- * operator deliberately runs the one-off job. Normal startup never seeds.
+ * The hosted path seeds the same fixed synthetic tenant only on its first run;
+ * a tenant-owned marker row makes later boots skip without resetting real work.
  */
 import 'dotenv/config';
 import { Client } from 'pg';
@@ -38,6 +38,9 @@ const ADMIN_ID = '01920000-0000-7000-8000-00000000d009';
 const DRIVER_ID = '01920000-0000-7000-8000-00000000d00a';
 const INVOICE_ID = '01920000-0000-7000-8000-00000000d00b';
 const INVOICE_LINE_ID = '01920000-0000-7000-8000-00000000d00c';
+
+/** Bump this only when a deliberate hosted demo reset is required. */
+export const HOSTED_SEED_VERSION = '2026-11-28-1';
 
 /**
  * Synthetic agency service fee only — not a customs assessment, duty, VAT or a
@@ -151,6 +154,27 @@ export function resolveSeedPassword(options: { hosted: boolean; nodeEnv?: string
   return demoPassword();
 }
 
+/** Minimal query surface shared by pg's Client and the marker unit tests. */
+export interface SeedQueryClient {
+  query(text: string, values?: unknown[]): Promise<{ rowCount?: number | null }>;
+}
+
+/** True once the hosted demo has been seeded for this tenant. */
+export async function hostedSeedAlreadyApplied(db: SeedQueryClient): Promise<boolean> {
+  const result = await db.query('select 1 from demo_seed_state where tenant_id = $1', [TENANT_ID]);
+  return (result.rowCount ?? 0) > 0;
+}
+
+/** Written in the same transaction as the seed so a failed seed never marks itself done. */
+export async function markSeedApplied(db: SeedQueryClient, version: string): Promise<void> {
+  await db.query(
+    `insert into demo_seed_state (tenant_id, seed_version)
+     values ($1, $2)
+     on conflict (tenant_id) do update set seed_version = excluded.seed_version, seeded_at = now()`,
+    [TENANT_ID, version],
+  );
+}
+
 async function main(): Promise<void> {
   const hosted = process.argv.includes('--hosted');
   const password = resolveSeedPassword({ hosted });
@@ -162,6 +186,13 @@ async function main(): Promise<void> {
   try {
     await db.query('begin');
     await db.query(`select set_config('app.tenant_id', $1, true)`, [TENANT_ID]);
+    // Serialise concurrent boots so only one can claim the first seed.
+    await db.query(`select pg_advisory_xact_lock(hashtext($1))`, ['zclear-hosted-demo-seed']);
+    if (hosted && (await hostedSeedAlreadyApplied(db))) {
+      await db.query('commit');
+      console.log('Hosted demo seed already applied; skipping.');
+      return;
+    }
 
     // Reset: clear the demo shipment's *extra* review revisions (anything a
     // previous demo/smoke run added beyond the seeded revision 1). The
@@ -274,6 +305,7 @@ async function main(): Promise<void> {
          set last_number = greatest(invoice_counters.last_number, excluded.last_number)`,
       [TENANT_ID],
     );
+    await markSeedApplied(db, HOSTED_SEED_VERSION);
 
     await db.query('commit');
     console.log(

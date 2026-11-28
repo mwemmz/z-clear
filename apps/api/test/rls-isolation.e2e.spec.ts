@@ -74,6 +74,18 @@ describe('row-level security (e2e)', () => {
     expect(rows).toEqual([]);
   });
 
+  it('isolates the hosted demo seed marker by tenant', async () => {
+    await db.withTenant(tenantA, (trx) =>
+      sql`insert into demo_seed_state (tenant_id, seed_version) values (${tenantA}, ${'test'})`.execute(
+        trx,
+      ),
+    );
+    const result = await db.withTenant(tenantB, (trx) =>
+      sql<{ tenant_id: string }>`select tenant_id from demo_seed_state`.execute(trx),
+    );
+    expect(result.rows).toEqual([]);
+  });
+
   it('cannot read another tenant even when queried explicitly', async () => {
     const rows = await db.withTenant(tenantA, (trx) =>
       trx.selectFrom('users').select('id').where('tenant_id', '=', tenantB).execute(),
