@@ -1,0 +1,45 @@
+{
+  "$comment": "Z Clear — referral and point programme structure. No earning rates, redemption values, expiry windows or reward claims are supplied. Both programmes start NEEDS_VERIFICATION and are inert until owner-supplied rules are versioned and verified.",
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/v1/points/me",
+      "permission": "points:read",
+      "response": "PointsSummary: versioned programme config, balance null while unconfigured, empty ledger"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/points/ledger",
+      "permission": "points:read",
+      "query": {
+        "limit": "1..100, default 50",
+        "offset": ">= 0, default 0"
+      },
+      "response": "Append-only point ledger entries. Empty until verified rules create entries."
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/referrals/me",
+      "permission": "referral:read",
+      "response": "ReferralsSummary: versioned programme config and structural records only"
+    }
+  ],
+  "sampleResponse": {
+    "program": {
+      "version": 0,
+      "verificationStatus": "NEEDS_VERIFICATION",
+      "configuredAt": null,
+      "notice": "This programme has no verified rules yet. No points or rewards are earned or offered."
+    },
+    "balance": null,
+    "ledger": [],
+    "records": []
+  },
+  "guardrails": [
+    "No point value, reward, expiry or referral incentive is invented in code, seed data, UI copy or this document.",
+    "Balances are null, not zero, while a programme is unconfigured.",
+    "Ledger rows and referral records are tenant-scoped, append-only and never exposed across tenants.",
+    "Write actions remain unavailable until verified, versioned rules exist.",
+    "Nothing here interacts with ASYCUDA World or represents a ZRA status or assessment."
+  ]
+}

@@ -8,3 +8,4 @@ export * from './checklist';
 export * from './case-status';
 export * from './valuation';
 export * from './compliance';
+export * from './loyalty';

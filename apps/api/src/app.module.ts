@@ -15,6 +15,7 @@ import { ComplianceModule } from './modules/compliance/compliance.module';
 import { DocumentsModule } from './modules/documents/documents.module';
 import { GuidanceModule } from './modules/guidance/guidance.module';
 import { HandoffModule } from './modules/handoff/handoff.module';
+import { LoyaltyModule } from './modules/loyalty/loyalty.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { RequirementsModule } from './modules/requirements/requirements.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
@@ -51,6 +52,7 @@ import { UsersModule } from './modules/users/users.module';
     BillingModule,
     ReviewsModule,
     HandoffModule,
+    LoyaltyModule,
     HealthModule,
   ],
   providers: [

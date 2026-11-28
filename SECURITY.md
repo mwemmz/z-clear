@@ -107,6 +107,23 @@ data. Full detail and model/tool disclosure in `docs/ai-safety.md`.
 - No AI model is called at runtime. `FEATURE_AI` wording seams have a fixed
   fallback; disclosure is in `docs/ai-safety.md`.
 
+### Loyalty structure (read-only, inert)
+
+- `loyalty_program_config`, `point_ledger_entries` and `referral_records` are
+  tenant-owned and covered by the same fail-closed RLS policies as Phase 1.
+  Lookups are scoped by tenant and the current user's id: no cross-user or
+  cross-tenant loyalty row is returned.
+- The ledger and referral tables are append-only by database trigger. No write
+  endpoints exist while the programmes are unconfigured; a future owner-supplied
+  rules row cannot be `VERIFIED` without a source note and non-empty rules.
+- `GET /points/me`, `GET /points/ledger` and `GET /referrals/me` declare
+  `points:read` / `referral:read` and are throttled at 60/min. Drivers are denied
+  these permissions. Legacy `review_points` rows are not exposed.
+- No earning value, redemption rule, expiry, reward or referral incentive is
+  stored, returned or rendered. An unconfigured balance is `null`, never `0`,
+  and the client cannot turn it into a claim. Sample tokens route to explicit
+  unconfigured data without a network request.
+
 ### Files and documents (Phase 3, shipped)
 - Private, tenant-scoped storage behind a provider interface: in-memory for
   dev/test, S3-compatible (R2/MinIO) for production. Keys are namespaced

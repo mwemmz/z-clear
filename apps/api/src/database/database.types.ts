@@ -418,6 +418,45 @@ export interface AppointmentsTable {
   created_at: Timestamp;
 }
 
+export type LoyaltyProgramType = 'points' | 'referrals';
+export type LoyaltyVerificationStatus = VerificationStatus;
+export type PointLedgerSourceType = 'configured_event' | 'manual_adjustment';
+
+export interface LoyaltyProgramConfigTable {
+  id: string;
+  tenant_id: string;
+  program_type: LoyaltyProgramType;
+  version: number;
+  verification_status: Generated<LoyaltyVerificationStatus>;
+  /** Opaque owner-supplied rules; never generated from customs figures. */
+  rules: Generated<Record<string, unknown>>;
+  source_note: Nullable<string>;
+  configured_at: Nullable<Date>;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+  created_by: Nullable<string>;
+}
+
+export interface PointLedgerEntriesTable {
+  id: string;
+  tenant_id: string;
+  user_id: string;
+  source_type: PointLedgerSourceType;
+  reason_code: string;
+  source_id: Nullable<string>;
+  points: number;
+  created_at: Timestamp;
+}
+
+export interface ReferralRecordsTable {
+  id: string;
+  tenant_id: string;
+  referrer_user_id: string;
+  state: Generated<'recorded'>;
+  source_note: Nullable<string>;
+  created_at: Timestamp;
+}
+
 export interface Database {
   tenants: TenantsTable;
   users: UsersTable;
@@ -444,4 +483,7 @@ export interface Database {
   review_points: ReviewPointsTable;
   agent_profiles: AgentProfilesTable;
   appointments: AppointmentsTable;
+  loyalty_program_config: LoyaltyProgramConfigTable;
+  point_ledger_entries: PointLedgerEntriesTable;
+  referral_records: ReferralRecordsTable;
 }

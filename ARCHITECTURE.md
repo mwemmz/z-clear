@@ -239,6 +239,25 @@ docs/           Supplemental docs (performance, runbook, ai-safety — later)
 - `export:create` is granted to owner/staff/admin roles only; importers cannot
   generate a handoff artifact.
 
+**Loyalty structure (read-only, inert):** referral and point programme shell.
+
+- Migration `1738300000000_loyalty.js` adds tenant-scoped
+  `loyalty_program_config`, `point_ledger_entries` and `referral_records`. All
+  three use the same fail-closed RLS policy as Phase 1. The ledger and referral
+  tables are append-only via `reject_mutation()` triggers.
+- No config rows are seeded and no earning, redemption, expiry, reward or
+  referral incentive values are invented. `VERIFIED` config requires a source
+  note and non-empty rules; until then the shared contract reports version 0,
+  `NEEDS_VERIFICATION`, a `null` balance and empty collections.
+- Additive endpoints: `GET /points/me`, `GET /points/ledger` (limit/offset),
+  `GET /referrals/me`. They declare `points:read` and `referral:read`, are
+  throttled, and return only the current user's own rows. Drivers are denied
+  these permissions. Legacy `review_points` remain in the old review workflow
+  and are deliberately not exposed by this API.
+- The web client calls the same methods through `apps/web/src/api.ts`; sample
+  tokens route to explicit unconfigured data in the in-memory workspace. The
+  side panel and one shared navigation model are described in `DESIGN.md`.
+
 **Phase 4 (done):** quotes and invoices.
 
 - Migration adds `quotes`/`quote_lines`, `invoices`/`invoice_lines`, `payments`
