@@ -53,14 +53,18 @@ point it at an external `clamd` only when one is available.
    start; new tables still get least-privilege grants and RLS stays enforced.
    The static site is free by default and has no compute plan. No database is
    declared in the Blueprint — Neon supplies both connection strings.
+5. The build and start commands use `corepack pnpm`, not `corepack enable`.
+   Render's `/usr/bin` is read-only, so `corepack enable` fails when it tries to
+   replace the `pnpm` shim. `corepack pnpm` honours the `packageManager` version
+   in `package.json` without writing system links.
 
 ## 4. Build and verify
 
-- API build: `corepack enable && pnpm install --frozen-lockfile && pnpm --filter @zclear/api... build`.
-- API start: `db:migrate && db:grant && API_PORT="$PORT" pnpm --filter @zclear/api start`
+- API build: `corepack pnpm install --frozen-lockfile && corepack pnpm --filter @zclear/api... build`.
+- API start: `db:migrate && db:grant && API_PORT="$PORT" corepack pnpm --filter @zclear/api start`
   (Render injects `PORT`; the app reads `API_PORT`). Expect a cold-start delay on
   the free plan after inactivity; the health check is at `/api/v1/health`.
-- Web build: `corepack enable && pnpm install --frozen-lockfile && pnpm --filter @zclear/web... build`.
+- Web build: `corepack pnpm install --frozen-lockfile && corepack pnpm --filter @zclear/web... build`.
 - Web output: `apps/web/dist` (this is why the Vercel build failed: it looked
   for `public/`).
 - `GET https://<api-host>/api/v1/health` must return `status: "ok"`.
