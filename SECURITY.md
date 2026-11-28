@@ -151,6 +151,11 @@ data. Full detail and model/tool disclosure in `docs/ai-safety.md`.
 - Dependency audit + lockfile; structured logging; PII redaction.
 
 ### Privacy
+- The web client stores only the chosen theme name in `localStorage`, inside
+  `try/catch`; denied storage still applies the theme for the session. It never
+  stores tokens, customer data or mock figures there.
+- Mock screens are static, labelled `MOCK` / `Sample data only`, make no network
+  calls, and never present duty, VAT or tax figures as verified amounts.
 - Per-tenant retention settings; data export and deletion on request; consent
   records for WhatsApp/SMS.
 - **Unverified:** the exact obligations of Zambia's data-protection law have not

@@ -8,8 +8,24 @@ if (!container) {
   throw new Error('Root container #root not found');
 }
 
-createRoot(container).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
+const root = createRoot(container);
+const params = new URLSearchParams(window.location.search);
+const isDesignRoute =
+  import.meta.env.DEV && window.location.pathname.replace(/\/$/, '') === '/design';
+
+if (isDesignRoute) {
+  // The gallery is dev-only and stays out of the production bundle.
+  void import('./design/DesignGallery').then(({ DesignGallery }) => {
+    root.render(
+      <StrictMode>
+        <DesignGallery screen={params.get('screen')} state={params.get('state')} />
+      </StrictMode>,
+    );
+  });
+} else {
+  root.render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+}

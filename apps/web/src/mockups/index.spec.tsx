@@ -3,26 +3,30 @@ import { render, screen } from '@testing-library/react';
 import { Mockups } from './index';
 
 describe('mockups', () => {
-  it('renders the two remaining labelled mock screens with the MOCK badge', () => {
+  it('renders every mock screen with a MOCK badge and sample-data note', () => {
     render(<Mockups />);
-    const labels = ['Zamtel SIM sign-up & PIN', 'Zamtel Money fee payment'];
+    const labels = [
+      'USSD-lite menu',
+      'SMS messages',
+      'Cross check-in',
+      'ASYCUDA outage notice',
+      'Cost check',
+      'Agent reviews',
+      'Zamtel SIM sign-up & PIN',
+      'Zamtel Money fee payment',
+    ];
     for (const label of labels) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
-    expect(screen.getAllByText('MOCK')).toHaveLength(2);
-    expect(screen.getAllByText(/Sample data only/)).toHaveLength(2);
-    for (const removed of [
-      'Agent reviews',
-      'Cross check-in',
-      'SMS status updates',
-      'Registry guidance',
-    ]) {
-      expect(screen.queryByText(removed)).not.toBeInTheDocument();
-    }
+    expect(screen.getAllByText('MOCK')).toHaveLength(labels.length);
+    expect(screen.getAllByText(/Sample data only/)).toHaveLength(labels.length);
   });
 
-  it('never presents customs figures as payable in the demo payment screen', () => {
+  it('never presents customs figures as payable', () => {
     render(<Mockups />);
     expect(screen.getByText(/Assessed in ASYCUDA World/)).toBeInTheDocument();
+    expect(screen.getAllByText(/sample, not ZRA figures/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/K 450\.00/)).toBeInTheDocument();
+    expect(screen.getByText(/No verified rule/)).toBeInTheDocument();
   });
 });

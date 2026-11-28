@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { List } from '@phosphor-icons/react';
 import { SHIPMENT_STATUS_LABELS } from '@zclear/shared';
 import { AgentDirectory } from './AgentDirectory';
 import { AgentReviews } from './AgentReviews';
@@ -12,6 +13,14 @@ import { NotificationStatus } from './NotificationStatus';
 import { PaymentCapture } from './PaymentCapture';
 import { RegistryGuidance } from './RegistryGuidance';
 import { ValuationQuery } from './ValuationQuery';
+import {
+  AgentDirectoryMock,
+  AgentWorkspace,
+  CaseSheet,
+  ImporterHome,
+  ProfilePanel,
+} from './screens';
+import { ThemeSwitcher } from './ui';
 import {
   api,
   messageOf,
@@ -30,6 +39,10 @@ const ROLE_LABELS: Record<string, string> = {
   platform_admin: 'Platform admin',
   driver: 'Driver',
 };
+
+const STAFF_ROLES = ['agency_owner', 'agent_staff', 'platform_admin'];
+
+type View = 'home' | 'agents' | 'profile';
 
 function display(value: unknown): string {
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
@@ -59,12 +72,25 @@ export function App() {
   const [busy, setBusy] = useState(false);
   const [showMockups, setShowMockups] = useState(false);
   const [showCaseForm, setShowCaseForm] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [view, setView] = useState<View>('home');
   const [appointmentNotice, setAppointmentNotice] = useState<string | null>(null);
   // A slow initial shipment load must not erase a case the importer has just
   // created while that request was in flight.
   const createdCaseRef = useRef(false);
 
   const firstId = shipments[0]?.id ?? null;
+  const isAgent = user ? STAFF_ROLES.includes(user.role) : false;
+  const current = shipments.find((item) => item.id === selectedId) ?? shipments[0] ?? null;
+  const recentCases = shipments
+    .filter((item) => item.id !== current?.id)
+    .map((item) => ({ reference: item.reference, stage: item.stage }));
+  const updatedLabel = current?.updatedAt
+    ? `updated ${new Date(current.updatedAt).toLocaleDateString()}`
+    : undefined;
+  const actionText = detail?.holdReason
+    ? `Your agent left a note: ${detail.holdReason}`
+    : 'Check the review draft before it is filed in ASYCUDA.';
 
   useEffect(() => {
     if (!token) {
@@ -135,6 +161,7 @@ export function App() {
       setToken(result.accessToken);
       setUser(result.user);
       setAppointmentNotice(null);
+      setView('home');
     } catch (cause) {
       setError(messageOf(cause));
     } finally {
@@ -144,7 +171,7 @@ export function App() {
 
   function handleCaseCreated(shipment: ShipmentSummary): void {
     createdCaseRef.current = true;
-    setShipments((current) => [shipment, ...current]);
+    setShipments((currentCases) => [shipment, ...currentCases]);
     setSelectedId(shipment.id);
     setShowCaseForm(false);
     setError(null);
@@ -159,6 +186,8 @@ export function App() {
     setSelectedId(null);
     setDetail(null);
     setError(null);
+    setSheetOpen(false);
+    setView('home');
   }
 
   function handleAppointed(_result: AppointmentResult): void {
@@ -168,8 +197,130 @@ export function App() {
     setAppointmentNotice('Agent appointed. Sign in again to continue in the agency workspace.');
   }
 
+  const caseSections = (
+    <>
+      {token && user && shipments.length === 0 && !busy && (
+        <p className="empty">No shipments are available for this account yet.</p>
+      )}
+
+      {token && user && user.role !== 'driver' && <NotificationStatus token={token} />}
+
+      {token && user && user.role !== 'driver' && <RegistryGuidance token={token} />}
+
+      {token && user && user.role !== 'driver' && (
+        <PaymentCapture token={token} canRecord={STAFF_ROLES.includes(user.role)} />
+      )}
+
+      {token && user && shipments.length > 0 && (
+        <>
+          {shipments.length > 1 && (
+            <nav aria-label="Choose a shipment" className="switcher">
+              {shipments.map((shipment) => (
+                <button
+                  key={shipment.id}
+                  type="button"
+                  className={
+                    shipment.id === selectedId ? 'switcher__item is-active' : 'switcher__item'
+                  }
+                  aria-current={shipment.id === selectedId ? 'true' : undefined}
+                  onClick={() => setSelectedId(shipment.id)}
+                >
+                  {shipment.reference}
+                </button>
+              ))}
+            </nav>
+          )}
+
+          {isAgent && token && <AgentReviews token={token} shipments={shipments} />}
+
+          {detail && (
+            <>
+              <section aria-labelledby="case-heading" className="card">
+                <h2 id="case-heading">Case file</h2>
+                <dl className="case">
+                  <dt>Reference</dt>
+                  <dd data-testid="case-reference">{detail.reference}</dd>
+                  <dt>Client</dt>
+                  <dd data-testid="case-client">{detail.clientName}</dd>
+                  <dt>Route</dt>
+                  <dd data-testid="case-route">
+                    {detail.origin && detail.destination
+                      ? `${detail.origin} → ${detail.destination}`
+                      : 'Route not recorded'}
+                  </dd>
+                  <dt>Goods</dt>
+                  <dd data-testid="case-goods">{goodsSummary(detail.consignment)}</dd>
+                  <dt>Current stage</dt>
+                  <dd data-testid="case-stage">{SHIPMENT_STATUS_LABELS[detail.stage]}</dd>
+                </dl>
+                {detail.holdReason && (
+                  <p className="hold" data-testid="case-hold">
+                    On hold: {detail.holdReason}
+                  </p>
+                )}
+              </section>
+
+              {user?.role === 'driver' && (
+                <DriverCheckIn
+                  token={token}
+                  shipment={detail}
+                  onCheckedIn={async () => {
+                    const updated = await api.getShipment(token, detail.id);
+                    setDetail(updated);
+                  }}
+                />
+              )}
+
+              {user?.role === 'client_viewer' && <CaseStatus token={token} caseId={detail.id} />}
+
+              {user?.role === 'client_viewer' && (
+                <ValuationQuery token={token} caseId={detail.id} />
+              )}
+
+              {user?.role === 'client_viewer' && (
+                <ComplianceAssistant token={token} caseId={detail.id} />
+              )}
+
+              {user?.role === 'client_viewer' && !detail.assignedAgentId && (
+                <AgentDirectory token={token} caseId={detail.id} onAppointed={handleAppointed} />
+              )}
+
+              {user?.role === 'client_viewer' && <Checklist token={token} caseId={detail.id} />}
+
+              <section aria-labelledby="timeline-heading" className="card">
+                <h2 id="timeline-heading">Stage history</h2>
+                <p className="hint">Read-only timeline from the shipment event log.</p>
+                {detail.events.length === 0 ? (
+                  <p className="empty">No stage changes recorded yet.</p>
+                ) : (
+                  <ol className="timeline">
+                    {detail.events.map((event) => (
+                      <li key={event.id} className="timeline__item">
+                        <span className="timeline__stage">
+                          {SHIPMENT_STATUS_LABELS[event.toStage]}
+                        </span>
+                        <span className="timeline__meta">
+                          {new Date(event.createdAt).toLocaleString()} ·{' '}
+                          {event.actorUserId ? `by ${event.actorUserId.slice(0, 8)}` : 'by system'}
+                        </span>
+                        {event.note && <p className="timeline__note">{event.note}</p>}
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </section>
+            </>
+          )}
+        </>
+      )}
+    </>
+  );
+
   return (
-    <main className={token ? 'shell' : 'shell shell--login'}>
+    <main className={token ? (isAgent ? 'shell shell--agent' : 'shell') : 'shell shell--login'}>
+      <a className="skip-link" href="#case-content">
+        Skip to case details
+      </a>
       <header className="shell__header">
         <div className="shell__titlerow">
           <h1>Z Clear</h1>
@@ -181,9 +332,17 @@ export function App() {
         </div>
         <p className="shell__subtitle">Shipment workspace</p>
         {user && (
-          <button type="button" className="link-button" onClick={handleSignOut}>
-            Sign out
-          </button>
+          <details className="header-menu">
+            <summary aria-label="Open menu">
+              <List size={20} aria-hidden="true" /> Menu
+            </summary>
+            <div className="header-menu__panel">
+              <ThemeSwitcher compact />
+              <button type="button" onClick={handleSignOut}>
+                Sign out
+              </button>
+            </div>
+          </details>
         )}
       </header>
 
@@ -222,7 +381,7 @@ export function App() {
               Credentials are issued by your demo facilitator, not stored in the app.
             </p>
           </div>
-          <aside className="login-panel__guide" aria-labelledby="login-guide-heading">
+          <aside className="card login-panel__guide" aria-labelledby="login-guide-heading">
             <h2 id="login-guide-heading">Four demo roles</h2>
             <p>Each login opens only the work its role is allowed to do.</p>
             <ul className="login-panel__roles">
@@ -243,6 +402,10 @@ export function App() {
                 <span>Sees an assigned shipment and records one manual check-in.</span>
               </li>
             </ul>
+            <div>
+              <strong>Colour theme</strong>
+              <ThemeSwitcher />
+            </div>
             <p className="hint">
               Ask your facilitator for the sample email and password. Customs assessment and release
               still happen in ASYCUDA World.
@@ -252,6 +415,30 @@ export function App() {
       )}
 
       {token && busy && <p className="hint">Loading case file…</p>}
+
+      {token && user?.role === 'client_viewer' && current && (
+        <ImporterHome
+          reference={current.reference}
+          clientName={current.clientName}
+          stage={current.stage}
+          updatedLabel={updatedLabel}
+          actionText={actionText}
+          recentCases={recentCases}
+          onOpenCase={() => setSheetOpen(true)}
+          onNewCase={() => setShowCaseForm(true)}
+          onAgents={() => setView('agents')}
+          onProfile={() => setView('profile')}
+        >
+          {view === 'agents' && <AgentDirectoryMock />}
+          {view === 'profile' && (
+            <ProfilePanel
+              email={user.email}
+              roleLabel={ROLE_LABELS[user.role] ?? user.role}
+              onSignOut={handleSignOut}
+            />
+          )}
+        </ImporterHome>
+      )}
 
       {token && user?.role === 'client_viewer' && (
         <section aria-labelledby="new-case-toggle" className="card">
@@ -266,125 +453,49 @@ export function App() {
         </section>
       )}
 
-      {token && user && shipments.length === 0 && !busy && (
-        <p className="empty">No shipments are available for this account yet.</p>
-      )}
+      <div id="case-content">
+        {token && user && isAgent ? (
+          <AgentWorkspace
+            cases={shipments.map((item) => ({
+              id: item.id,
+              reference: item.reference,
+              stage: item.stage,
+            }))}
+            activeId={selectedId}
+            onSelect={setSelectedId}
+          >
+            {caseSections}
+          </AgentWorkspace>
+        ) : (
+          caseSections
+        )}
+      </div>
 
-      {token && user && user.role !== 'driver' && <NotificationStatus token={token} />}
-
-      {token && user && user.role !== 'driver' && <RegistryGuidance token={token} />}
-
-      {token && user && user.role !== 'driver' && (
-        <PaymentCapture
-          token={token}
-          canRecord={['agency_owner', 'agent_staff', 'platform_admin'].includes(user.role)}
-        />
-      )}
-
-      {token && user && shipments.length > 0 && (
-        <>
-          {shipments.length > 1 && (
-            <nav aria-label="Choose a shipment" className="switcher">
-              {shipments.map((shipment) => (
-                <button
-                  key={shipment.id}
-                  type="button"
-                  className={
-                    shipment.id === selectedId ? 'switcher__item is-active' : 'switcher__item'
-                  }
-                  aria-current={shipment.id === selectedId ? 'true' : undefined}
-                  onClick={() => setSelectedId(shipment.id)}
-                >
-                  {shipment.reference}
-                </button>
-              ))}
-            </nav>
-          )}
-
-          {['agent_staff', 'agency_owner', 'platform_admin'].includes(user.role) && (
-            <AgentReviews token={token} shipments={shipments} />
-          )}
-
-          {detail && (
-            <>
-              <section aria-labelledby="case-heading" className="card">
-                <h2 id="case-heading">Case file</h2>
-                <dl className="case">
-                  <dt>Reference</dt>
-                  <dd data-testid="case-reference">{detail.reference}</dd>
-                  <dt>Client</dt>
-                  <dd data-testid="case-client">{detail.clientName}</dd>
-                  <dt>Route</dt>
-                  <dd data-testid="case-route">
-                    {detail.origin && detail.destination
-                      ? `${detail.origin} → ${detail.destination}`
-                      : 'Route not recorded'}
-                  </dd>
-                  <dt>Goods</dt>
-                  <dd data-testid="case-goods">{goodsSummary(detail.consignment)}</dd>
-                  <dt>Current stage</dt>
-                  <dd data-testid="case-stage">{SHIPMENT_STATUS_LABELS[detail.stage]}</dd>
-                </dl>
-                {detail.holdReason && (
-                  <p className="hold" data-testid="case-hold">
-                    On hold: {detail.holdReason}
-                  </p>
-                )}
-              </section>
-
-              {user.role === 'driver' && (
-                <DriverCheckIn
-                  token={token}
-                  shipment={detail}
-                  onCheckedIn={async () => {
-                    const updated = await api.getShipment(token, detail.id);
-                    setDetail(updated);
-                  }}
-                />
-              )}
-
-              {user.role === 'client_viewer' && <CaseStatus token={token} caseId={detail.id} />}
-
-              {user.role === 'client_viewer' && <ValuationQuery token={token} caseId={detail.id} />}
-
-              {user.role === 'client_viewer' && (
-                <ComplianceAssistant token={token} caseId={detail.id} />
-              )}
-
-              {user.role === 'client_viewer' && !detail.assignedAgentId && (
-                <AgentDirectory token={token} caseId={detail.id} onAppointed={handleAppointed} />
-              )}
-
-              {user.role === 'client_viewer' && <Checklist token={token} caseId={detail.id} />}
-
-              <section aria-labelledby="timeline-heading" className="card">
-                <h2 id="timeline-heading">Stage history</h2>
-                <p className="hint">Read-only timeline from the shipment event log.</p>
-                {detail.events.length === 0 ? (
-                  <p className="empty">No stage changes recorded yet.</p>
-                ) : (
-                  <ol className="timeline">
-                    {detail.events.map((event) => (
-                      <li key={event.id} className="timeline__item">
-                        <span className="timeline__stage">
-                          {SHIPMENT_STATUS_LABELS[event.toStage]}
-                        </span>
-                        <span className="timeline__meta">
-                          {new Date(event.createdAt).toLocaleString()} ·{' '}
-                          {event.actorUserId ? `by ${event.actorUserId.slice(0, 8)}` : 'by system'}
-                        </span>
-                        {event.note && <p className="timeline__note">{event.note}</p>}
-                      </li>
-                    ))}
-                  </ol>
-                )}
-              </section>
-            </>
-          )}
-        </>
+      {token && detail && sheetOpen && (
+        <CaseSheet
+          open={sheetOpen}
+          onClose={() => setSheetOpen(false)}
+          reference={detail.reference}
+          route={
+            detail.origin && detail.destination
+              ? `${detail.origin} → ${detail.destination}`
+              : 'Route not recorded'
+          }
+          stage={detail.stage}
+          documentsReady={0}
+          documentsTotal={0}
+        >
+          <p className="hint">
+            This case is recorded at {SHIPMENT_STATUS_LABELS[detail.stage]}. Sections below carry
+            the live case file, review and payment details.
+          </p>
+        </CaseSheet>
       )}
 
       <section aria-labelledby="mockups-heading" style={{ marginTop: '1.5rem' }}>
+        <h2 id="mockups-heading" className="sr-only">
+          Workflow mock screens
+        </h2>
         <button type="button" onClick={() => setShowMockups((value) => !value)}>
           {showMockups ? 'Hide' : 'Show'} importer workflow mock screens
         </button>

@@ -113,6 +113,24 @@ Nothing here talks to ASYCUDA.
 - Notification channels sit behind a `NotificationProvider` interface with a
   mock for tests (`mock` is the Phase 0 default).
 
+## Web UI
+
+`apps/web/src/styles/tokens.css` is the only place with raw colour values. The
+three palettes (`light`, `dark`, `cocoa`) are exposed as semantic tokens and
+consumed by `base.css`, `components.css` and `screens.css`. `theme.ts` applies
+the saved or system theme before first paint, stores only the theme choice in
+`localStorage` behind `try/catch`, and notifies every switcher instance so the
+header, profile and gallery controls stay in sync. No API contract changed.
+
+Shared primitives live in `apps/web/src/ui`; role screens in
+`apps/web/src/screens`; static, explicitly labelled sample flows in
+`apps/web/src/mockups`. Every screen accepts a state variant
+(`loading`, `empty`, `error`, `denied`, `stale`) so permission and freshness
+states are designed, not inferred from colour. The gallery at `/design` is
+gated by `import.meta.env.DEV` and dynamically imported, so it stays out of the
+production bundle. Its `?screen=` and `?state=` query parameters are screenshot
+aids only; they do not alter API data.
+
 ## Deployment (Render)
 
 `render.yaml` creates a Node web service for the API and a static site for the
@@ -133,6 +151,8 @@ Vite's `/api` proxy. Secrets stay in Render, never in the repository. See
 | Shared schema + `tenant_id` + RLS (not DB-per-tenant) | Cheapest at pilot scale; one migration path | Noisy-neighbour risk; later option to move a large tenant to its own DB |
 | Postgres-backed job table first, Redis later | Avoid a second stateful service before it earns its keep | Lower throughput; revisit when job latency matters |
 | Manual stage updates | No ASYCUDA integration allowed now | Staff must tap to update; UI must make that one tap |
+| Three-theme, phone-first web UI | Importers and agents need one calm workflow on slow phones | Semantic-token discipline and CSS-only motion |
+| Dev-only design gallery | Theme and state review without staging customer data | Loaded only on `/design` in local development |
 | OpenAPI generated from code | Spec cannot drift | Decorators must be kept on every DTO |
 | Money as integer minor units + ISO code | No float rounding errors on duty/VAT | Every layer must respect minor units |
 | Forward-only migrations | Simple, auditable history | Rollback = restore from backup, so backups must be tested |
