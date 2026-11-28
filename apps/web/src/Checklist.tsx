@@ -54,8 +54,8 @@ export function Checklist({ token, caseId }: Props) {
             <ul className="checklist">
               {checklist.rules.map((rule) => (
                 <li key={rule.docType} data-testid={`checklist-${rule.docType}`}>
-                  <span className="checklist__status" aria-hidden="true">
-                    {rule.satisfied ? '✓' : '○'}
+                  <span className="checklist__status">
+                    {rule.satisfied ? '✓ Received' : '○ Needed'}
                   </span>
                   <span className="checklist__label">{rule.label}</span>
                   {rule.verificationStatus !== 'VERIFIED' ? (

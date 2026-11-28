@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { App } from './App';
+import { updatedLabelFor } from './updatedLabel';
 
 const summary = {
   id: 's1',
@@ -46,6 +47,7 @@ function stubApi(
     loginStatus?: number;
     loginMessage?: string;
     assignedAgentId?: string | null;
+    invoices?: Array<Record<string, unknown>>;
   } = {},
 ) {
   const user = {
@@ -205,6 +207,7 @@ function stubApi(
           ],
           payments: [],
         },
+        ...(overrides.invoices ?? []),
       ]);
     }
     if (url.endsWith('/api/v1/guidance')) {
@@ -431,6 +434,34 @@ describe('App', () => {
       amountMinor: 60_000,
       method: 'mobile_money',
     });
+  });
+
+  it('keeps invoices from another case out of the selected case file', async () => {
+    stubApi({
+      invoices: [
+        {
+          id: 'i2',
+          shipmentId: 's2',
+          number: 'INV-9999',
+          status: 'issued',
+          currency: 'ZMW',
+          totalMinor: 10_000,
+          amountPaidMinor: 0,
+          balanceMinor: 10_000,
+          notes: 'Synthetic invoice for a different case.',
+          vatVerificationStatus: 'NEEDS_VERIFICATION',
+          issuedAt: '2026-11-27T08:00:00.000Z',
+          lines: [],
+          payments: [],
+        },
+      ],
+    });
+    render(<App />);
+    await signIn();
+
+    expect(await screen.findByTestId('case-reference')).toHaveTextContent('ZC-1001');
+    expect(await screen.findByText('INV-0001')).toBeInTheDocument();
+    expect(screen.queryByText('INV-9999')).not.toBeInTheDocument();
   });
 
   it('shows invoices read-only to an importer', async () => {
@@ -731,12 +762,29 @@ describe('App', () => {
     expect(screen.getByTestId('agent-licence-a1')).toHaveTextContent('Simulated, pending ZRA API');
   });
 
+  it('shows one real agent directory in the Agents tab and no mock controls', async () => {
+    stubApi({ role: 'client_viewer' });
+    render(<App />);
+    await signIn();
+
+    expect(await screen.findByTestId('agent-directory')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Agents' }));
+    expect(await screen.findByTestId('agent-a1')).toHaveTextContent('Copperbelt Clearing');
+
+    expect(screen.getAllByTestId('agent-directory')).toHaveLength(1);
+    expect(screen.queryByText(/Sample, not ZRA figures/)).not.toBeInTheDocument();
+  });
+
   it('requires explicit consent, appoints the chosen agent and asks the importer to sign in again', async () => {
     const fetchMock = stubApi({ role: 'client_viewer' });
     render(<App />);
     await signIn();
 
-    const appointButton = await screen.findByRole('button', { name: 'Appoint this agent' });
+    const appointButton = await screen.findByRole(
+      'button',
+      { name: 'Appoint this agent' },
+      { timeout: 5000 },
+    );
     expect(appointButton).toBeDisabled();
     fireEvent.click(screen.getByLabelText(/I understand my case and importer account/));
     expect(appointButton).toBeEnabled();
@@ -771,5 +819,12 @@ describe('App', () => {
     await signIn();
     expect(await screen.findByTestId('case-reference')).toBeInTheDocument();
     expect(screen.queryByTestId('agent-directory')).not.toBeInTheDocument();
+  });
+
+  it('never presents clock skew as a future last update', () => {
+    const ahead = new Date(Date.now() + 10 * 60_000).toISOString();
+    expect(updatedLabelFor(ahead)).toBe('just now');
+    expect(updatedLabelFor('not-a-date')).toBeUndefined();
+    expect(updatedLabelFor(undefined)).toBeUndefined();
   });
 });

@@ -22,19 +22,27 @@ export function AgentDirectory({ token, caseId, onAppointed }: Props) {
   const [consentText, setConsentText] = useState(DEFAULT_CONSENT);
   const [agreed, setAgreed] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
+    setAgents([]);
+    setLoading(true);
+    setError(null);
     api
       .listAgentProfiles(token)
       .then((entries) => {
         if (!active) return;
         setAgents(entries);
         setSelectedUserId(entries[0]?.userId ?? null);
+        setLoading(false);
       })
       .catch((cause: unknown) => {
-        if (active) setError(messageOf(cause));
+        if (active) {
+          setError(messageOf(cause));
+          setLoading(false);
+        }
       });
     return () => {
       active = false;
@@ -72,8 +80,8 @@ export function AgentDirectory({ token, caseId, onAppointed }: Props) {
         register agents with ZRA.
       </p>
       {error && <p className="alert">{error}</p>}
-      {agents.length === 0 && !error && <p className="hint">Loading agencies…</p>}
-      {agents.length === 0 && !error && (
+      {loading && !error && <p className="hint">Loading published agencies…</p>}
+      {!loading && agents.length === 0 && !error && (
         <p className="empty">No published agencies are available.</p>
       )}
       {agents.length > 0 && (

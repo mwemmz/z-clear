@@ -29,7 +29,13 @@ function money(amountMinor: number): string {
  * agency observation of an off-platform payment; it integrates with no payment
  * provider and never represents duty, VAT or a ZRA assessment.
  */
-export function PaymentCapture({ token, canRecord }: { token: string; canRecord: boolean }) {
+interface Props {
+  token: string;
+  canRecord: boolean;
+  shipmentId?: string;
+}
+
+export function PaymentCapture({ token, canRecord, shipmentId }: Props) {
   const [invoices, setInvoices] = useState<InvoiceSummary[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [amount, setAmount] = useState('');
@@ -48,9 +54,12 @@ export function PaymentCapture({ token, canRecord }: { token: string; canRecord:
       try {
         const result = await api.listInvoices(token);
         if (!cancelled) {
-          setInvoices(result);
+          const scoped = shipmentId
+            ? result.filter((invoice) => invoice.shipmentId === shipmentId)
+            : result;
+          setInvoices(scoped);
           setSelectedId(
-            result.find((invoice) => invoice.balanceMinor > 0)?.id ?? result[0]?.id ?? null,
+            scoped.find((invoice) => invoice.balanceMinor > 0)?.id ?? scoped[0]?.id ?? null,
           );
           setError(null);
         }
@@ -63,7 +72,7 @@ export function PaymentCapture({ token, canRecord }: { token: string; canRecord:
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, shipmentId]);
 
   const selected = invoices.find((invoice) => invoice.id === selectedId) ?? null;
   const payable = selected?.status === 'issued' || selected?.status === 'partially_paid';

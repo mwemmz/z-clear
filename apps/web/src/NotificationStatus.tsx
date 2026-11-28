@@ -63,22 +63,27 @@ export function NotificationStatus({ token }: { token: string }) {
       )}
       {items.length > 0 && (
         <ul className="notice-list">
-          {items.map((item) => (
-            <li className="notice-list__item" key={item.id} data-testid="notification-row">
-              <strong>{EVENT_LABELS[item.eventType] ?? item.eventType}</strong>
-              <span className="notice-list__meta">
-                <span
-                  className={`badge ${item.status === 'sent' ? 'badge--ok' : 'badge--warn'}`}
-                  data-testid="notification-status-value"
-                >
-                  {item.status}
+          {items.map((item) => {
+            const statusClass =
+              item.status === 'sent'
+                ? 'badge--ok'
+                : item.status === 'failed'
+                  ? 'badge--danger'
+                  : 'badge--warn';
+            return (
+              <li className="notice-list__item" key={item.id} data-testid="notification-row">
+                <strong>{EVENT_LABELS[item.eventType] ?? item.eventType}</strong>
+                <span className="notice-list__meta">
+                  <span className={`badge ${statusClass}`} data-testid="notification-status-value">
+                    {item.status}
+                  </span>
+                  <span>{channelLabel(item.channel)}</span>
                 </span>
-                <span>{channelLabel(item.channel)}</span>
-              </span>
-              <span className="notice-list__sub">{item.subject}</span>
-              {item.detail && <span className="notice-list__sub">{item.detail}</span>}
-            </li>
-          ))}
+                <span className="notice-list__sub">{item.subject}</span>
+                {item.detail && <span className="notice-list__sub">{item.detail}</span>}
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>

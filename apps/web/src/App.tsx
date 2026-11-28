@@ -13,14 +13,9 @@ import { NotificationStatus } from './NotificationStatus';
 import { PaymentCapture } from './PaymentCapture';
 import { RegistryGuidance } from './RegistryGuidance';
 import { ValuationQuery } from './ValuationQuery';
-import {
-  AgentDirectoryMock,
-  AgentWorkspace,
-  CaseSheet,
-  ImporterHome,
-  ProfilePanel,
-} from './screens';
+import { AgentWorkspace, CaseSheet, ImporterHome, ProfilePanel } from './screens';
 import { ThemeSwitcher } from './ui';
+import { updatedLabelFor } from './updatedLabel';
 import {
   api,
   messageOf,
@@ -85,9 +80,7 @@ export function App() {
   const recentCases = shipments
     .filter((item) => item.id !== current?.id)
     .map((item) => ({ reference: item.reference, stage: item.stage }));
-  const updatedLabel = current?.updatedAt
-    ? `updated ${new Date(current.updatedAt).toLocaleDateString()}`
-    : undefined;
+  const updatedLabel = updatedLabelFor(current?.updatedAt);
   const actionText = detail?.holdReason
     ? `Your agent left a note: ${detail.holdReason}`
     : 'Check the review draft before it is filed in ASYCUDA.';
@@ -207,8 +200,12 @@ export function App() {
 
       {token && user && user.role !== 'driver' && <RegistryGuidance token={token} />}
 
-      {token && user && user.role !== 'driver' && (
-        <PaymentCapture token={token} canRecord={STAFF_ROLES.includes(user.role)} />
+      {token && user && detail && user.role !== 'driver' && (
+        <PaymentCapture
+          token={token}
+          canRecord={STAFF_ROLES.includes(user.role)}
+          shipmentId={detail.id}
+        />
       )}
 
       {token && user && shipments.length > 0 && (
@@ -281,15 +278,19 @@ export function App() {
                 <ComplianceAssistant token={token} caseId={detail.id} />
               )}
 
-              {user?.role === 'client_viewer' && !detail.assignedAgentId && (
+              {user?.role === 'client_viewer' && !detail.assignedAgentId && view !== 'agents' && (
                 <AgentDirectory token={token} caseId={detail.id} onAppointed={handleAppointed} />
               )}
 
               {user?.role === 'client_viewer' && <Checklist token={token} caseId={detail.id} />}
 
               <section aria-labelledby="timeline-heading" className="card">
+                <span className="eyebrow">Audit trail</span>
                 <h2 id="timeline-heading">Stage history</h2>
-                <p className="hint">Read-only timeline from the shipment event log.</p>
+                <p className="hint">
+                  Read-only timeline from the shipment event log. Manual agency records; not a ZRA
+                  status feed.
+                </p>
                 {detail.events.length === 0 ? (
                   <p className="empty">No stage changes recorded yet.</p>
                 ) : (
@@ -322,28 +323,56 @@ export function App() {
         Skip to case details
       </a>
       <header className="shell__header">
-        <div className="shell__titlerow">
-          <h1>Z Clear</h1>
+        <div className="app-brand">
+          <span className="app-mark" aria-hidden="true">
+            Z
+          </span>
+          <div>
+            <h1 className="app-brand__name">Z Clear</h1>
+            <span className="app-brand__tagline">Case operations · manual customs workflow</span>
+          </div>
+        </div>
+
+        {user && (
+          <div className="shell__context">
+            <div className="context-item">
+              <span className="context-item__label">Role</span>
+              <span className="role-badge" data-testid="role-badge">
+                {ROLE_LABELS[user.role] ?? user.role}
+              </span>
+            </div>
+            {current && (
+              <>
+                <div className="context-item">
+                  <span className="context-item__label">Case</span>
+                  <span className="context-item__value">{current.reference}</span>
+                </div>
+                <div className="context-item">
+                  <span className="context-item__label">Recorded stage</span>
+                  <span className="context-item__value">
+                    {SHIPMENT_STATUS_LABELS[current.stage]}
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        <div className="shell__actions">
           {user && (
-            <span className="role-badge" data-testid="role-badge">
-              {ROLE_LABELS[user.role] ?? user.role}
-            </span>
+            <details className="header-menu">
+              <summary aria-label="Open account menu">
+                <List size={20} aria-hidden="true" /> Account
+              </summary>
+              <div className="header-menu__panel">
+                <ThemeSwitcher compact />
+                <button type="button" onClick={handleSignOut}>
+                  Sign out
+                </button>
+              </div>
+            </details>
           )}
         </div>
-        <p className="shell__subtitle">Shipment workspace</p>
-        {user && (
-          <details className="header-menu">
-            <summary aria-label="Open menu">
-              <List size={20} aria-hidden="true" /> Menu
-            </summary>
-            <div className="header-menu__panel">
-              <ThemeSwitcher compact />
-              <button type="button" onClick={handleSignOut}>
-                Sign out
-              </button>
-            </div>
-          </details>
-        )}
       </header>
 
       {error && (
@@ -428,8 +457,19 @@ export function App() {
           onNewCase={() => setShowCaseForm(true)}
           onAgents={() => setView('agents')}
           onProfile={() => setView('profile')}
+          view={view}
+          onHome={() => setView('home')}
         >
-          {view === 'agents' && <AgentDirectoryMock />}
+          {view === 'agents' &&
+            (detail && !detail.assignedAgentId ? (
+              <AgentDirectory token={token} caseId={detail.id} onAppointed={handleAppointed} />
+            ) : (
+              <p className="empty">
+                {detail?.assignedAgentId
+                  ? 'An agent is already assigned to this case.'
+                  : 'Loading available agencies…'}
+              </p>
+            ))}
           {view === 'profile' && (
             <ProfilePanel
               email={user.email}
@@ -441,7 +481,7 @@ export function App() {
       )}
 
       {token && user?.role === 'client_viewer' && (
-        <section aria-labelledby="new-case-toggle" className="card">
+        <section aria-labelledby="new-case-toggle" className="case-form-disclosure">
           <button
             id="new-case-toggle"
             type="button"
@@ -487,23 +527,20 @@ export function App() {
         >
           <p className="hint">
             This case is recorded at {SHIPMENT_STATUS_LABELS[detail.stage]}. Sections below carry
-            the live case file, review and payment details.
+            the current case file, review and payment details.
           </p>
+          <p className="provenance">Manual agency record · not submitted to ZRA by this app.</p>
         </CaseSheet>
       )}
 
-      <section aria-labelledby="mockups-heading" style={{ marginTop: '1.5rem' }}>
+      <section aria-labelledby="mockups-heading" className="mock-disclosure">
         <h2 id="mockups-heading" className="sr-only">
           Workflow mock screens
         </h2>
         <button type="button" onClick={() => setShowMockups((value) => !value)}>
           {showMockups ? 'Hide' : 'Show'} importer workflow mock screens
         </button>
-        {showMockups ? (
-          <div style={{ marginTop: '1rem' }}>
-            <Mockups />
-          </div>
-        ) : null}
+        {showMockups ? <Mockups /> : null}
       </section>
     </main>
   );
