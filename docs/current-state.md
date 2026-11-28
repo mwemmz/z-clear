@@ -18,7 +18,7 @@ World.
 | Quotes, ZMW invoices, payments, per-tenant numbering, VAT config | **Real** | Phase 4; VAT 16% flagged `NEEDS_VERIFICATION` |
 | Importer review: send → query → revise → approve, draft check, points ledger | **Real** | Dev 1's `reviews` module, `reviews.e2e.spec.ts` |
 | Phone-first UI: role badge, case-file header, read-only stage timeline, split sign-in role guide | **Real** | `apps/web/src/App.tsx`, `App.spec.tsx`; no credentials embedded in the UI |
-| Four local-only demo logins (agent, importer, admin, driver) | **Real** | `seed-review-demo.ts` hashes `DEMO_PASSWORD`; `docs/demo-accounts.md`; production seed refused |
+| Four synthetic demo logins (agent, importer, admin, driver), local and opt-in hosted | **Real** | `seed-review-demo.ts` hashes `DEMO_PASSWORD` locally or `HOSTED_DEMO_PASSWORD` in explicit `--hosted` mode; one-time manual hosted seed; `docs/demo-accounts.md` |
 | Importer self-service: typed own cases, labelled checklist, agent appointment, plain-language case status, valuation query, compliance assistant, SMS mock interface | **Real, branch `feat/importer-self-service`** | `FUTURE_PLANS.md` section 9; samples in `docs/api/case-status.json`, `docs/api/valuation-query.json` and `docs/api/compliance.json` |
 | SMS notification interface (`sms_mock`) | **Real, sends nothing** | Outbox records skipped outcomes with tenant phone data; `sms`/`whatsapp` fail closed |
 | Notification status UI and scoped read endpoint | **Real** | `GET /notifications` + `NotificationStatus.tsx`; no recipient address returned; importers see only their own outcomes |

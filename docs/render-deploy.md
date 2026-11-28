@@ -79,6 +79,35 @@ node --env-file=.env.local scripts/verify-neon-upload.mjs
 The script prints only the object key, size, content type and file contents —
 never the credentials.
 
+### Hosted demo seed (one-time manual)
+
+The four synthetic demo logins are not created by normal startup. To seed them
+once on Render:
+
+1. In **zclear-api → Environment**, set `HOSTED_DEMO_PASSWORD` to a unique
+   value of at least 12 characters. Do not put it in the repo or chat.
+2. Run a one-off job against the latest successful API deployment so migrations
+   are already current. Free web services have no dashboard shell or SSH, so
+   use the Render API:
+
+   ```bash
+   curl --request POST 'https://api.render.com/v1/services/<service-id>/jobs' \
+     --header 'Authorization: Bearer <render-api-key>' \
+     --header 'Content-Type: application/json' \
+     --data-raw '{"startCommand":"corepack pnpm --filter @zclear/api db:seed:hosted"}'
+   ```
+
+   The job inherits the API's built artifact and environment, including
+   `HOSTED_DEMO_PASSWORD`. Its log prints the four synthetic emails but never
+   the password. Avoid putting a real API key in shell history; use a secret
+   manager or paste the command carefully. Track the job with the Render
+   dashboard's **One-Off Jobs** page or the Render API.
+
+Normal startup never seeds demo data; there is no `HOSTED_DEMO_SEED_ONCE` flag.
+The seed upserts the fixed synthetic tenant, logins, shipment and invoice, and
+refuses any password shorter than 12 characters. It is idempotent, but running
+the job again resets the demo rows.
+
 ## 3. Create the Blueprint
 
 1. Render Dashboard → **New +** → **Blueprint** → connect `mwemmz/z-clear`

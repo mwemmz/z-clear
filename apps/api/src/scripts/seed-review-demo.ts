@@ -11,9 +11,15 @@
  *   DATABASE_URL=postgresql://... DEMO_PASSWORD=<local-demo-password> \
  *     node dist/scripts/seed-review-demo.js
  *
- * The password comes only from DEMO_PASSWORD; it is never hardcoded in the app
- * or logged. This is a *local demo reset*: it upserts fixed demo rows and
- * refuses to run in production.
+ * Hosted one-off job on Render (HOSTED_DEMO_PASSWORD comes from the service
+ * environment; no credential is passed on the command line):
+ *   corepack pnpm --filter @zclear/api db:seed:hosted
+ *
+ * The password comes only from DEMO_PASSWORD locally, or HOSTED_DEMO_PASSWORD
+ * in the explicit `--hosted` mode; it is never hardcoded in the app or logged.
+ * The default path is a *local demo reset* and refuses to run in production.
+ * The hosted path seeds the same fixed synthetic tenant once, only when an
+ * operator deliberately runs the one-off job. Normal startup never seeds.
  */
 import 'dotenv/config';
 import { Client } from 'pg';
@@ -110,7 +116,7 @@ export const DEMO_USERS: readonly DemoUser[] = [
   },
 ];
 
-/** Password is supplied by the operator; no credential is stored in source. */
+/** Local password is supplied by the operator; no credential is stored in source. */
 export function demoPassword(): string {
   const password = process.env.DEMO_PASSWORD;
   if (!password || password.length < 8) {
@@ -119,13 +125,38 @@ export function demoPassword(): string {
   return password;
 }
 
-async function main(): Promise<void> {
-  if (process.env.NODE_ENV === 'production') {
+/** Hosted password is separate so local and deployed demo logins cannot be confused. */
+export function hostedDemoPassword(): string {
+  const password = process.env.HOSTED_DEMO_PASSWORD;
+  if (!password || password.length < 12) {
+    throw new Error(
+      'HOSTED_DEMO_PASSWORD must be set to at least 12 characters for hosted demo seeding',
+    );
+  }
+  return password;
+}
+
+/** Resolve the seed mode explicitly so production can never seed by accident. */
+export function resolveSeedPassword(options: { hosted: boolean; nodeEnv?: string }): string {
+  const nodeEnv = options.nodeEnv ?? process.env.NODE_ENV;
+  if (options.hosted) {
+    if (nodeEnv !== 'production') {
+      throw new Error('Hosted demo seeding requires NODE_ENV=production');
+    }
+    return hostedDemoPassword();
+  }
+  if (nodeEnv === 'production') {
     throw new Error('Refusing to seed demo data in production');
   }
+  return demoPassword();
+}
+
+async function main(): Promise<void> {
+  const hosted = process.argv.includes('--hosted');
+  const password = resolveSeedPassword({ hosted });
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error('DATABASE_URL is required');
-  const passwordHash = await new PasswordService().hash(demoPassword());
+  const passwordHash = await new PasswordService().hash(password);
   const db = new Client({ connectionString: url });
   await db.connect();
   try {
@@ -246,7 +277,8 @@ async function main(): Promise<void> {
 
     await db.query('commit');
     console.log(
-      `Seed complete. Demo logins: ${DEMO_LOGINS.map((user) => `${user.label} ${user.email}`).join(' | ')} | ` +
+      `${hosted ? 'Hosted' : 'Local'} demo seed complete. ` +
+        `Demo logins: ${DEMO_LOGINS.map((user) => `${user.label} ${user.email}`).join(' | ')} | ` +
         'shipment DEMO-IMPORT-0001 | review in_review | 10 seeded points | ' +
         `issued invoice ${DEMO_INVOICE.number} (agency service fee only, not a ZRA assessment)`,
     );

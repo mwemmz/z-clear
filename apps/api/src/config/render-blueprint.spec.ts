@@ -15,7 +15,11 @@ function findRepoRoot(start: string): string {
   }
 }
 
-const blueprint = readFileSync(join(findRepoRoot(process.cwd()), 'render.yaml'), 'utf8');
+const repoRoot = findRepoRoot(process.cwd());
+const blueprint = readFileSync(join(repoRoot, 'render.yaml'), 'utf8');
+const apiPackage = JSON.parse(readFileSync(join(repoRoot, 'apps/api/package.json'), 'utf8')) as {
+  scripts?: Record<string, string>;
+};
 
 /** Regression guard for the free Render build after the EROFS failure. */
 describe('Render blueprint', () => {
@@ -35,5 +39,17 @@ describe('Render blueprint', () => {
 
   it('keeps the paid-only preDeployCommand out of the free plan', () => {
     expect(blueprint).not.toContain('preDeployCommand:');
+  });
+
+  it('never seeds demo data during normal API startup', () => {
+    expect(blueprint).not.toContain('HOSTED_DEMO_SEED_ONCE');
+    expect(blueprint).not.toContain('db:seed:hosted');
+  });
+
+  it('declares the hosted demo password as a Render secret for the one-off job', () => {
+    expect(blueprint).toMatch(/- key: HOSTED_DEMO_PASSWORD\s+sync: false/);
+    expect(apiPackage.scripts?.['db:seed:hosted']).toBe(
+      'node dist/scripts/seed-review-demo.js --hosted',
+    );
   });
 });

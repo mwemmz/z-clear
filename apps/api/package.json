@@ -14,6 +14,7 @@
     "test:cov": "vitest run --coverage",
     "db:migrate": "node-pg-migrate up --migrations-dir migrations --database-url-var DATABASE_MIGRATION_URL",
     "db:grant": "node dist/scripts/grant-app-role.js",
+    "db:seed:hosted": "node dist/scripts/seed-review-demo.js --hosted",
     "db:rollback": "node-pg-migrate down --migrations-dir migrations --database-url-var DATABASE_MIGRATION_URL",
     "db:create": "node-pg-migrate create --migrations-dir migrations"
   },
