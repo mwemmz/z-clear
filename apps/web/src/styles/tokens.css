@@ -1,0 +1,110 @@
+/*
+ * Semantic tokens only. Raw colour values live here and nowhere else.
+ * Cocoa Sky rule: brown carries text/structure/primary actions; cream is the
+ * canvas; powder blue is a fill with brown text and a visible border.
+ */
+
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #f7faf9;
+  --surface: #ffffff;
+  --surface-2: #edf5f3;
+  --border: #d8e5e4;
+  --border-strong: #6f8c8a;
+  --text: #122b38;
+  --text-muted: #49616b;
+  --primary: #08645c;
+  --on-primary: #ffffff;
+  --accent-fill: #f2a33a;
+  --on-accent-fill: #122b38;
+  --success: #1e7b4f;
+  --warning: #8a5a00;
+  --danger: #b3261e;
+  --info: #1f6f9f;
+  --focus: #08645c;
+  --shadow-raised: 0 10px 24px rgba(8, 100, 92, 0.18);
+  --scrim: rgba(18, 43, 56, 0.42);
+  --skeleton: #dfeceb;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #0e1a20;
+  --surface: #15262e;
+  --surface-2: #1c323c;
+  --border: #2a4450;
+  --border-strong: #5f7f8c;
+  --text: #e6f0ee;
+  --text-muted: #a3b8b8;
+  --primary: #4fbfae;
+  --on-primary: #062a25;
+  --accent-fill: #f2b24d;
+  --on-accent-fill: #0e1a20;
+  --success: #5ccb92;
+  --warning: #f2b24d;
+  --danger: #ff8a80;
+  --info: #7cc4f0;
+  --focus: #7cc4f0;
+  --shadow-raised: 0 12px 28px rgba(0, 0, 0, 0.38);
+  --scrim: rgba(0, 0, 0, 0.62);
+  --skeleton: #233b46;
+}
+
+[data-theme='cocoa'] {
+  color-scheme: light;
+
+  --bg: #f6eedf;
+  --surface: #fff9ee;
+  --surface-2: #efe3ce;
+  --border: #dccbb0;
+  --border-strong: #8a7357;
+  --text: #3b2a20;
+  --text-muted: #6b5646;
+  --primary: #4a3024;
+  --on-primary: #fff9ee;
+  --accent-fill: #bfd9ec;
+  --on-accent-fill: #3b2a20;
+  --success: #2e6b4a;
+  --warning: #7a5200;
+  --danger: #a63a2b;
+  --info: #2f6a94;
+  --focus: #2f6a94;
+  --shadow-raised: 0 10px 24px rgba(74, 48, 36, 0.16);
+  --scrim: rgba(59, 42, 32, 0.4);
+  --skeleton: #e6d8bd;
+}
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --radius-control: 14px;
+  --radius-surface: 18px;
+  --radius-pill: 999px;
+  --size-tap: 44px;
+  --size-icon: 20px;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-title: 22px;
+  --text-display: 28px;
+  --leading-tight: 1.25;
+  --leading-body: 1.5;
+  --dur-press: 100ms;
+  --dur-enter: 200ms;
+  --dur-exit: 140ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --sheet-spring: linear(0, 0.09 5%, 0.33 18%, 0.63 38%, 0.85 62%, 0.96 82%, 1 100%);
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
