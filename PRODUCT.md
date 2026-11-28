@@ -49,8 +49,10 @@ Confirmed from `AGENTS.md` and the current implementation:
 - Touch targets are at least 44px; focus, hover, pressed, disabled, loading, and error states are explicit.
 - English first, with strings structured for future Bemba/Nyanja; no invented duty, tax, or customs figures.
 - Append-only audit and shipment-event records, tenant lookups by `(tenant_id, id)`, shared schema with RLS.
+- A clearly labelled in-memory Sample workspace is available from sign-in with five role buttons and no credentials. It mirrors `/api/v1` shapes, sends no network requests, keeps state while roles are switched, offers a one-tap reset, and is the reachable home for the review decision, stage actions, invoices/payments and driver check-in.
+- Static workflow mock screens remain behind an explicit disclosure. Their action buttons are disabled and labelled as layout-only previews; they never imply a real check-in, sign-up or Zamtel payment.
 - Dev-only `/design` gallery shows component and state matrices; it must stay out of production bundles. The theme screenshot harness is also dev-only and accepts same-origin relative targets only.
-- Bundle growth is budgeted near 40 KB gzipped over the earlier baseline. Measured 2026-11-28: 125.95 kB gzip JS vs 106.07 kB baseline (+19.88 kB); no map library and no autoplay video.
+- Bundle growth is budgeted near 40 KB gzipped over the earlier baseline. Measured 2026-11-28 after the usability pass: 131.47 kB gzip JS vs 106.07 kB baseline (+25.40 kB); no map library and no autoplay video.
 
 ## Brand Commitments
 
@@ -61,7 +63,7 @@ Confirmed from `AGENTS.md` and the current implementation:
 ## Evidence on Hand
 
 - `AGENTS.md`: product boundary, stack, conventions, validation gate, and definition of done.
-- `docs/demo-accounts.md`: four synthetic demo roles and their visible capabilities.
+- `docs/demo-accounts.md`: four seeded demo logins plus the credential-free Sample workspace and its five synthetic roles.
 - `docs/ui-redesign-plan.md`, `docs/api/ui-redesign-notes.md`, `ARCHITECTURE.md`, `SECURITY.md`.
 - `docs/ui-redesign-screenshots/`: 43 prior captures across screens, viewports, and themes.
 - Existing UI under `apps/web/src/screens`, `apps/web/src/ui`, `apps/web/src/mockups`, and `apps/web/src/styles`.

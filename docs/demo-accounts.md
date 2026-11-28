@@ -6,6 +6,18 @@ the hosted demo uses a separate `HOSTED_DEMO_PASSWORD` seeded once on first
 deploy. The login page does **not** contain emails, passwords or autofill
 values.
 
+## Sample workspace (no credentials)
+
+The sign-in guide also offers a **Sample workspace**. Choose a role button to
+open an in-memory workspace immediately; no email, password, account creation
+or network request is involved. Five synthetic roles are available: agency
+owner, clearing agent, importer/client, platform admin and driver. The header
+shows a “Sample data” badge, a role switcher and a reset control. State carries
+across role switches so an importer query can be answered by the agency, and
+reset restores the seeded cases. Sample identities use `.invalid` addresses
+only inside the app; no credentials are shown. Nothing in this workspace is
+filed with ZRA or ASYCUDA.
+
 For local seeding, set `DEMO_PASSWORD=replace-with-local-demo-only-password`
 in your local `.env` before seeding (see `.env.example`). The default seed
 refuses to run when `NODE_ENV=production`; hosted seeding uses the explicit

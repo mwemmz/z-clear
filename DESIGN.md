@@ -219,7 +219,7 @@ Small radii only: 6px for controls, 8px for surfaces, and 999px for pills and st
 
 - **Shape:** Native dialog bottom sheet, 12px top corners, sticky header, divided tab strip.
 - **Content:** Stage track, readiness (or an honest “not in feed” message), four labelled sections, and provenance.
-- **Behaviour:** Tabs change the panel content; close waits 120ms so the exit transform can finish.
+- **Behaviour:** Tabs change the panel content; where a real case section exists, the panel offers a shortcut that closes the sheet, scrolls to that section and moves focus there. Close waits 120ms so the exit transform can finish.
 
 ### Navigation
 
@@ -230,6 +230,18 @@ Small radii only: 6px for controls, 8px for surfaces, and 999px for pills and st
 
 - **Style:** Bordered panel with icon, title, one sentence of copy and an optional action.
 - **Variants:** Loading, empty, error, denied and stale. Loading uses an opacity-pulsing skeleton; error and stale add semantic colour to the border and icon.
+
+### Sample Workspace
+
+- **Entry:** Five role buttons on sign-in; no email, password or `@` on the unauthenticated screen.
+- **Chrome:** A persistent “Sample data” badge, role switcher and reset control sit in the header beside the role/case context.
+- **Data:** All records are synthetic and say so; the invoice is an agency service fee, not a ZRA assessment. The estimate still refuses with `no_verified_rule`.
+- **Behaviour:** Sample tokens route the same `api` façade to in-memory state, so real screens, states and transitions stay reachable without a backend.
+
+### Stage Action And Review Decision
+
+- **Stage action:** One primary “Mark <stage>” button plus a secondary hold form. The note says it is a manual agency record and nothing was sent to ZRA.
+- **Review decision:** The comparison screen is no longer gallery-only. An importer can query or approve an exact revision; the agency can send or revise. The provenance notice stays visible after approval.
 
 ## Do's and Don'ts
 
