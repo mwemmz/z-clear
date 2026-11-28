@@ -9,6 +9,16 @@ import type {
   ShipmentStatus,
   ShipmentType,
 } from '@zclear/shared';
+import {
+  SAMPLE_ROLE_LABELS,
+  SAMPLE_ROLES,
+  resetSampleWorkspace,
+  sampleApi,
+  sampleUser,
+  type SampleRole,
+} from './simulation';
+
+export { SAMPLE_ROLE_LABELS, SAMPLE_ROLES, type SampleRole };
 
 /**
  * Thin client for the existing /api/v1 endpoints. Deliberately small: the
@@ -25,6 +35,29 @@ export function apiBase(): string {
 }
 
 const API_BASE = apiBase();
+const SAMPLE_TOKEN_PREFIX = 'sample:';
+
+/** Sample tokens are role-only. They carry no email, password or customer data. */
+export function isSampleToken(token: string): boolean {
+  return token.startsWith(SAMPLE_TOKEN_PREFIX);
+}
+
+export function sampleRoleFromToken(token: string): SampleRole | null {
+  if (!isSampleToken(token)) return null;
+  const role = token.slice(SAMPLE_TOKEN_PREFIX.length);
+  return SAMPLE_ROLES.find((item) => item === role) ?? null;
+}
+
+/** Routes a method to the simulated workspace only for a sample token. */
+function sampleOnly<T>(
+  token: string,
+  run: (role: SampleRole, userId: string) => Promise<T>,
+  live: () => Promise<T>,
+): Promise<T> {
+  const role = sampleRoleFromToken(token);
+  if (!role) return live();
+  return run(role, sampleUser(role).id);
+}
 
 export interface UserProfile {
   id: string;
@@ -111,6 +144,15 @@ export interface ReviewQueryResult {
   revision: number;
   state: ImporterReviewState;
   query: string | null;
+}
+
+/** Full review row returned by send, revise and approve endpoints. */
+export type ReviewActionResult = AgentReviewSummary;
+
+export interface UpdateStageInput {
+  stage: ShipmentStatus;
+  note?: string;
+  holdReason?: string;
 }
 
 /** Staff inbox view backed by GET /reviews; no rating or directory data here. */
@@ -237,6 +279,19 @@ async function errorMessage(response: Response): Promise<string> {
 }
 
 export const api = {
+  /** Enters the in-memory workspace with a role only — no credentials. */
+  loginSample(role: SampleRole): Promise<LoginResponse> {
+    return Promise.resolve({
+      accessToken: `${SAMPLE_TOKEN_PREFIX}${role}`,
+      user: sampleUser(role),
+    });
+  },
+
+  resetSample(): Promise<void> {
+    resetSampleWorkspace();
+    return Promise.resolve();
+  },
+
   login(email: string, password: string): Promise<LoginResponse> {
     return request('/auth/login', undefined, {
       method: 'POST',
@@ -245,15 +300,43 @@ export const api = {
   },
 
   me(token: string): Promise<UserProfile> {
-    return request('/auth/me', token);
+    return sampleOnly(
+      token,
+      (role) => sampleApi.me(role),
+      () => request('/auth/me', token),
+    );
   },
 
   listShipments(token: string): Promise<ShipmentSummary[]> {
-    return request('/shipments?limit=50', token);
+    return sampleOnly(
+      token,
+      (role, userId) => sampleApi.listShipments(role, userId),
+      () => request('/shipments?limit=50', token),
+    );
   },
 
   getShipment(token: string, id: string): Promise<ShipmentDetail> {
-    return request(`/shipments/${encodeURIComponent(id)}`, token);
+    return sampleOnly(
+      token,
+      (role, userId) => sampleApi.getShipment(role, userId, id),
+      () => request(`/shipments/${encodeURIComponent(id)}`, token),
+    );
+  },
+
+  updateShipmentStage(
+    token: string,
+    shipmentId: string,
+    input: UpdateStageInput,
+  ): Promise<ShipmentSummary> {
+    return sampleOnly(
+      token,
+      (role, userId) => sampleApi.updateStage(role, userId, shipmentId, input),
+      () =>
+        request(`/shipments/${encodeURIComponent(shipmentId)}/stage`, token, {
+          method: 'POST',
+          body: JSON.stringify(input),
+        }),
+    );
   },
 
   checkInShipment(
@@ -261,28 +344,86 @@ export const api = {
     shipmentId: string,
     input: { borderPost: string; note?: string },
   ): Promise<ShipmentEventSummary> {
-    return request(`/shipments/${encodeURIComponent(shipmentId)}/check-in`, token, {
-      method: 'POST',
-      body: JSON.stringify(input),
-    });
+    return sampleOnly(
+      token,
+      (role, userId) => sampleApi.checkIn(role, userId, shipmentId, input),
+      () =>
+        request(`/shipments/${encodeURIComponent(shipmentId)}/check-in`, token, {
+          method: 'POST',
+          body: JSON.stringify(input),
+        }),
+    );
   },
 
   listReviews(token: string, shipmentId?: string): Promise<AgentReviewSummary[]> {
-    const query = new URLSearchParams({ limit: '50' });
-    if (shipmentId) query.set('shipmentId', shipmentId);
-    return request(`/reviews?${query.toString()}`, token);
+    return sampleOnly(
+      token,
+      (role, userId) => sampleApi.listReviews(role, userId, shipmentId),
+      () => {
+        const query = new URLSearchParams({ limit: '50' });
+        if (shipmentId) query.set('shipmentId', shipmentId);
+        return request(`/reviews?${query.toString()}`, token);
+      },
+    );
+  },
+
+  approveReview(token: string, reviewId: string): Promise<ReviewActionResult> {
+    return sampleOnly(
+      token,
+      (role, userId) => sampleApi.approveReview(role, userId, reviewId),
+      () =>
+        request(`/reviews/${encodeURIComponent(reviewId)}/approve`, token, {
+          method: 'POST',
+        }),
+    );
+  },
+
+  sendReview(token: string, shipmentId: string, message: string): Promise<ReviewActionResult> {
+    return sampleOnly(
+      token,
+      (role, userId) => sampleApi.sendReview(role, userId, shipmentId, message),
+      () =>
+        request(`/shipments/${encodeURIComponent(shipmentId)}/review/send`, token, {
+          method: 'POST',
+          body: JSON.stringify({ message }),
+        }),
+    );
+  },
+
+  reviseReview(token: string, reviewId: string, newMessage: string): Promise<ReviewActionResult> {
+    return sampleOnly(
+      token,
+      (role, userId) => sampleApi.reviseReview(role, userId, reviewId, newMessage),
+      () =>
+        request(`/reviews/${encodeURIComponent(reviewId)}/revise`, token, {
+          method: 'POST',
+          body: JSON.stringify({ newMessage }),
+        }),
+    );
   },
 
   listNotifications(token: string): Promise<NotificationView[]> {
-    return request('/notifications?limit=50', token);
+    return sampleOnly(
+      token,
+      (role, userId) => sampleApi.listNotifications(role, userId),
+      () => request('/notifications?limit=50', token),
+    );
   },
 
   listGuidance(token: string): Promise<RegistryGuidanceView[]> {
-    return request('/guidance', token);
+    return sampleOnly(
+      token,
+      (_role) => sampleApi.listGuidance(),
+      () => request('/guidance', token),
+    );
   },
 
   listInvoices(token: string): Promise<InvoiceSummary[]> {
-    return request('/invoices?limit=50', token);
+    return sampleOnly(
+      token,
+      (role, userId) => sampleApi.listInvoices(role, userId),
+      () => request('/invoices?limit=50', token),
+    );
   },
 
   recordPayment(
@@ -296,64 +437,109 @@ export const api = {
       note?: string;
     },
   ): Promise<InvoiceSummary> {
-    return request(`/invoices/${encodeURIComponent(invoiceId)}/payments`, token, {
-      method: 'POST',
-      body: JSON.stringify(input),
-    });
+    return sampleOnly(
+      token,
+      (role, userId) => sampleApi.recordPayment(role, userId, invoiceId, input),
+      () =>
+        request(`/invoices/${encodeURIComponent(invoiceId)}/payments`, token, {
+          method: 'POST',
+          body: JSON.stringify(input),
+        }),
+    );
   },
 
   createCase(token: string, input: CreateCaseInput): Promise<ShipmentSummary> {
-    return request('/cases', token, {
-      method: 'POST',
-      body: JSON.stringify(input),
-    });
+    return sampleOnly(
+      token,
+      (role, userId) => sampleApi.createCase(role, userId, input),
+      () =>
+        request('/cases', token, {
+          method: 'POST',
+          body: JSON.stringify(input),
+        }),
+    );
   },
 
   getChecklist(token: string, caseId: string): Promise<PersonalisedChecklist> {
-    return request(`/cases/${encodeURIComponent(caseId)}/checklist`, token);
+    return sampleOnly(
+      token,
+      (role, userId) => sampleApi.getChecklist(role, userId, caseId),
+      () => request(`/cases/${encodeURIComponent(caseId)}/checklist`, token),
+    );
   },
 
   getCaseStatus(token: string, caseId: string): Promise<CaseStatus> {
-    return request(`/cases/${encodeURIComponent(caseId)}/status`, token);
+    return sampleOnly(
+      token,
+      (role, userId) => sampleApi.getCaseStatus(role, userId, caseId),
+      () => request(`/cases/${encodeURIComponent(caseId)}/status`, token),
+    );
   },
 
   getCaseValuation(token: string, caseId: string): Promise<CaseValuation> {
-    return request(`/cases/${encodeURIComponent(caseId)}/valuation`, token);
+    return sampleOnly(
+      token,
+      (role, userId) => sampleApi.getCaseValuation(role, userId, caseId),
+      () => request(`/cases/${encodeURIComponent(caseId)}/valuation`, token),
+    );
   },
 
   queryReview(token: string, reviewId: string, message: string): Promise<ReviewQueryResult> {
-    return request(`/reviews/${encodeURIComponent(reviewId)}/query`, token, {
-      method: 'POST',
-      body: JSON.stringify({ message }),
-    });
+    return sampleOnly(
+      token,
+      (role, userId) => sampleApi.queryReview(role, userId, reviewId, message),
+      () =>
+        request(`/reviews/${encodeURIComponent(reviewId)}/query`, token, {
+          method: 'POST',
+          body: JSON.stringify({ message }),
+        }),
+    );
   },
 
   getComplianceAssistant(token: string, caseId: string): Promise<ComplianceAssistantResult> {
-    return request(`/compliance/assistant/${encodeURIComponent(caseId)}`, token);
+    return sampleOnly(
+      token,
+      (role, userId) => sampleApi.getComplianceAssistant(role, userId, caseId),
+      () => request(`/compliance/assistant/${encodeURIComponent(caseId)}`, token),
+    );
   },
 
   requestEstimate(
     token: string,
     input: { hsCode: string; customsValueMinor: number; currency: 'ZMW' | 'USD' },
   ): Promise<EstimateResult> {
-    return request('/compliance/estimate', token, {
-      method: 'POST',
-      body: JSON.stringify(input),
-    });
+    return sampleOnly(
+      token,
+      (role, userId) => sampleApi.requestEstimate(role, userId, input),
+      () =>
+        request('/compliance/estimate', token, {
+          method: 'POST',
+          body: JSON.stringify(input),
+        }),
+    );
   },
 
   listAgentProfiles(token: string): Promise<AgentDirectoryEntry[]> {
-    return request('/agent-profiles', token);
+    return sampleOnly(
+      token,
+      () => sampleApi.listAgentProfiles(),
+      () => request('/agent-profiles', token),
+    );
   },
 
   appointAgent(
     token: string,
     input: { caseId: string; agentUserId: string; consentText: string },
   ): Promise<AppointmentResult> {
-    return request('/appointments', token, {
-      method: 'POST',
-      body: JSON.stringify(input),
-    });
+    return sampleOnly(
+      token,
+      (role, userId) => sampleApi.appointAgent(role, userId, input),
+      () =>
+        request('/appointments', token, {
+          method: 'POST',
+          body: JSON.stringify(input),
+        }),
+    );
   },
 };
 

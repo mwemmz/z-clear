@@ -22,7 +22,11 @@ export function MockScreen({ label, note, children }: MockScreenProps) {
         </span>
         <h2 className="mock-screen__title">{label}</h2>
       </header>
-      {note ? <p className="mock-screen__note">{note} Sample data only — no API calls.</p> : null}
+      {note ? (
+        <p className="mock-screen__note">
+          {note} Sample data only — no API calls. Controls are shown for layout only.
+        </p>
+      ) : null}
       <div className="mock-screen__body">{children}</div>
     </section>
   );

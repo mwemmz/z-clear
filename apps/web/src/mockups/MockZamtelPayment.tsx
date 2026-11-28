@@ -21,7 +21,7 @@ export function MockZamtelPayment() {
         <dt>Wallet</dt>
         <dd>+260 95 000 0000 (Zamtel Money)</dd>
       </dl>
-      <button type="button" className="mock-btn">
+      <button type="button" className="mock-btn" disabled>
         Pay with Zamtel Money
       </button>
       <p className="mock-hint">

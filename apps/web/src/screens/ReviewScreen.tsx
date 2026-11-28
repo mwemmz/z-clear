@@ -11,6 +11,8 @@ interface Props {
   state?: StateVariant;
   onQuery: () => void;
   onApprove: () => void;
+  queryDisabled?: boolean;
+  approveDisabled?: boolean;
 }
 
 /** Importer review: draft versus source in plain language, then two clear actions. */
@@ -24,6 +26,8 @@ export function ReviewScreen({
   state,
   onQuery,
   onApprove,
+  queryDisabled = false,
+  approveDisabled = false,
 }: Props) {
   if (state) {
     return (
@@ -70,13 +74,13 @@ export function ReviewScreen({
       </div>
 
       <div className="review-actions">
-        <Button onClick={onQuery} disabled={stale} aria-label="Query this draft">
+        <Button onClick={onQuery} disabled={stale || queryDisabled} aria-label="Query this draft">
           <WarningCircle size={20} aria-hidden="true" /> Query
         </Button>
         <Button
           variant="primary"
           onClick={onApprove}
-          disabled={stale}
+          disabled={stale || approveDisabled}
           aria-label="Approve this draft"
         >
           <CheckCircle size={20} aria-hidden="true" /> Approve

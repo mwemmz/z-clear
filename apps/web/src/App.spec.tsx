@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { App } from './App';
+import { resetSampleWorkspace } from './simulation';
 import { updatedLabelFor } from './updatedLabel';
 
 const summary = {
@@ -352,6 +353,7 @@ async function signIn(): Promise<void> {
 describe('App', () => {
   beforeEach(() => {
     sessionStorage.clear();
+    resetSampleWorkspace();
   });
 
   afterEach(() => {
@@ -376,10 +378,10 @@ describe('App', () => {
     stubApi();
     render(<App />);
     expect(screen.getByRole('heading', { name: 'Four demo roles' })).toBeInTheDocument();
-    expect(screen.getByText('Clearing agent')).toBeInTheDocument();
-    expect(screen.getByText('Importer / client')).toBeInTheDocument();
-    expect(screen.getByText('Platform admin')).toBeInTheDocument();
-    expect(screen.getByText('Driver')).toBeInTheDocument();
+    expect(screen.getAllByText('Clearing agent').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Importer / client').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Platform admin').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Driver').length).toBeGreaterThan(0);
     expect(document.body.textContent).not.toContain('@');
   });
 
@@ -819,6 +821,112 @@ describe('App', () => {
     await signIn();
     expect(await screen.findByTestId('case-reference')).toBeInTheDocument();
     expect(screen.queryByTestId('agent-directory')).not.toBeInTheDocument();
+  });
+
+  it('opens a fully usable sample workspace without credentials or network calls', async () => {
+    const fetchMock = stubApi();
+    render(<App />);
+    fireEvent.click(screen.getByTestId('sample-login-agent_staff'));
+
+    expect(await screen.findByTestId('sample-toolbar')).toHaveTextContent('Sample data');
+    expect(await screen.findByTestId('role-badge')).toHaveTextContent('Clearing agent');
+    expect(await screen.findByTestId('case-reference')).toHaveTextContent('ZCLR-2041');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('records a one-tap manual stage change in the sample workspace', async () => {
+    stubApi();
+    render(<App />);
+    fireEvent.click(screen.getByTestId('sample-login-agent_staff'));
+
+    expect(await screen.findByTestId('case-stage')).toHaveTextContent('In transit');
+    fireEvent.click(screen.getByRole('button', { name: 'Mark Delivered' }));
+
+    expect(await screen.findByTestId('case-stage')).toHaveTextContent('Delivered');
+    expect(screen.getAllByText('Delivered').length).toBeGreaterThan(1);
+    expect(screen.getByText(/Manual record: Delivered/)).toBeInTheDocument();
+  });
+
+  it('jumps from the sample case sheet to the real case sections', async () => {
+    stubApi();
+    render(<App />);
+    fireEvent.click(screen.getByTestId('sample-login-client_viewer'));
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Open case' }));
+    const sheet = await screen.findByRole('dialog', { name: /Case details/ });
+    fireEvent.click(within(sheet).getByRole('tab', { name: 'Payments' }));
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Go to payments' }));
+
+    expect(screen.queryByRole('dialog', { name: /Case details/ })).not.toBeInTheDocument();
+    expect(document.activeElement).toBe(document.getElementById('case-payments'));
+  });
+
+  it('lets an importer approve a live review draft in the sample workspace', async () => {
+    stubApi();
+    render(<App />);
+    fireEvent.click(screen.getByTestId('sample-login-client_viewer'));
+
+    expect(await screen.findByRole('button', { name: 'Approve this draft' })).toBeInTheDocument();
+    expect(screen.getByTestId('review-screen')).toHaveTextContent('Review draft');
+    fireEvent.click(screen.getByRole('button', { name: 'Approve this draft' }));
+
+    expect(await screen.findByText('Review complete')).toBeInTheDocument();
+    expect(screen.getByText(/agency still handles the manual handoff/)).toBeInTheDocument();
+  });
+
+  it('carries an importer query into the staff inbox when the sample role switches', async () => {
+    stubApi();
+    render(<App />);
+    fireEvent.click(screen.getByTestId('sample-login-client_viewer'));
+
+    expect(await screen.findByLabelText('Question for your agent')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Question for your agent'), {
+      target: { value: 'Please check the sample value.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Query this draft' }));
+
+    expect(await screen.findByText(/Question recorded on revision/)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Switch sample role'), {
+      target: { value: 'agent_staff' },
+    });
+
+    expect(await screen.findByText('Review inbox')).toBeInTheDocument();
+    expect(await screen.findByText('Query: Please check the sample value.')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Send revision' })).toBeInTheDocument();
+  });
+
+  it('restores the seeded sample case when sample data is reset', async () => {
+    stubApi();
+    render(<App />);
+    fireEvent.click(screen.getByTestId('sample-login-agent_staff'));
+
+    expect(await screen.findByTestId('case-stage')).toHaveTextContent('In transit');
+    fireEvent.click(screen.getByRole('button', { name: 'Mark Delivered' }));
+    expect(await screen.findByTestId('case-stage')).toHaveTextContent('Delivered');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reset sample data' }));
+
+    expect(await screen.findByTestId('case-stage')).toHaveTextContent('In transit');
+    expect(screen.queryByText(/Manual record: Delivered/)).not.toBeInTheDocument();
+  });
+
+  it('clears an expired session and returns to the sign-in choice', async () => {
+    sessionStorage.setItem('zclear_demo_token', 'expired-token');
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        if (String(input).endsWith('/api/v1/auth/me')) {
+          return jsonResponse({ error: { message: 'Session expired' } }, 401);
+        }
+        return jsonResponse([]);
+      }),
+    );
+
+    render(<App />);
+
+    expect(await screen.findByLabelText('Email')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(/Session expired/);
+    expect(sessionStorage.getItem('zclear_demo_token')).toBeNull();
   });
 
   it('never presents clock skew as a future last update', () => {

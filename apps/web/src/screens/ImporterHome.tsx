@@ -4,6 +4,7 @@ import { SHIPMENT_STATUS_LABELS, type ShipmentStatus } from '@zclear/shared';
 import { Button, StageTrack, StatePanel, StatusPill, type StateVariant } from '../ui';
 
 export interface RecentCase {
+  id: string;
   reference: string;
   stage: ShipmentStatus;
 }
@@ -18,6 +19,7 @@ interface Props {
   actionText: string;
   recentCases: RecentCase[];
   onOpenCase: () => void;
+  onSelectCase: (id: string) => void;
   onNewCase: () => void;
   onAgents: () => void;
   onProfile: () => void;
@@ -36,6 +38,7 @@ export function ImporterHome({
   actionText,
   recentCases,
   onOpenCase,
+  onSelectCase,
   onNewCase,
   onAgents,
   onProfile,
@@ -117,9 +120,11 @@ export function ImporterHome({
           ) : (
             <ul className="recent-cases">
               {recentCases.map((item) => (
-                <li key={item.reference}>
-                  <span className="recent-cases__ref">{item.reference}</span>
-                  <span className="recent-cases__meta">{SHIPMENT_STATUS_LABELS[item.stage]}</span>
+                <li key={item.id}>
+                  <button type="button" onClick={() => onSelectCase(item.id)}>
+                    <span className="recent-cases__ref">{item.reference}</span>
+                    <span className="recent-cases__meta">{SHIPMENT_STATUS_LABELS[item.stage]}</span>
+                  </button>
                 </li>
               ))}
             </ul>

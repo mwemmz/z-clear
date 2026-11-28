@@ -7,19 +7,25 @@ import { CaseForm } from './CaseForm';
 import { CaseStatus } from './CaseStatus';
 import { Checklist } from './Checklist';
 import { DriverCheckIn } from './DriverCheckIn';
+import { ImporterReviewDecision } from './ImporterReviewDecision';
 import { Mockups } from './mockups';
+import { StageAction } from './StageAction';
 import { ComplianceAssistant } from './ComplianceAssistant';
 import { NotificationStatus } from './NotificationStatus';
 import { PaymentCapture } from './PaymentCapture';
 import { RegistryGuidance } from './RegistryGuidance';
 import { ValuationQuery } from './ValuationQuery';
-import { AgentWorkspace, CaseSheet, ImporterHome, ProfilePanel } from './screens';
+import { AgentWorkspace, CaseSheet, ImporterHome, ProfilePanel, type CaseSection } from './screens';
 import { ThemeSwitcher } from './ui';
 import { updatedLabelFor } from './updatedLabel';
 import {
+  SAMPLE_ROLE_LABELS,
+  SAMPLE_ROLES,
   api,
   messageOf,
+  sampleRoleFromToken,
   type AppointmentResult,
+  type SampleRole,
   type ShipmentDetail,
   type ShipmentSummary,
   type UserProfile,
@@ -70,16 +76,18 @@ export function App() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [view, setView] = useState<View>('home');
   const [appointmentNotice, setAppointmentNotice] = useState<string | null>(null);
+  const [caseRefreshKey, setCaseRefreshKey] = useState(0);
   // A slow initial shipment load must not erase a case the importer has just
   // created while that request was in flight.
   const createdCaseRef = useRef(false);
 
   const firstId = shipments[0]?.id ?? null;
   const isAgent = user ? STAFF_ROLES.includes(user.role) : false;
+  const sampleRole = sampleRoleFromToken(token);
   const current = shipments.find((item) => item.id === selectedId) ?? shipments[0] ?? null;
   const recentCases = shipments
     .filter((item) => item.id !== current?.id)
-    .map((item) => ({ reference: item.reference, stage: item.stage }));
+    .map((item) => ({ id: item.id, reference: item.reference, stage: item.stage }));
   const updatedLabel = updatedLabelFor(current?.updatedAt);
   const actionText = detail?.holdReason
     ? `Your agent left a note: ${detail.holdReason}`
@@ -102,7 +110,18 @@ export function App() {
         }
         setError(null);
       } catch (cause) {
-        if (!cancelled) setError(messageOf(cause));
+        if (cancelled) return;
+        // A stale session must never strand the user on a header and a bare
+        // error. Clear it and return to the sign-in / sample workspace choice.
+        sessionStorage.removeItem(TOKEN_KEY);
+        setToken('');
+        setUser(null);
+        setShipments([]);
+        setSelectedId(null);
+        setDetail(null);
+        setError(
+          `${messageOf(cause)}. Session cleared — sign in again or open the sample workspace.`,
+        );
       } finally {
         if (!cancelled) setBusy(false);
       }
@@ -162,12 +181,46 @@ export function App() {
     }
   }
 
+  async function refreshCase(remount = true): Promise<void> {
+    if (!token) return;
+    const list = await api.listShipments(token);
+    const nextId = selectedId ?? list[0]?.id ?? null;
+    const nextDetail = nextId ? await api.getShipment(token, nextId) : null;
+    setShipments(list);
+    setDetail(nextDetail);
+    if (remount) setCaseRefreshKey((value) => value + 1);
+  }
+
+  async function handleSampleLogin(role: SampleRole, reset = true): Promise<void> {
+    setBusy(true);
+    setError(null);
+    createdCaseRef.current = false;
+    try {
+      if (reset) await api.resetSample();
+      const result = await api.loginSample(role);
+      sessionStorage.setItem(TOKEN_KEY, result.accessToken);
+      setToken(result.accessToken);
+      setUser(result.user);
+      setSelectedId(null);
+      setDetail(null);
+      setAppointmentNotice(null);
+      setView('home');
+      setShowCaseForm(false);
+      setSheetOpen(false);
+    } catch (cause) {
+      setError(messageOf(cause));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function handleCaseCreated(shipment: ShipmentSummary): void {
     createdCaseRef.current = true;
     setShipments((currentCases) => [shipment, ...currentCases]);
     setSelectedId(shipment.id);
     setShowCaseForm(false);
     setError(null);
+    setCaseRefreshKey((value) => value + 1);
   }
 
   function handleSignOut(): void {
@@ -181,11 +234,47 @@ export function App() {
     setError(null);
     setSheetOpen(false);
     setView('home');
+    setCaseRefreshKey((value) => value + 1);
+  }
+
+  async function handleSampleReset(): Promise<void> {
+    if (!sampleRole) return;
+    setBusy(true);
+    try {
+      await api.resetSample();
+      await refreshCase(false);
+      setError(null);
+    } catch (cause) {
+      setError(messageOf(cause));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function jumpToCaseSection(section: CaseSection): void {
+    const targetId = {
+      documents: 'case-documents',
+      review: 'case-review',
+      payments: 'case-payments',
+    }[section];
+    const target = document.getElementById(targetId);
+    setSheetOpen(false);
+    if (typeof target?.scrollIntoView === 'function') {
+      target.scrollIntoView({ block: 'start' });
+    }
+    target?.focus();
   }
 
   function handleAppointed(_result: AppointmentResult): void {
-    // The access token still carries the importer's old tenant claim. Signing
-    // out forces a fresh login so the case is visible in the agency tenant.
+    if (sampleRole) {
+      setAppointmentNotice(
+        'Agent appointed in the sample workspace. The case now shows the assignment.',
+      );
+      void refreshCase();
+      return;
+    }
+    // The live access token still carries the importer's old tenant claim.
+    // Signing out forces a fresh login so the case is visible in the agency tenant.
     handleSignOut();
     setAppointmentNotice('Agent appointed. Sign in again to continue in the agency workspace.');
   }
@@ -196,16 +285,21 @@ export function App() {
         <p className="empty">No shipments are available for this account yet.</p>
       )}
 
-      {token && user && user.role !== 'driver' && <NotificationStatus token={token} />}
+      {token && user && user.role !== 'driver' && (
+        <NotificationStatus key={`notifications-${caseRefreshKey}`} token={token} />
+      )}
 
       {token && user && user.role !== 'driver' && <RegistryGuidance token={token} />}
 
       {token && user && detail && user.role !== 'driver' && (
-        <PaymentCapture
-          token={token}
-          canRecord={STAFF_ROLES.includes(user.role)}
-          shipmentId={detail.id}
-        />
+        <div id="case-payments" className="case-section-target" tabIndex={-1}>
+          <PaymentCapture
+            key={`payments-${caseRefreshKey}`}
+            token={token}
+            canRecord={STAFF_ROLES.includes(user.role)}
+            shipmentId={detail.id}
+          />
+        </div>
       )}
 
       {token && user && shipments.length > 0 && (
@@ -228,7 +322,16 @@ export function App() {
             </nav>
           )}
 
-          {isAgent && token && <AgentReviews token={token} shipments={shipments} />}
+          {isAgent && token && (
+            <div id="case-review" className="case-section-target" tabIndex={-1}>
+              <AgentReviews
+                key={`reviews-${caseRefreshKey}`}
+                token={token}
+                shipments={shipments}
+                onChanged={() => refreshCase(false)}
+              />
+            </div>
+          )}
 
           {detail && (
             <>
@@ -257,6 +360,16 @@ export function App() {
                 )}
               </section>
 
+              {isAgent && (
+                <StageAction
+                  key={`stage-${caseRefreshKey}`}
+                  token={token}
+                  shipment={detail}
+                  canUpdate={STAFF_ROLES.includes(user?.role ?? '')}
+                  onUpdated={() => refreshCase(false)}
+                />
+              )}
+
               {user?.role === 'driver' && (
                 <DriverCheckIn
                   token={token}
@@ -264,14 +377,32 @@ export function App() {
                   onCheckedIn={async () => {
                     const updated = await api.getShipment(token, detail.id);
                     setDetail(updated);
+                    setCaseRefreshKey((value) => value + 1);
                   }}
                 />
               )}
 
-              {user?.role === 'client_viewer' && <CaseStatus token={token} caseId={detail.id} />}
+              {user?.role === 'client_viewer' && (
+                <CaseStatus key={`status-${caseRefreshKey}`} token={token} caseId={detail.id} />
+              )}
 
               {user?.role === 'client_viewer' && (
-                <ValuationQuery token={token} caseId={detail.id} />
+                <div id="case-review" className="case-section-target" tabIndex={-1}>
+                  <ImporterReviewDecision
+                    key={`decision-${caseRefreshKey}`}
+                    token={token}
+                    caseId={detail.id}
+                    onChanged={() => refreshCase(false)}
+                  />
+                </div>
+              )}
+
+              {user?.role === 'client_viewer' && (
+                <ValuationQuery
+                  key={`valuation-${caseRefreshKey}`}
+                  token={token}
+                  caseId={detail.id}
+                />
               )}
 
               {user?.role === 'client_viewer' && (
@@ -282,7 +413,11 @@ export function App() {
                 <AgentDirectory token={token} caseId={detail.id} onAppointed={handleAppointed} />
               )}
 
-              {user?.role === 'client_viewer' && <Checklist token={token} caseId={detail.id} />}
+              {user?.role === 'client_viewer' && (
+                <div id="case-documents" className="case-section-target" tabIndex={-1}>
+                  <Checklist token={token} caseId={detail.id} />
+                </div>
+              )}
 
               <section aria-labelledby="timeline-heading" className="card">
                 <span className="eyebrow">Audit trail</span>
@@ -355,6 +490,29 @@ export function App() {
                 </div>
               </>
             )}
+          </div>
+        )}
+
+        {sampleRole && user && (
+          <div className="sample-toolbar" data-testid="sample-toolbar">
+            <span className="sample-badge">Sample data</span>
+            <label className="sr-only" htmlFor="sample-role">
+              Switch sample role
+            </label>
+            <select
+              id="sample-role"
+              value={sampleRole}
+              onChange={(event) => void handleSampleLogin(event.target.value as SampleRole, false)}
+            >
+              {SAMPLE_ROLES.map((role) => (
+                <option key={role} value={role}>
+                  {SAMPLE_ROLE_LABELS[role]}
+                </option>
+              ))}
+            </select>
+            <button type="button" onClick={() => void handleSampleReset()}>
+              Reset sample data
+            </button>
           </div>
         )}
 
@@ -431,6 +589,23 @@ export function App() {
                 <span>Sees an assigned shipment and records one manual check-in.</span>
               </li>
             </ul>
+            <div className="sample-entry" aria-labelledby="sample-entry-heading">
+              <strong id="sample-entry-heading">Try the sample workspace</strong>
+              <p>Open a role with synthetic cases. No sign-in, no network, nothing filed.</p>
+              <div className="sample-entry__roles">
+                {SAMPLE_ROLES.map((role) => (
+                  <button
+                    key={role}
+                    type="button"
+                    data-testid={`sample-login-${role}`}
+                    disabled={busy}
+                    onClick={() => void handleSampleLogin(role)}
+                  >
+                    {SAMPLE_ROLE_LABELS[role]}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div>
               <strong>Colour theme</strong>
               <ThemeSwitcher />
@@ -454,7 +629,11 @@ export function App() {
           actionText={actionText}
           recentCases={recentCases}
           onOpenCase={() => setSheetOpen(true)}
-          onNewCase={() => setShowCaseForm(true)}
+          onSelectCase={(id) => setSelectedId(id)}
+          onNewCase={() => {
+            setShowCaseForm(true);
+            document.getElementById('new-case-toggle')?.scrollIntoView({ block: 'center' });
+          }}
           onAgents={() => setView('agents')}
           onProfile={() => setView('profile')}
           view={view}
@@ -524,6 +703,12 @@ export function App() {
           stage={detail.stage}
           documentsReady={0}
           documentsTotal={0}
+          availableSections={
+            user?.role === 'client_viewer'
+              ? ['documents', 'review', 'payments']
+              : ['review', 'payments']
+          }
+          onJump={jumpToCaseSection}
         >
           <p className="hint">
             This case is recorded at {SHIPMENT_STATUS_LABELS[detail.stage]}. Sections below carry

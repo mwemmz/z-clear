@@ -24,7 +24,7 @@ export function MockSignupPin() {
           <span>Confirm PIN</span>
           <input type="password" value="••••" readOnly />
         </label>
-        <button type="button" className="mock-btn">
+        <button type="button" className="mock-btn" disabled>
           Sign up
         </button>
       </form>

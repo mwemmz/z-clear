@@ -30,7 +30,13 @@ export function AgentWorkspace({ cases, activeId, onSelect, state, children }: P
           <span className="badge">Staff</span>
         </div>
         <nav className="agent-workspace__nav" aria-label="Workspace sections">
-          <button type="button" aria-current="page">
+          <button
+            type="button"
+            aria-current="page"
+            onClick={() =>
+              document.querySelector('.agent-workspace__detail')?.scrollIntoView({ block: 'start' })
+            }
+          >
             <Cards size={20} aria-hidden="true" /> Cases
           </button>
         </nav>

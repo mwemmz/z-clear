@@ -53,8 +53,9 @@ function ScreenPreview({ screen, state }: { screen: PreviewScreen; state?: State
           stage="submitted"
           updatedLabel="updated today"
           actionText="Check the review draft before it is filed in ASYCUDA."
-          recentCases={[{ reference: 'ZCLR-2038', stage: 'in_transit' }]}
+          recentCases={[{ id: 's2', reference: 'ZCLR-2038', stage: 'in_transit' }]}
           onOpenCase={() => undefined}
+          onSelectCase={() => undefined}
           onNewCase={() => undefined}
           onAgents={() => undefined}
           onProfile={() => undefined}

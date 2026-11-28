@@ -29,10 +29,10 @@ export function MockCrossCheckIn() {
         </text>
       </svg>
       <div className="mock-actions">
-        <button type="button" className="mock-btn">
+        <button type="button" className="mock-btn" disabled>
           Check in
         </button>
-        <button type="button" className="mock-btn mock-btn--secondary">
+        <button type="button" className="mock-btn mock-btn--secondary" disabled>
           Report an issue
         </button>
       </div>

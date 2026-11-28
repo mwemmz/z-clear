@@ -11,6 +11,7 @@ import type { ShipmentStatus } from '@zclear/shared';
 import { Button, StageTrack, StatePanel, type StateVariant } from '../ui';
 
 type Tab = 'Info' | 'Documents' | 'Review' | 'Payments';
+export type CaseSection = 'documents' | 'review' | 'payments';
 
 const TABS = ['Info', 'Documents', 'Review', 'Payments'] as const;
 const EXIT_MS = 120;
@@ -18,9 +19,20 @@ const EXIT_MS = 120;
 const TAB_NOTES: Record<Exclude<Tab, 'Info'>, string> = {
   Documents:
     'Document readiness is not included in this case feed. Check the checklist in the case file.',
-  Review:
-    'Review questions and recorded answers are in the case file. No live draft is shown here.',
+  Review: 'Review questions and answers are in the case file. Open the review draft there.',
   Payments: 'Invoices and off-platform payment records are in the case file below.',
+};
+
+const TAB_SECTIONS: Record<Exclude<Tab, 'Info'>, CaseSection> = {
+  Documents: 'documents',
+  Review: 'review',
+  Payments: 'payments',
+};
+
+const TAB_ACTIONS: Record<Exclude<Tab, 'Info'>, string> = {
+  Documents: 'Go to documents',
+  Review: 'Go to review',
+  Payments: 'Go to payments',
 };
 
 interface Props {
@@ -32,6 +44,8 @@ interface Props {
   documentsReady: number;
   documentsTotal: number;
   state?: StateVariant;
+  availableSections?: CaseSection[];
+  onJump?: (section: CaseSection) => void;
   children: ReactNode;
 }
 
@@ -45,6 +59,8 @@ export function CaseSheet({
   documentsReady,
   documentsTotal,
   state,
+  availableSections = [],
+  onJump,
   children,
 }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -103,6 +119,21 @@ export function CaseSheet({
     if (next === null) return;
     event.preventDefault();
     selectTab(next);
+  }
+
+  function renderSectionNote(activeTab: Exclude<Tab, 'Info'>): ReactNode {
+    const section = TAB_SECTIONS[activeTab];
+    const canJump = availableSections.includes(section) && Boolean(onJump);
+    return (
+      <>
+        <p className="tab-note">{TAB_NOTES[activeTab]}</p>
+        {canJump && (
+          <Button variant="secondary" onClick={() => onJump?.(section)}>
+            {TAB_ACTIONS[activeTab]}
+          </Button>
+        )}
+      </>
+    );
   }
 
   return (
@@ -193,7 +224,7 @@ export function CaseSheet({
           ) : tab === 'Info' ? (
             children
           ) : (
-            <p className="tab-note">{TAB_NOTES[tab]}</p>
+            renderSectionNote(tab)
           )}
         </div>
 
