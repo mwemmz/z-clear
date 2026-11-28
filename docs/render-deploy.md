@@ -38,6 +38,47 @@ Render. The in-memory driver loses uploads on restart and must not be used in
 production. No AV daemon is bundled: `SCAN_PROVIDER=noop` reports `skipped`;
 point it at an external `clamd` only when one is available.
 
+### Neon Object Storage bucket
+
+The prototype's bucket is declared in `neon.ts` as a private bucket named
+`uploads`. Recreate it with:
+
+```bash
+# First-time tooling setup; skip if the CLI and skills are already installed
+neon init -y --project-id fragrant-cherry-98480328 --branch production \
+  --services postgres,object-storage
+# Link a fresh checkout to the already-configured branch
+neon link --project-id fragrant-cherry-98480328 --branch production
+# neon.ts already declares uploads; only use this when adding a new bucket
+neon config add bucket uploads
+neon deploy
+```
+
+`neon config add bucket uploads` exits with "already declares bucket" when the
+declaration is present; that means the bucket is already configured and the
+command can be skipped. `neon deploy` writes the branch's AWS-standard
+credentials into the ignored `.env.local`. Map them to Render without copying
+the secret values into chat or source control:
+
+| Render key | Value |
+| --- | --- |
+| `STORAGE_DRIVER` | `s3` |
+| `S3_ENDPOINT` | `AWS_ENDPOINT_URL_S3` from `.env.local` |
+| `S3_BUCKET` | `uploads` |
+| `S3_ACCESS_KEY_ID` | `AWS_ACCESS_KEY_ID` from `.env.local` |
+| `S3_SECRET_ACCESS_KEY` | `AWS_SECRET_ACCESS_KEY` from `.env.local` |
+| `S3_REGION` | `AWS_REGION` from `.env.local` (`us-east-2`) |
+| `S3_FORCE_PATH_STYLE` | `true` (Neon requires path-style addressing) |
+
+Verify a real round trip locally (upload, list, read back, and assert the text):
+
+```bash
+node --env-file=.env.local scripts/verify-neon-upload.mjs
+```
+
+The script prints only the object key, size, content type and file contents —
+never the credentials.
+
 ## 3. Create the Blueprint
 
 1. Render Dashboard → **New +** → **Blueprint** → connect `mwemmz/z-clear`
