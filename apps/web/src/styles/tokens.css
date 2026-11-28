@@ -1,56 +1,71 @@
 /*
  * Semantic tokens only. Raw colour values live here and nowhere else.
- * Cocoa Sky rule: brown carries text/structure/primary actions; cream is the
- * canvas; powder blue is a fill with brown text and a visible border.
+ * Light and dark use a neutral, dense product-console palette. Cocoa Sky keeps
+ * brown for text/structure/primary actions, a cream canvas, and powder blue
+ * only as a fill with brown text and a visible border.
  */
 
 :root,
 [data-theme='light'] {
   color-scheme: light;
 
-  --bg: #f7faf9;
+  --bg: #f6f8fa;
   --surface: #ffffff;
-  --surface-2: #edf5f3;
-  --border: #d8e5e4;
-  --border-strong: #6f8c8a;
-  --text: #122b38;
-  --text-muted: #49616b;
-  --primary: #08645c;
+  --surface-2: #f6f8fa;
+  --surface-raised: #ffffff;
+  --border: #d0d7de;
+  --border-strong: #8c959f;
+  --text: #1f2328;
+  --text-muted: #59636e;
+  --primary: #0969da;
   --on-primary: #ffffff;
-  --accent-fill: #f2a33a;
-  --on-accent-fill: #122b38;
-  --success: #1e7b4f;
-  --warning: #8a5a00;
-  --danger: #b3261e;
-  --info: #1f6f9f;
-  --focus: #08645c;
-  --shadow-raised: 0 10px 24px rgba(8, 100, 92, 0.18);
-  --scrim: rgba(18, 43, 56, 0.42);
-  --skeleton: #dfeceb;
+  --primary-subtle: #ddf4ff;
+  --accent-fill: #ddf4ff;
+  --on-accent-fill: #0969da;
+  --success: #1a7f37;
+  --success-fill: #dafbe1;
+  --warning: #9a6700;
+  --warning-fill: #fff8c5;
+  --danger: #cf222e;
+  --danger-fill: #ffebe9;
+  --info: #0969da;
+  --info-fill: #ddf4ff;
+  --focus: #0969da;
+  --shadow-raised: 0 8px 24px rgba(31, 35, 40, 0.12);
+  --shadow-overlay: 0 12px 32px rgba(31, 35, 40, 0.18);
+  --scrim: rgba(31, 35, 40, 0.5);
+  --skeleton: #eaeef2;
 }
 
 [data-theme='dark'] {
   color-scheme: dark;
 
-  --bg: #0e1a20;
-  --surface: #15262e;
-  --surface-2: #1c323c;
-  --border: #2a4450;
-  --border-strong: #5f7f8c;
-  --text: #e6f0ee;
-  --text-muted: #a3b8b8;
-  --primary: #4fbfae;
-  --on-primary: #062a25;
-  --accent-fill: #f2b24d;
-  --on-accent-fill: #0e1a20;
-  --success: #5ccb92;
-  --warning: #f2b24d;
-  --danger: #ff8a80;
-  --info: #7cc4f0;
-  --focus: #7cc4f0;
-  --shadow-raised: 0 12px 28px rgba(0, 0, 0, 0.38);
-  --scrim: rgba(0, 0, 0, 0.62);
-  --skeleton: #233b46;
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface-2: #21262d;
+  --surface-raised: #1c2128;
+  --border: #30363d;
+  --border-strong: #8b949e;
+  --text: #f0f6fc;
+  --text-muted: #9198a1;
+  --primary: #4493f8;
+  --on-primary: #0d1117;
+  --primary-subtle: #132f4c;
+  --accent-fill: #1f6feb;
+  --on-accent-fill: #ffffff;
+  --success: #3fb950;
+  --success-fill: #0f2f1a;
+  --warning: #d29922;
+  --warning-fill: #342a0d;
+  --danger: #f85149;
+  --danger-fill: #3d1418;
+  --info: #58a6ff;
+  --info-fill: #132f4c;
+  --focus: #58a6ff;
+  --shadow-raised: 0 8px 24px rgba(1, 4, 9, 0.5);
+  --shadow-overlay: 0 14px 36px rgba(1, 4, 9, 0.7);
+  --scrim: rgba(1, 4, 9, 0.72);
+  --skeleton: #2d333b;
 }
 
 [data-theme='cocoa'] {
@@ -59,21 +74,28 @@
   --bg: #f6eedf;
   --surface: #fff9ee;
   --surface-2: #efe3ce;
+  --surface-raised: #fffdf8;
   --border: #dccbb0;
   --border-strong: #8a7357;
   --text: #3b2a20;
   --text-muted: #6b5646;
   --primary: #4a3024;
   --on-primary: #fff9ee;
+  --primary-subtle: #efe3ce;
   --accent-fill: #bfd9ec;
   --on-accent-fill: #3b2a20;
   --success: #2e6b4a;
+  --success-fill: #e1ecdf;
   --warning: #7a5200;
+  --warning-fill: #f6e7bc;
   --danger: #a63a2b;
+  --danger-fill: #f3ded8;
   --info: #2f6a94;
+  --info-fill: #dcebf2;
   --focus: #2f6a94;
-  --shadow-raised: 0 10px 24px rgba(74, 48, 36, 0.16);
-  --scrim: rgba(59, 42, 32, 0.4);
+  --shadow-raised: 0 8px 24px rgba(74, 48, 36, 0.12);
+  --shadow-overlay: 0 12px 32px rgba(74, 48, 36, 0.2);
+  --scrim: rgba(59, 42, 32, 0.44);
   --skeleton: #e6d8bd;
 }
 
@@ -86,22 +108,22 @@
   --space-6: 24px;
   --space-8: 32px;
   --space-12: 48px;
-  --radius-control: 14px;
-  --radius-surface: 18px;
+  --radius-control: 6px;
+  --radius-surface: 8px;
   --radius-pill: 999px;
   --size-tap: 44px;
   --size-icon: 20px;
   --text-xs: 12px;
   --text-sm: 13px;
-  --text-base: 16px;
-  --text-lg: 18px;
-  --text-title: 22px;
-  --text-display: 28px;
+  --text-base: 14px;
+  --text-lg: 16px;
+  --text-title: 20px;
+  --text-display: 24px;
   --leading-tight: 1.25;
   --leading-body: 1.5;
-  --dur-press: 100ms;
-  --dur-enter: 200ms;
-  --dur-exit: 140ms;
+  --dur-press: 80ms;
+  --dur-enter: 180ms;
+  --dur-exit: 120ms;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
   --sheet-spring: linear(0, 0.09 5%, 0.33 18%, 0.63 38%, 0.85 62%, 0.96 82%, 1 100%);
