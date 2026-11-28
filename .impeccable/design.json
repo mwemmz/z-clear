@@ -1,0 +1,370 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-28T13:20:00Z",
+  "title": "Design System: Z Clear",
+  "extensions": {
+    "colorMeta": {
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Console Canvas",
+        "canonical": "oklch(97% 0.006 250)",
+        "tonalRamp": [
+          "#0d1117",
+          "#30363d",
+          "#59636e",
+          "#8c959f",
+          "#d0d7de",
+          "#eaeef2",
+          "#f6f8fa",
+          "#ffffff"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Console Surface",
+        "canonical": "oklch(100% 0 0)",
+        "tonalRamp": [
+          "#0d1117",
+          "#161b22",
+          "#30363d",
+          "#8c959f",
+          "#d0d7de",
+          "#eaeef2",
+          "#f6f8fa",
+          "#ffffff"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Hairline Border",
+        "canonical": "oklch(85% 0.012 250)",
+        "tonalRamp": [
+          "#1f2328",
+          "#59636e",
+          "#8c959f",
+          "#afb8c1",
+          "#d0d7de",
+          "#eaeef2",
+          "#f6f8fa",
+          "#ffffff"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Console Ink",
+        "canonical": "oklch(24% 0.012 250)",
+        "tonalRamp": [
+          "#0d1117",
+          "#161b22",
+          "#1f2328",
+          "#59636e",
+          "#8c959f",
+          "#afb8c1",
+          "#d0d7de",
+          "#f6f8fa"
+        ]
+      },
+      "muted-ink": {
+        "role": "neutral",
+        "displayName": "Supporting Ink",
+        "canonical": "oklch(45% 0.022 250)",
+        "tonalRamp": [
+          "#161b22",
+          "#30363d",
+          "#59636e",
+          "#8c959f",
+          "#afb8c1",
+          "#d0d7de",
+          "#eaeef2",
+          "#f6f8fa"
+        ]
+      },
+      "blue-accent": {
+        "role": "primary",
+        "displayName": "Console Blue",
+        "canonical": "oklch(55% 0.19 258)",
+        "tonalRamp": [
+          "#033d8b",
+          "#0550ae",
+          "#0969da",
+          "#218bff",
+          "#54aeff",
+          "#80ccff",
+          "#b6e3ff",
+          "#ddf4ff"
+        ]
+      },
+      "blue-fill": {
+        "role": "information",
+        "displayName": "Quiet Blue Fill",
+        "canonical": "oklch(94% 0.045 230)",
+        "tonalRamp": [
+          "#033d8b",
+          "#0969da",
+          "#218bff",
+          "#80ccff",
+          "#b6e3ff",
+          "#ddf4ff",
+          "#eaf7ff",
+          "#f7fcff"
+        ]
+      },
+      "success": {
+        "role": "success",
+        "displayName": "Verified Green",
+        "canonical": "oklch(58% 0.14 145)",
+        "tonalRamp": [
+          "#0a3620",
+          "#116329",
+          "#1a7f37",
+          "#2da44e",
+          "#4ac26b",
+          "#7ee787",
+          "#aff5b4",
+          "#dafbe1"
+        ]
+      },
+      "warning": {
+        "role": "warning",
+        "displayName": "Review Amber",
+        "canonical": "oklch(52% 0.11 80)",
+        "tonalRamp": [
+          "#3b2a00",
+          "#633c01",
+          "#9a6700",
+          "#bf8700",
+          "#d4a72c",
+          "#e3b341",
+          "#f2e3a0",
+          "#fff8c5"
+        ]
+      },
+      "danger": {
+        "role": "danger",
+        "displayName": "Blocked Red",
+        "canonical": "oklch(57% 0.2 25)",
+        "tonalRamp": [
+          "#5b0a0d",
+          "#a40e18",
+          "#cf222e",
+          "#da3633",
+          "#f85149",
+          "#ff7b72",
+          "#ffc1bc",
+          "#ffebe9"
+        ]
+      },
+      "cocoa-canvas": {
+        "role": "neutral",
+        "displayName": "Cream Canvas",
+        "canonical": "oklch(94% 0.025 80)",
+        "tonalRamp": [
+          "#3b2a20",
+          "#6b5646",
+          "#8a7357",
+          "#bda78a",
+          "#dccbb0",
+          "#efe3ce",
+          "#f6eedf",
+          "#fff9ee"
+        ]
+      },
+      "cocoa-ink": {
+        "role": "neutral",
+        "displayName": "Cocoa Ink",
+        "canonical": "oklch(30% 0.035 55)",
+        "tonalRamp": [
+          "#1f1611",
+          "#2c1e17",
+          "#3b2a20",
+          "#543b2d",
+          "#6b5646",
+          "#8a7357",
+          "#dccbb0",
+          "#f6eedf"
+        ]
+      },
+      "powder-blue": {
+        "role": "information",
+        "displayName": "Powder Blue Fill",
+        "canonical": "oklch(85% 0.055 235)",
+        "tonalRamp": [
+          "#315d78",
+          "#40718f",
+          "#5586a4",
+          "#719bb7",
+          "#8fb3cb",
+          "#bfd9ec",
+          "#dcebf2",
+          "#f2f8fb"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "App title and rare page-level emphasis." },
+      "title": { "displayName": "Title", "purpose": "Case file and review section headings." },
+      "body": { "displayName": "Body", "purpose": "Default compact console copy." },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Buttons, pills, metadata labels and eyebrows."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Case references, money, revisions and timestamps."
+      }
+    },
+    "shadows": [
+      {
+        "name": "raised",
+        "value": "0 8px 24px rgba(31, 35, 40, 0.12)",
+        "purpose": "Bottom navigation and floating new-case controls."
+      },
+      {
+        "name": "overlay",
+        "value": "0 12px 32px rgba(31, 35, 40, 0.18)",
+        "purpose": "Account menu and the native case-sheet dialog."
+      }
+    ],
+    "motion": [
+      {
+        "name": "stage-advance",
+        "value": "transform 280ms cubic-bezier(0.2, 0, 0, 1)",
+        "purpose": "The single orchestrated stage-change moment; removed under prefers-reduced-motion."
+      },
+      {
+        "name": "sheet-exit",
+        "value": "transform 120ms ease-out, opacity 120ms ease-out",
+        "purpose": "Let the case-sheet close animation finish before unmount."
+      },
+      {
+        "name": "press-feedback",
+        "value": "transform 80ms ease-out",
+        "purpose": "Small tactile response on primary and icon buttons."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single permitted main action in a view, at least 44px tall.",
+      "html": "<button class=\"ds-btn-primary\" type=\"button\">Advance stage</button>",
+      "css": ".ds-btn-primary { align-items: center; background: var(--primary, #0969da); border: 1px solid var(--primary, #0969da); border-radius: 6px; color: var(--on-primary, #fff); cursor: pointer; display: inline-flex; font: 600 13px/1.5 system-ui, sans-serif; justify-content: center; min-height: 44px; padding: 8px 16px; transition: transform 80ms ease-out, filter 120ms ease-out; } .ds-btn-primary:hover { filter: brightness(0.92); } .ds-btn-primary:focus-visible { outline: 2px solid var(--focus, #0969da); outline-offset: 2px; } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:disabled { cursor: not-allowed; filter: grayscale(0.8); opacity: 0.6; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "A bordered supporting action that never competes with the primary.",
+      "html": "<button class=\"ds-btn-secondary\" type=\"button\">Query draft</button>",
+      "css": ".ds-btn-secondary { align-items: center; background: var(--surface, #fff); border: 1px solid var(--border-strong, #8c959f); border-radius: 6px; color: var(--text, #1f2328); cursor: pointer; display: inline-flex; font: 600 13px/1.5 system-ui, sans-serif; justify-content: center; min-height: 44px; padding: 8px 12px; transition: background 120ms ease-out, transform 80ms ease-out; } .ds-btn-secondary:hover { background: var(--surface-2, #f6f8fa); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--focus, #0969da); outline-offset: 2px; } .ds-btn-secondary:active { transform: translateY(1px); } .ds-btn-secondary:disabled { cursor: not-allowed; opacity: 0.55; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "A quiet control for navigation and low-risk supporting actions.",
+      "html": "<button class=\"ds-btn-ghost\" type=\"button\">View case</button>",
+      "css": ".ds-btn-ghost { align-items: center; background: transparent; border: 1px solid transparent; border-radius: 6px; color: var(--text-muted, #59636e); cursor: pointer; display: inline-flex; font: 600 13px/1.5 system-ui, sans-serif; justify-content: center; min-height: 44px; padding: 8px 12px; transition: background 120ms ease-out; } .ds-btn-ghost:hover { background: var(--surface-2, #f6f8fa); color: var(--text, #1f2328); } .ds-btn-ghost:focus-visible { outline: 2px solid var(--focus, #0969da); outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Native-feeling form control with a 44px touch target.",
+      "html": "<label class=\"ds-field\"><span>Case reference</span><input class=\"ds-input\" type=\"text\" placeholder=\"ZCLR-2041\" /></label>",
+      "css": ".ds-field { color: var(--text, #1f2328); display: grid; font: 600 13px/1.5 system-ui, sans-serif; gap: 4px; } .ds-input { background: var(--surface, #fff); border: 1px solid var(--border-strong, #8c959f); border-radius: 6px; color: var(--text, #1f2328); font: 400 14px/1.5 system-ui, sans-serif; min-height: 44px; padding: 8px 12px; width: 100%; } .ds-input::placeholder { color: var(--text-muted, #59636e); } .ds-input:hover { border-color: var(--primary, #0969da); } .ds-input:focus-visible { outline: 2px solid var(--focus, #0969da); outline-offset: 2px; }"
+    },
+    {
+      "name": "Status Pill",
+      "kind": "chip",
+      "refersTo": "status-pill",
+      "description": "A compact, labelled status that never relies on colour alone.",
+      "html": "<span class=\"ds-status-pill\" role=\"status\"><span class=\"ds-status-dot\" aria-hidden=\"true\"></span>Manual stage</span>",
+      "css": ".ds-status-pill { align-items: center; background: var(--surface-2, #f6f8fa); border: 1px solid var(--border, #d0d7de); border-radius: 6px; color: var(--text, #1f2328); display: inline-flex; font: 600 13px/1.5 system-ui, sans-serif; gap: 6px; padding: 2px 8px; } .ds-status-dot { background: var(--primary, #0969da); border-radius: 999px; height: 6px; width: 6px; }"
+    },
+    {
+      "name": "Current Case",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "The case-first record: reference, stage, facts and one next action.",
+      "html": "<article class=\"ds-current-case\"><span class=\"ds-eyebrow\">CURRENT CASE</span><strong class=\"ds-case-ref\">ZCLR-2041</strong><dl class=\"ds-case-facts\"><div><dt>Client</dt><dd>Kafue Metals</dd></div><div><dt>Route</dt><dd>Nakonde → Lusaka</dd></div></dl><button class=\"ds-btn-primary\" type=\"button\">Open case</button></article>",
+      "css": ".ds-current-case { background: var(--surface, #fff); border: 1px solid var(--border, #d0d7de); border-radius: 8px; color: var(--text, #1f2328); display: grid; font: 400 14px/1.5 system-ui, sans-serif; gap: 12px; padding: 16px; } .ds-eyebrow { color: var(--text-muted, #59636e); font: 700 12px/1.5 system-ui, sans-serif; letter-spacing: 0.06em; } .ds-case-ref { font: 600 20px/1.25 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; } .ds-case-facts { border-top: 1px solid var(--border, #d0d7de); display: flex; gap: 24px; margin: 0; padding-top: 12px; } .ds-case-facts dt { color: var(--text-muted, #59636e); font-size: 12px; } .ds-case-facts dd { margin: 0; }"
+    },
+    {
+      "name": "Stage Track",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "Seven labelled steps with one current node and an explicit manual-source caption.",
+      "html": "<ol class=\"ds-stage-track\" aria-label=\"Manual case stage\"><li class=\"ds-stage ds-stage--done\">Documents</li><li class=\"ds-stage ds-stage--current\" aria-current=\"step\">Declaration</li><li class=\"ds-stage\">Clearing</li></ol><p class=\"ds-provenance\">Manual agency record · Updated today</p>",
+      "css": ".ds-stage-track { counter-reset: stage; display: flex; gap: 8px; list-style: none; margin: 0; padding: 0; } .ds-stage { color: var(--text-muted, #59636e); font: 600 12px/1.5 system-ui, sans-serif; } .ds-stage::before { background: var(--surface, #fff); border: 1px solid var(--border-strong, #8c959f); border-radius: 999px; content: counter(stage); counter-increment: stage; display: inline-grid; height: 24px; margin-right: 4px; place-items: center; width: 24px; } .ds-stage--done::before { background: var(--success-fill, #dafbe1); border-color: var(--success, #1a7f37); color: var(--success, #1a7f37); } .ds-stage--current { color: var(--primary, #0969da); } .ds-stage--current::before { background: var(--primary, #0969da); border-color: var(--primary, #0969da); color: var(--on-primary, #fff); transform: scale(1.08); transition: transform 280ms cubic-bezier(0.2, 0, 0, 1); } .ds-provenance { color: var(--text-muted, #59636e); font: 400 12px/1.5 system-ui, sans-serif; } @media (prefers-reduced-motion: reduce) { .ds-stage--current::before { transform: none; transition: none; } }"
+    },
+    {
+      "name": "State Panel",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Loading, empty, error, denied and stale states with a title, sentence and optional action.",
+      "html": "<section class=\"ds-state-panel\" role=\"status\"><strong>Nothing to show yet</strong><p>Add a case to begin tracking its manual stages.</p></section>",
+      "css": ".ds-state-panel { background: var(--surface, #fff); border: 1px dashed var(--border-strong, #8c959f); border-radius: 8px; color: var(--text-muted, #59636e); display: grid; font: 400 14px/1.5 system-ui, sans-serif; gap: 4px; padding: 16px; } .ds-state-panel strong { color: var(--text, #1f2328); font-size: 14px; } .ds-state-panel p { margin: 0; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Case Ledger",
+    "overview": "Z Clear is a case console, not a marketing page and not a gallery of equal cards. It takes its cues from dense, calm operations tools: a clear page title, hairline-separated rows, a small reserved accent, and one dominant next action. The screen earns trust by showing the case reference, the manual stage record, and the source of each fact before it offers anything decorative.\n\nThe visual system is deliberately quiet. Neutral surfaces and compact type carry the work; colour appears only where it encodes state or invites the single permitted action. Motion is one stage-advance moment plus small press feedback, never a flourish. Status is never colour alone: text labels, icons and provenance marks carry the meaning when colour is removed.\n\nThree themes share the same semantic token names. light and dark are neutral GitHub/Primer-influenced console palettes. cocoa keeps brown for text, structure and primary actions, a cream canvas, and powder blue only as a fill with brown text and a visible border.",
+    "keyCharacteristics": [
+      "Case-first hierarchy: reference and next action are read before anything else.",
+      "Compact, aligned rows with 44px touch targets and small 6px/8px radii.",
+      "Hairline borders, flat surfaces, and shadows reserved for real overlays.",
+      "Explicit provenance: every stage says it is a manual agency record, never live ZRA status.",
+      "One primary action per view; every other control is visibly secondary or informational."
+    ],
+    "rules": [
+      {
+        "name": "The Reserved Accent Rule",
+        "body": "The primary accent is used on one action and one current-selection state per view. Its rarity is the point.",
+        "section": "colors"
+      },
+      {
+        "name": "The Powder-Blue Fill Rule",
+        "body": "In Cocoa Sky, powder blue is a fill with brown text and a visible border. It never becomes a link colour, a primary button, or a glow.",
+        "section": "colors"
+      },
+      {
+        "name": "The Provenance Rule",
+        "body": "A manual stage record always carries its source. No palette choice may make a manual update look like a live customs feed.",
+        "section": "colors"
+      },
+      {
+        "name": "The Compact Voice Rule",
+        "body": "Use 13px for labels and 14px for body copy; never shrink below 12px and never substitute large type for hierarchy.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "A surface is flat at rest. Depth is reserved for elements that genuinely sit above the page.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use semantic tokens; the raw palette has exactly one source file.",
+      "Do label status in words and marks, not colour alone.",
+      "Do keep 44px targets and visible focus rings on every interactive control.",
+      "Do mark sample data and mock screens unmistakably.",
+      "Do say when a figure, checklist or licence status is unverified."
+    ],
+    "donts": [
+      "Don't present a manual stage as live ASYCUDA or ZRA status.",
+      "Don't invent duty, tax or fee figures; refuse when no verified rule exists.",
+      "Don't use thick side-tab accents, gradients, glows or decorative card galleries.",
+      "Don't stack equal cards when one case and one action should lead.",
+      "Don't add motion beyond the stage advance, press feedback and sheet exit."
+    ]
+  }
+}
