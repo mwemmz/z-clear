@@ -520,6 +520,10 @@
     grid-template-columns: minmax(0, 1fr) 13rem;
   }
 
+  .home--no-nav {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .home__content {
     grid-template-columns: minmax(0, 1fr) 16rem;
   }
@@ -569,6 +573,10 @@
 
   .agent-workspace {
     grid-template-columns: 11rem 20rem minmax(0, 1fr);
+  }
+
+  .agent-workspace--no-rail {
+    grid-template-columns: 20rem minmax(0, 1fr);
   }
 
   .agent-workspace__sidebar,

@@ -25,6 +25,8 @@ interface Props {
   onProfile: () => void;
   view?: ImporterView;
   onHome?: () => void;
+  /** The app shell supplies navigation; standalone gallery previews keep it. */
+  hideNavigation?: boolean;
   state?: StateVariant;
   children?: ReactNode;
 }
@@ -44,19 +46,28 @@ export function ImporterHome({
   onProfile,
   view = 'home',
   onHome,
+  hideNavigation = false,
   state,
   children,
 }: Props) {
   if (state) {
     return (
-      <section className="home" data-testid="importer-home" aria-label="Importer home">
+      <section
+        className={hideNavigation ? 'home home--no-nav' : 'home'}
+        data-testid="importer-home"
+        aria-label="Importer home"
+      >
         <StatePanel variant={state} />
       </section>
     );
   }
 
   return (
-    <section className="home" data-testid="importer-home" aria-label="Importer home">
+    <section
+      className={hideNavigation ? 'home home--no-nav' : 'home'}
+      data-testid="importer-home"
+      aria-label="Importer home"
+    >
       <div className="home__content">
         <div className="home__greeting">
           <div>
@@ -132,43 +143,45 @@ export function ImporterHome({
         </section>
       </div>
 
-      <nav className="bottom-nav" aria-label="Importer navigation">
-        <button
-          type="button"
-          className="bottom-nav__item"
-          aria-current={view === 'home' ? 'page' : undefined}
-          onClick={onHome}
-        >
-          <House size={24} weight={view === 'home' ? 'fill' : undefined} aria-hidden="true" />
-          Home
-        </button>
-        <button type="button" className="bottom-nav__item" onClick={onOpenCase}>
-          <Cards size={24} aria-hidden="true" />
-          Cases
-        </button>
-        <Button variant="nav-new" className="bottom-nav__item--new" onClick={onNewCase}>
-          <Plus size={24} weight="bold" aria-hidden="true" />
-          <span className="sr-only">New case</span>
-        </Button>
-        <button
-          type="button"
-          className="bottom-nav__item"
-          aria-current={view === 'agents' ? 'page' : undefined}
-          onClick={onAgents}
-        >
-          <UsersThree size={24} aria-hidden="true" />
-          Agents
-        </button>
-        <button
-          type="button"
-          className="bottom-nav__item"
-          aria-current={view === 'profile' ? 'page' : undefined}
-          onClick={onProfile}
-        >
-          <UserCircle size={24} aria-hidden="true" />
-          Profile
-        </button>
-      </nav>
+      {!hideNavigation && (
+        <nav className="bottom-nav" aria-label="Importer navigation">
+          <button
+            type="button"
+            className="bottom-nav__item"
+            aria-current={view === 'home' ? 'page' : undefined}
+            onClick={onHome}
+          >
+            <House size={24} weight={view === 'home' ? 'fill' : undefined} aria-hidden="true" />
+            Home
+          </button>
+          <button type="button" className="bottom-nav__item" onClick={onOpenCase}>
+            <Cards size={24} aria-hidden="true" />
+            Cases
+          </button>
+          <Button variant="nav-new" className="bottom-nav__item--new" onClick={onNewCase}>
+            <Plus size={24} weight="bold" aria-hidden="true" />
+            <span className="sr-only">New case</span>
+          </Button>
+          <button
+            type="button"
+            className="bottom-nav__item"
+            aria-current={view === 'agents' ? 'page' : undefined}
+            onClick={onAgents}
+          >
+            <UsersThree size={24} aria-hidden="true" />
+            Agents
+          </button>
+          <button
+            type="button"
+            className="bottom-nav__item"
+            aria-current={view === 'profile' ? 'page' : undefined}
+            onClick={onProfile}
+          >
+            <UserCircle size={24} aria-hidden="true" />
+            Profile
+          </button>
+        </nav>
+      )}
     </section>
   );
 }

@@ -2,6 +2,7 @@ import {
   COMPLIANCE_ASSISTANT_NOTICE,
   COMPLIANCE_ESTIMATE_NOTICE,
   IMPORTER_REVIEW_STATE_LABELS,
+  PROGRAM_NOT_CONFIGURED_NOTICE,
   REVIEW_TRANSITIONS,
   caseStatusAnswers,
   compliancePrompts,
@@ -13,6 +14,10 @@ import {
   type EstimateOutcome,
   type ImporterReviewAction,
   type ImporterReviewState,
+  type PointLedgerEntry,
+  type PointsSummary,
+  type ProgramConfigSummary,
+  type ReferralsSummary,
 } from '@zclear/shared';
 import type {
   AgentDirectoryEntry,
@@ -504,6 +509,19 @@ function findReview(reviewId: string): AgentReviewSummary {
   return review;
 }
 
+function unconfiguredProgram(): ProgramConfigSummary {
+  return {
+    version: 0,
+    verificationStatus: 'NEEDS_VERIFICATION',
+    configuredAt: null,
+    notice: PROGRAM_NOT_CONFIGURED_NOTICE,
+  };
+}
+
+function requireLoyaltyAccess(role: SampleRole): void {
+  requireRole(role, ['agency_owner', 'agent_staff', 'client_viewer', 'platform_admin']);
+}
+
 export const sampleApi = {
   me(role: SampleRole): Promise<UserProfile> {
     return Promise.resolve(sampleUser(role));
@@ -723,6 +741,20 @@ export const sampleApi = {
 
   listGuidance(): Promise<RegistryGuidanceView[]> {
     return Promise.resolve(clone(state.guidance));
+  },
+
+  pointsMe(role: SampleRole): Promise<PointsSummary> {
+    requireLoyaltyAccess(role);
+    return Promise.resolve({ program: unconfiguredProgram(), balance: null, ledger: [] });
+  },
+
+  pointsLedger(_role: SampleRole): Promise<PointLedgerEntry[]> {
+    return Promise.resolve([]);
+  },
+
+  referralsMe(role: SampleRole): Promise<ReferralsSummary> {
+    requireLoyaltyAccess(role);
+    return Promise.resolve({ program: unconfiguredProgram(), records: [] });
   },
 
   listInvoices(role: SampleRole, userId: string): Promise<InvoiceSummary[]> {

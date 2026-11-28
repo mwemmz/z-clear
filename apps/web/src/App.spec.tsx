@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
+import { PROGRAM_NOT_CONFIGURED_NOTICE } from '@zclear/shared';
 import { App } from './App';
 import { resetSampleWorkspace } from './simulation';
 import { updatedLabelFor } from './updatedLabel';
@@ -337,6 +338,19 @@ function stubApi(
         hasUnverifiedRules: true,
         notice: 'This checklist is agency guidance.',
       });
+    }
+    const emptyProgram = {
+      version: 0,
+      verificationStatus: 'NEEDS_VERIFICATION',
+      configuredAt: null,
+      notice: PROGRAM_NOT_CONFIGURED_NOTICE,
+    };
+    if (url.endsWith('/api/v1/points/me')) {
+      return jsonResponse({ program: emptyProgram, balance: null, ledger: [] });
+    }
+    if (url.endsWith('/api/v1/points/ledger?limit=50')) return jsonResponse([]);
+    if (url.endsWith('/api/v1/referrals/me')) {
+      return jsonResponse({ program: emptyProgram, records: [] });
     }
     return jsonResponse({ error: { message: 'Not found' } }, 404);
   });
@@ -780,7 +794,10 @@ describe('App', () => {
     await signIn();
 
     expect(await screen.findByTestId('agent-directory')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Agents' }));
+    fireEvent.click(screen.getByTestId('nav-toggle'));
+    fireEvent.click(
+      within(await screen.findByTestId('nav-drawer')).getByRole('button', { name: 'Agents' }),
+    );
     expect(await screen.findByTestId('agent-a1')).toHaveTextContent('Copperbelt Clearing');
 
     expect(screen.getAllByTestId('agent-directory')).toHaveLength(1);
@@ -937,6 +954,73 @@ describe('App', () => {
     expect(await screen.findByLabelText('Email')).toBeInTheDocument();
     expect(screen.getByRole('alert')).toHaveTextContent(/Session expired/);
     expect(sessionStorage.getItem('zclear_demo_token')).toBeNull();
+  });
+
+  it('opens the phone drawer from the hamburger and navigates from it', async () => {
+    stubApi({ role: 'client_viewer' });
+    render(<App />);
+    await signIn();
+
+    expect(await screen.findByTestId('app-rail')).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('nav-toggle'));
+
+    const drawer = await screen.findByTestId('nav-drawer');
+    expect(screen.getByTestId('nav-toggle')).toHaveAttribute('aria-expanded', 'true');
+    fireEvent.click(within(drawer).getByRole('button', { name: 'Agents' }));
+
+    expect(await screen.findByTestId('agent-directory')).toBeInTheDocument();
+    expect(screen.queryByTestId('nav-drawer')).not.toBeInTheDocument();
+  });
+
+  it('uses the shared rail to open profile for staff', async () => {
+    stubApi();
+    render(<App />);
+    await signIn();
+
+    const rail = await screen.findByTestId('app-rail');
+    fireEvent.click(within(rail).getByRole('button', { name: 'Profile' }));
+
+    expect(await screen.findByTestId('profile-panel')).toBeInTheDocument();
+    expect(screen.queryByTestId('agent-workspace')).not.toBeInTheDocument();
+  });
+
+  it('opens the points and referrals side panel with unconfigured copy', async () => {
+    const fetchMock = stubApi({ role: 'client_viewer' });
+    render(<App />);
+    await signIn();
+    expect(await screen.findByTestId('app-rail')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId('loyalty-open'));
+    const panel = await screen.findByTestId('loyalty-panel');
+
+    expect(await within(panel).findAllByText(PROGRAM_NOT_CONFIGURED_NOTICE)).toHaveLength(2);
+    expect(within(panel).getByTestId('points-balance')).toHaveTextContent('Not available');
+    expect(within(panel).getByTestId('referrals-notice')).toHaveTextContent(
+      PROGRAM_NOT_CONFIGURED_NOTICE,
+    );
+    const loyaltyUrls = fetchMock.mock.calls
+      .map(([input]) => String(input))
+      .filter((url) => url.includes('/points/') || url.includes('/referrals/'));
+    expect(loyaltyUrls).toEqual([
+      expect.stringContaining('/api/v1/points/me'),
+      expect.stringContaining('/api/v1/referrals/me'),
+    ]);
+
+    fireEvent.click(within(panel).getByRole('button', { name: 'Close programme panel' }));
+    expect(screen.queryByTestId('loyalty-panel')).not.toBeInTheDocument();
+  });
+
+  it('shows a denied loyalty panel to a sample driver without a request', async () => {
+    const fetchMock = stubApi();
+    render(<App />);
+    fireEvent.click(screen.getByTestId('guide-login-driver'));
+    expect(await screen.findByTestId('role-badge')).toHaveTextContent('Driver');
+
+    fireEvent.click(screen.getByTestId('loyalty-open'));
+    const panel = await screen.findByTestId('loyalty-panel');
+    expect(within(panel).getByText('Not available for this role')).toBeInTheDocument();
+    expect(within(panel).getByTestId('loyalty-sample-label')).toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('never presents clock skew as a future last update', () => {

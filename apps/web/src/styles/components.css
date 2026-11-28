@@ -1103,3 +1103,262 @@
     display: block;
   }
 }
+
+/* App shell: one quiet navigation model, a phone drawer and a secondary panel. */
+.shell__body {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.shell__content {
+  min-width: 0;
+}
+
+.nav-toggle,
+.shell__loyalty-trigger {
+  flex: none;
+}
+
+.app-rail {
+  display: none;
+}
+
+.nav-drawer__scrim {
+  background: var(--scrim);
+  border: 0;
+  inset: 0;
+  padding: 0;
+  position: fixed;
+  z-index: 60;
+}
+
+.nav-drawer {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  bottom: 0;
+  box-shadow: var(--shadow-overlay);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  left: 0;
+  overflow-y: auto;
+  padding: var(--space-4);
+  position: fixed;
+  top: 0;
+  width: min(20rem, 88vw);
+  z-index: 61;
+}
+
+.nav-drawer__header {
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: var(--space-3);
+  justify-content: space-between;
+  padding-bottom: var(--space-3);
+}
+
+.nav-drawer__header div {
+  display: grid;
+}
+
+.app-rail__brand {
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: var(--space-2);
+  padding-bottom: var(--space-3);
+}
+
+.app-rail__brand div {
+  display: grid;
+  min-width: 0;
+}
+
+.app-rail__brand span:not(.app-mark) {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.app-rail__nav,
+.nav-drawer .app-rail__nav {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.app-rail__nav button {
+  justify-content: flex-start;
+  min-height: var(--size-tap);
+  width: 100%;
+}
+
+.app-rail__nav button[aria-current='page'] {
+  background: var(--primary-subtle);
+  border-color: var(--primary);
+  color: var(--primary);
+  font-weight: 650;
+}
+
+.app-rail__footer {
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: var(--space-1);
+  margin-top: auto;
+  padding-top: var(--space-3);
+}
+
+.app-rail__loyalty {
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.app-rail__note {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  margin: 0;
+}
+
+.loyalty-panel {
+  background: var(--surface);
+  border: 0;
+  border-left: 1px solid var(--border);
+  box-shadow: var(--shadow-overlay);
+  color: var(--text);
+  height: 100dvh;
+  margin: 0;
+  max-height: 100dvh;
+  max-width: 100%;
+  overflow-y: auto;
+  padding: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: min(24rem, 100%);
+}
+
+.loyalty-panel::backdrop {
+  background: var(--scrim);
+}
+
+.loyalty-panel[open] {
+  animation: panel-in var(--dur-enter) var(--ease-out);
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.loyalty-panel__header {
+  align-items: center;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: var(--space-3);
+  justify-content: space-between;
+  padding: var(--space-4);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.loyalty-panel__header h2 {
+  align-items: center;
+  display: flex;
+  font-size: var(--text-lg);
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.loyalty-panel__body {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+.loyalty-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-surface);
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.loyalty-card__heading {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.loyalty-card__heading h3 {
+  margin: 0;
+}
+
+.loyalty-facts {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.loyalty-facts div {
+  align-items: baseline;
+  display: flex;
+  gap: var(--space-3);
+  justify-content: space-between;
+}
+
+.loyalty-facts dt {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.loyalty-facts dd {
+  font-weight: 650;
+  margin: 0;
+}
+
+.loyalty-list {
+  display: grid;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.loyalty-list li {
+  border-top: 1px solid var(--border);
+  display: flex;
+  font-size: var(--text-sm);
+  gap: var(--space-3);
+  justify-content: space-between;
+  padding-top: var(--space-2);
+}
+
+@media (min-width: 64rem) {
+  .shell--with-rail .shell__body {
+    grid-template-columns: 12rem minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+
+  .app-rail {
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-height: calc(100dvh - 6.5rem);
+    min-height: 24rem;
+    position: sticky;
+    top: 5.5rem;
+  }
+
+  .nav-toggle {
+    display: none;
+  }
+}

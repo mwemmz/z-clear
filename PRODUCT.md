@@ -50,9 +50,10 @@ Confirmed from `AGENTS.md` and the current implementation:
 - English first, with strings structured for future Bemba/Nyanja; no invented duty, tax, or customs figures.
 - Append-only audit and shipment-event records, tenant lookups by `(tenant_id, id)`, shared schema with RLS.
 - A clearly labelled in-memory Sample workspace is available from sign-in: the four demo-role cards and five role buttons open synthetic roles with no credentials. It mirrors `/api/v1` shapes, sends no network requests, keeps state while roles are switched, offers a one-tap reset, and is the reachable home for the review decision, stage actions, invoices/payments and driver check-in.
+- Points and referrals exist only as versioned, read-only structure. No earning values, redemption rules, expiry, rewards or incentives are supplied; balances read “Not available” while rules are unverified. A side panel exposes the structure and a denied state for drivers; the desktop rail and phone drawer share one navigation model.
 - Static workflow mock screens remain behind an explicit disclosure. Their action buttons are disabled and labelled as layout-only previews; they never imply a real check-in, sign-up or Zamtel payment.
 - Dev-only `/design` gallery shows component and state matrices; it must stay out of production bundles. The theme screenshot harness is also dev-only and accepts same-origin relative targets only.
-- Bundle growth is budgeted near 40 KB gzipped over the earlier baseline. Measured 2026-11-28 after the usability pass: 131.47 kB gzip JS vs 106.07 kB baseline (+25.40 kB); no map library and no autoplay video.
+- Bundle growth is budgeted near 40 KB gzipped over the earlier baseline. Measured 2026-11-28 after the loyalty/shell pass: 138.64 kB gzip JS vs 106.07 kB baseline (+32.57 kB); no map library and no autoplay video.
 
 ## Brand Commitments
 

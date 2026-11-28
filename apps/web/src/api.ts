@@ -5,7 +5,10 @@ import type {
   ImporterReviewAction,
   ImporterReviewState,
   PersonalisedChecklist,
+  PointLedgerEntry,
+  PointsSummary,
   RecordedValuation,
+  ReferralsSummary,
   ShipmentStatus,
   ShipmentType,
 } from '@zclear/shared';
@@ -516,6 +519,30 @@ export const api = {
           method: 'POST',
           body: JSON.stringify(input),
         }),
+    );
+  },
+
+  pointsMe(token: string): Promise<PointsSummary> {
+    return sampleOnly(
+      token,
+      (role) => sampleApi.pointsMe(role),
+      () => request('/points/me', token),
+    );
+  },
+
+  pointsLedger(token: string): Promise<PointLedgerEntry[]> {
+    return sampleOnly(
+      token,
+      (role) => sampleApi.pointsLedger(role),
+      () => request('/points/ledger?limit=50', token),
+    );
+  },
+
+  referralsMe(token: string): Promise<ReferralsSummary> {
+    return sampleOnly(
+      token,
+      (role) => sampleApi.referralsMe(role),
+      () => request('/referrals/me', token),
     );
   },
 

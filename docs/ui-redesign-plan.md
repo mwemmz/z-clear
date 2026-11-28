@@ -4,7 +4,7 @@ Reading this as: a trust-first, phone-first workflow redesign for importers, age
 
 Skills used: `emil-design-eng` for motion and polish, and `design-taste-frontend` as the single art-direction skill. No other art-direction skill is stacked.
 
-Dials: `DESIGN_VARIANCE 3` (regulated workflow, predictable navigation), `MOTION_INTENSITY 4` (one orchestrated stage-track change plus action feedback), `VISUAL_DENSITY 5` (phone-first but information-rich for agents).
+Dials: `DESIGN_VARIANCE 5` (quiet GitHub/Primer-influenced Operate console, one shared navigation model), `MOTION_INTENSITY 3` (press feedback, drawer/panel entrance and the stage-track change only), `VISUAL_DENSITY 5` (phone-first but information-rich for agents).
 
 ## Design system
 
@@ -19,6 +19,8 @@ Dials: `DESIGN_VARIANCE 3` (regulated workflow, predictable navigation), `MOTION
 ## Anti-generic check
 
 Initial idea: three-column case dashboard with identical cards. Revised: the memorable element is a **stage track** with a raised current node, a connecting progress line and a small “last update” note; surrounding content uses divided rows, not repeated cards. Cocoa Sky uses powder blue only as selected fill, never as blue text or an unbordered boundary. Mocks are explicitly labelled and use sample-only figures.
+
+Navigation was then quieted: one shared model renders a sticky desktop rail and a phone hamburger drawer, replacing duplicated in-page rails and the floating bottom bar. Points and referrals open as a secondary right-side panel with only verified structure; no earning or reward claim is made.
 
 ## Wireframes
 
@@ -124,7 +126,8 @@ No API contracts change. Real data remains labelled real; mocks remain labelled 
 ## Verification
 
 `pnpm verify` passes. Web JS grew from `106.07 kB` gzip before the redesign to
-`128.46 kB`, an increase of `22.39 kB` gzip, below the `~40 kB` budget. The
+`138.64 kB` after the loyalty/shell pass, an increase of `32.57 kB` gzip, below
+the `~40 kB` budget. The
 dev-only gallery is tree-shaken from the production build. Screenshots for every preview
 screen at `360x800` and `1280x900` in all three themes are in
 `docs/ui-redesign-screenshots`; the capture manifest records zero overflow,

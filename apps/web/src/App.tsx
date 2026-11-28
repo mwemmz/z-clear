@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { List } from '@phosphor-icons/react';
+import { Gift, List } from '@phosphor-icons/react';
 import { SHIPMENT_STATUS_LABELS } from '@zclear/shared';
 import { AgentDirectory } from './AgentDirectory';
 import { AgentReviews } from './AgentReviews';
 import { CaseForm } from './CaseForm';
 import { CaseStatus } from './CaseStatus';
 import { Checklist } from './Checklist';
+import { LoyaltyPanel } from './LoyaltyPanel';
+import { ShellChrome } from './ShellChrome';
 import { DriverCheckIn } from './DriverCheckIn';
 import { ImporterReviewDecision } from './ImporterReviewDecision';
 import { Mockups } from './mockups';
@@ -93,6 +95,8 @@ export function App() {
   const [showMockups, setShowMockups] = useState(false);
   const [showCaseForm, setShowCaseForm] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
+  const [loyaltyOpen, setLoyaltyOpen] = useState(false);
   const [view, setView] = useState<View>('home');
   const [appointmentNotice, setAppointmentNotice] = useState<string | null>(null);
   const [caseRefreshKey, setCaseRefreshKey] = useState(0);
@@ -108,6 +112,11 @@ export function App() {
     .filter((item) => item.id !== current?.id)
     .map((item) => ({ id: item.id, reference: item.reference, stage: item.stage }));
   const updatedLabel = updatedLabelFor(current?.updatedAt);
+  const shellClassName = token
+    ? isAgent
+      ? 'shell shell--agent shell--with-rail'
+      : 'shell shell--with-rail'
+    : 'shell shell--login';
   const actionText = detail?.holdReason
     ? `Your agent left a note: ${detail.holdReason}`
     : 'Check the review draft before it is filed in ASYCUDA.';
@@ -138,6 +147,8 @@ export function App() {
         setShipments([]);
         setSelectedId(null);
         setDetail(null);
+        setNavOpen(false);
+        setLoyaltyOpen(false);
         setError(
           `${messageOf(cause)}. Session cleared — sign in again or open the sample workspace.`,
         );
@@ -193,6 +204,8 @@ export function App() {
       setUser(result.user);
       setAppointmentNotice(null);
       setView('home');
+      setNavOpen(false);
+      setLoyaltyOpen(false);
     } catch (cause) {
       setError(messageOf(cause));
     } finally {
@@ -226,6 +239,8 @@ export function App() {
       setView('home');
       setShowCaseForm(false);
       setSheetOpen(false);
+      setNavOpen(false);
+      setLoyaltyOpen(false);
     } catch (cause) {
       setError(messageOf(cause));
     } finally {
@@ -252,6 +267,8 @@ export function App() {
     setDetail(null);
     setError(null);
     setSheetOpen(false);
+    setNavOpen(false);
+    setLoyaltyOpen(false);
     setView('home');
     setCaseRefreshKey((value) => value + 1);
   }
@@ -282,6 +299,35 @@ export function App() {
       target.scrollIntoView({ block: 'start' });
     }
     target?.focus();
+  }
+
+  function focusCaseContent(): void {
+    const target = document.getElementById('case-content');
+    if (typeof target?.scrollIntoView === 'function') {
+      target.scrollIntoView({ block: 'start' });
+    }
+    target?.focus();
+  }
+
+  function handleHomeNav(): void {
+    setView('home');
+    focusCaseContent();
+  }
+
+  function handleCasesNav(): void {
+    setView('home');
+    if (user?.role === 'client_viewer') setSheetOpen(true);
+    else focusCaseContent();
+  }
+
+  function handleAgentsNav(): void {
+    setView('agents');
+    focusCaseContent();
+  }
+
+  function handleProfileNav(): void {
+    setView('profile');
+    focusCaseContent();
   }
 
   function handleAppointed(_result: AppointmentResult): void {
@@ -472,7 +518,7 @@ export function App() {
   );
 
   return (
-    <main className={token ? (isAgent ? 'shell shell--agent' : 'shell') : 'shell shell--login'}>
+    <main className={shellClassName}>
       <a className="skip-link" href="#case-content">
         Skip to case details
       </a>
@@ -537,6 +583,30 @@ export function App() {
 
         <div className="shell__actions">
           {user && (
+            <Button
+              variant="icon"
+              iconOnly
+              className="nav-toggle"
+              data-testid="nav-toggle"
+              aria-label="Open navigation"
+              aria-expanded={navOpen}
+              onClick={() => setNavOpen(true)}
+            >
+              <List size={20} aria-hidden="true" />
+            </Button>
+          )}
+          {user && (
+            <Button
+              variant="ghost"
+              className="shell__loyalty-trigger"
+              data-testid="loyalty-open"
+              onClick={() => setLoyaltyOpen(true)}
+            >
+              <Gift size={20} aria-hidden="true" />
+              Points & referrals
+            </Button>
+          )}
+          {user && (
             <details className="header-menu">
               <summary aria-label="Open account menu">
                 <List size={20} aria-hidden="true" /> Account
@@ -552,200 +622,240 @@ export function App() {
         </div>
       </header>
 
-      {error && (
-        <p className="alert" role="alert">
-          {error}
-        </p>
-      )}
-
-      {appointmentNotice && (
-        <p className="hint" data-testid="appointment-notice">
-          {appointmentNotice}
-        </p>
-      )}
-
-      {!token && (
-        <section className="login-panel" aria-label="Sign in to Z Clear">
-          <div className="card login-panel__form">
-            <h2 id="signin-heading">Sign in</h2>
-            <form className="login" onSubmit={(event) => void handleLogin(event)}>
-              <label htmlFor="email">Email</label>
-              <input id="email" name="email" type="email" autoComplete="username" required />
-              <label htmlFor="password">Password</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-              />
-              <button type="submit" disabled={busy}>
-                {busy ? 'Signing in…' : 'Sign in'}
-              </button>
-            </form>
-            <p className="hint">
-              Credentials are issued by your demo facilitator, not stored in the app.
+      <div className="shell__body">
+        {token && user && (
+          <ShellChrome
+            navOpen={navOpen}
+            onCloseNav={() => setNavOpen(false)}
+            onOpenLoyalty={() => setLoyaltyOpen(true)}
+            role={user.role}
+            view={view}
+            onHome={handleHomeNav}
+            onCases={handleCasesNav}
+            onAgents={handleAgentsNav}
+            onProfile={handleProfileNav}
+          />
+        )}
+        <div className="shell__content">
+          {error && (
+            <p className="alert" role="alert">
+              {error}
             </p>
-          </div>
-          <aside className="card login-panel__guide" aria-labelledby="login-guide-heading">
-            <h2 id="login-guide-heading">Four demo roles</h2>
-            <p>Tap a role to open its sample workspace. Each role sees only its own work.</p>
-            <ul className="login-panel__roles">
-              {GUIDE_ROLES.map(({ role, description }) => (
-                <li key={role}>
-                  <Button
-                    variant="secondary"
-                    className="login-panel__role-card"
-                    data-testid={`guide-login-${role}`}
-                    disabled={busy}
-                    onClick={() => void handleSampleLogin(role)}
-                  >
-                    <span className="login-panel__role-copy">
-                      <strong>{SAMPLE_ROLE_LABELS[role]}</strong>
-                      <span>{description}</span>
-                    </span>
-                  </Button>
-                </li>
-              ))}
-            </ul>
-            <div className="sample-entry" aria-labelledby="sample-entry-heading">
-              <strong id="sample-entry-heading">More sample roles</strong>
-              <p>Open another synthetic role. No sign-in, no network, nothing filed.</p>
-              <div className="sample-entry__roles">
-                {SAMPLE_ROLES.map((role) => (
-                  <button
-                    key={role}
-                    type="button"
-                    data-testid={`sample-login-${role}`}
-                    disabled={busy}
-                    onClick={() => void handleSampleLogin(role)}
-                  >
-                    {SAMPLE_ROLE_LABELS[role]}
+          )}
+
+          {appointmentNotice && (
+            <p className="hint" data-testid="appointment-notice">
+              {appointmentNotice}
+            </p>
+          )}
+
+          {!token && (
+            <section className="login-panel" aria-label="Sign in to Z Clear">
+              <div className="card login-panel__form">
+                <h2 id="signin-heading">Sign in</h2>
+                <form className="login" onSubmit={(event) => void handleLogin(event)}>
+                  <label htmlFor="email">Email</label>
+                  <input id="email" name="email" type="email" autoComplete="username" required />
+                  <label htmlFor="password">Password</label>
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                  />
+                  <button type="submit" disabled={busy}>
+                    {busy ? 'Signing in…' : 'Sign in'}
                   </button>
-                ))}
+                </form>
+                <p className="hint">
+                  Credentials are issued by your demo facilitator, not stored in the app.
+                </p>
               </div>
-            </div>
-            <div>
-              <strong>Colour theme</strong>
-              <ThemeSwitcher />
-            </div>
-            <p className="hint">
-              Seeded-account credentials come from your facilitator. Customs assessment and release
-              still happen in ASYCUDA World.
-            </p>
-          </aside>
-        </section>
-      )}
+              <aside className="card login-panel__guide" aria-labelledby="login-guide-heading">
+                <h2 id="login-guide-heading">Four demo roles</h2>
+                <p>Tap a role to open its sample workspace. Each role sees only its own work.</p>
+                <ul className="login-panel__roles">
+                  {GUIDE_ROLES.map(({ role, description }) => (
+                    <li key={role}>
+                      <Button
+                        variant="secondary"
+                        className="login-panel__role-card"
+                        data-testid={`guide-login-${role}`}
+                        disabled={busy}
+                        onClick={() => void handleSampleLogin(role)}
+                      >
+                        <span className="login-panel__role-copy">
+                          <strong>{SAMPLE_ROLE_LABELS[role]}</strong>
+                          <span>{description}</span>
+                        </span>
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+                <div className="sample-entry" aria-labelledby="sample-entry-heading">
+                  <strong id="sample-entry-heading">More sample roles</strong>
+                  <p>Open another synthetic role. No sign-in, no network, nothing filed.</p>
+                  <div className="sample-entry__roles">
+                    {SAMPLE_ROLES.map((role) => (
+                      <button
+                        key={role}
+                        type="button"
+                        data-testid={`sample-login-${role}`}
+                        disabled={busy}
+                        onClick={() => void handleSampleLogin(role)}
+                      >
+                        {SAMPLE_ROLE_LABELS[role]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <strong>Colour theme</strong>
+                  <ThemeSwitcher />
+                </div>
+                <p className="hint">
+                  Seeded-account credentials come from your facilitator. Customs assessment and
+                  release still happen in ASYCUDA World.
+                </p>
+              </aside>
+            </section>
+          )}
 
-      {token && busy && <p className="hint">Loading case file…</p>}
+          {token && busy && <p className="hint">Loading case file…</p>}
 
-      {token && user?.role === 'client_viewer' && current && (
-        <ImporterHome
-          reference={current.reference}
-          clientName={current.clientName}
-          stage={current.stage}
-          updatedLabel={updatedLabel}
-          actionText={actionText}
-          recentCases={recentCases}
-          onOpenCase={() => setSheetOpen(true)}
-          onSelectCase={(id) => setSelectedId(id)}
-          onNewCase={() => {
-            setShowCaseForm(true);
-            document.getElementById('new-case-toggle')?.scrollIntoView({ block: 'center' });
-          }}
-          onAgents={() => setView('agents')}
-          onProfile={() => setView('profile')}
-          view={view}
-          onHome={() => setView('home')}
-        >
-          {view === 'agents' &&
-            (detail && !detail.assignedAgentId ? (
-              <AgentDirectory token={token} caseId={detail.id} onAppointed={handleAppointed} />
-            ) : (
-              <p className="empty">
-                {detail?.assignedAgentId
-                  ? 'An agent is already assigned to this case.'
-                  : 'Loading available agencies…'}
-              </p>
-            ))}
-          {view === 'profile' && (
+          {token && user?.role === 'client_viewer' && current && (
+            <ImporterHome
+              reference={current.reference}
+              clientName={current.clientName}
+              stage={current.stage}
+              updatedLabel={updatedLabel}
+              actionText={actionText}
+              recentCases={recentCases}
+              onOpenCase={() => setSheetOpen(true)}
+              onSelectCase={(id) => setSelectedId(id)}
+              onNewCase={() => {
+                setShowCaseForm(true);
+                document.getElementById('new-case-toggle')?.scrollIntoView({ block: 'center' });
+              }}
+              onAgents={handleAgentsNav}
+              onProfile={handleProfileNav}
+              view={view}
+              onHome={handleHomeNav}
+              hideNavigation={Boolean(token && user)}
+            >
+              {view === 'agents' &&
+                (detail && !detail.assignedAgentId ? (
+                  <AgentDirectory token={token} caseId={detail.id} onAppointed={handleAppointed} />
+                ) : (
+                  <p className="empty">
+                    {detail?.assignedAgentId
+                      ? 'An agent is already assigned to this case.'
+                      : 'Loading available agencies…'}
+                  </p>
+                ))}
+              {view === 'profile' && (
+                <ProfilePanel
+                  email={user.email}
+                  roleLabel={ROLE_LABELS[user.role] ?? user.role}
+                  onSignOut={handleSignOut}
+                />
+              )}
+            </ImporterHome>
+          )}
+
+          {token && user?.role === 'client_viewer' && (
+            <section aria-labelledby="new-case-toggle" className="case-form-disclosure">
+              <button
+                id="new-case-toggle"
+                type="button"
+                onClick={() => setShowCaseForm((value) => !value)}
+              >
+                {showCaseForm ? 'Cancel' : 'Open a new case'}
+              </button>
+              {showCaseForm && <CaseForm token={token} onCreated={handleCaseCreated} />}
+            </section>
+          )}
+
+          {token && user && user.role !== 'client_viewer' && view === 'profile' && (
             <ProfilePanel
               email={user.email}
               roleLabel={ROLE_LABELS[user.role] ?? user.role}
               onSignOut={handleSignOut}
             />
           )}
-        </ImporterHome>
-      )}
 
-      {token && user?.role === 'client_viewer' && (
-        <section aria-labelledby="new-case-toggle" className="case-form-disclosure">
-          <button
-            id="new-case-toggle"
-            type="button"
-            onClick={() => setShowCaseForm((value) => !value)}
-          >
-            {showCaseForm ? 'Cancel' : 'Open a new case'}
-          </button>
-          {showCaseForm && <CaseForm token={token} onCreated={handleCaseCreated} />}
-        </section>
-      )}
+          <div id="case-content" tabIndex={-1}>
+            {token &&
+            user &&
+            view === 'profile' &&
+            user.role !== 'client_viewer' ? null : isAgent ? (
+              <AgentWorkspace
+                cases={shipments.map((item) => ({
+                  id: item.id,
+                  reference: item.reference,
+                  stage: item.stage,
+                }))}
+                activeId={selectedId}
+                onSelect={setSelectedId}
+                hideSidebar
+              >
+                {caseSections}
+              </AgentWorkspace>
+            ) : (
+              caseSections
+            )}
+          </div>
 
-      <div id="case-content">
-        {token && user && isAgent ? (
-          <AgentWorkspace
-            cases={shipments.map((item) => ({
-              id: item.id,
-              reference: item.reference,
-              stage: item.stage,
-            }))}
-            activeId={selectedId}
-            onSelect={setSelectedId}
-          >
-            {caseSections}
-          </AgentWorkspace>
-        ) : (
-          caseSections
-        )}
+          {token && detail && sheetOpen && (
+            <CaseSheet
+              open={sheetOpen}
+              onClose={() => setSheetOpen(false)}
+              reference={detail.reference}
+              route={
+                detail.origin && detail.destination
+                  ? `${detail.origin} → ${detail.destination}`
+                  : 'Route not recorded'
+              }
+              stage={detail.stage}
+              documentsReady={0}
+              documentsTotal={0}
+              availableSections={
+                user?.role === 'client_viewer'
+                  ? ['documents', 'review', 'payments']
+                  : ['review', 'payments']
+              }
+              onJump={jumpToCaseSection}
+            >
+              <p className="hint">
+                This case is recorded at {SHIPMENT_STATUS_LABELS[detail.stage]}. Sections below
+                carry the current case file, review and payment details.
+              </p>
+              <p className="provenance">Manual agency record · not submitted to ZRA by this app.</p>
+            </CaseSheet>
+          )}
+
+          {token && user && loyaltyOpen && (
+            <LoyaltyPanel
+              open={loyaltyOpen}
+              onClose={() => setLoyaltyOpen(false)}
+              token={token}
+              role={user.role}
+              isSample={Boolean(sampleRole)}
+            />
+          )}
+
+          <section aria-labelledby="mockups-heading" className="mock-disclosure">
+            <h2 id="mockups-heading" className="sr-only">
+              Workflow mock screens
+            </h2>
+            <button type="button" onClick={() => setShowMockups((value) => !value)}>
+              {showMockups ? 'Hide' : 'Show'} importer workflow mock screens
+            </button>
+            {showMockups ? <Mockups /> : null}
+          </section>
+        </div>
       </div>
-
-      {token && detail && sheetOpen && (
-        <CaseSheet
-          open={sheetOpen}
-          onClose={() => setSheetOpen(false)}
-          reference={detail.reference}
-          route={
-            detail.origin && detail.destination
-              ? `${detail.origin} → ${detail.destination}`
-              : 'Route not recorded'
-          }
-          stage={detail.stage}
-          documentsReady={0}
-          documentsTotal={0}
-          availableSections={
-            user?.role === 'client_viewer'
-              ? ['documents', 'review', 'payments']
-              : ['review', 'payments']
-          }
-          onJump={jumpToCaseSection}
-        >
-          <p className="hint">
-            This case is recorded at {SHIPMENT_STATUS_LABELS[detail.stage]}. Sections below carry
-            the current case file, review and payment details.
-          </p>
-          <p className="provenance">Manual agency record · not submitted to ZRA by this app.</p>
-        </CaseSheet>
-      )}
-
-      <section aria-labelledby="mockups-heading" className="mock-disclosure">
-        <h2 id="mockups-heading" className="sr-only">
-          Workflow mock screens
-        </h2>
-        <button type="button" onClick={() => setShowMockups((value) => !value)}>
-          {showMockups ? 'Hide' : 'Show'} importer workflow mock screens
-        </button>
-        {showMockups ? <Mockups /> : null}
-      </section>
     </main>
   );
 }

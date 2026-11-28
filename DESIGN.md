@@ -166,20 +166,20 @@ The palette is semantic and theme-scoped. Raw colour values live only in `apps/w
 
 ## Layout
 
-Mobile first and single column. A sticky, compact app bar holds the brand, role, current case and account menu. The current case block places the reference first, then the stage track, then a short fact row, then one primary action. A 44px bottom navigation keeps Home, Cases, New case, Agents and Profile thumb-reachable.
+Mobile first and single column. A sticky, compact app bar holds the brand, role, hamburger, points/referrals trigger and account menu. The current case block places the reference first, then the stage track, then a short fact row, then one primary action. The hamburger opens a 44px-target drawer with one shared navigation model; the previously floating bottom bar is hidden while the shell is active so the case stays first.
 
-At 1280px the shell becomes a console: the agent workspace uses an 11rem navigation rail, a 20rem case queue, and a flexible detail column. The importer home gains a compact side rail for the next action while the case block and recent cases stay in the main column. Navigation becomes a sticky left rail rather than a floating bottom bar.
+At 1280px the shell becomes a console: a quiet 12rem left rail carries Home, Cases, Agents (importers only), Profile and a low-emphasis points/referrals link. The agent workspace uses a 20rem case queue and a flexible detail column; its old in-page sidebar and the importer's duplicate bottom bar are suppressed. The importer home keeps a compact side rail for the next action while the case block and recent cases stay in the main column.
 
 Spacing uses a 4px base rhythm: 4, 8, 12, 16, 20, 24, 32 and 48px. Rows are separated by 1px borders rather than nested cards. Content never exceeds 72rem for standard screens or 88rem for the agent workspace.
 
 ## Elevation & Depth
 
-The system is flat by default. One-pixel borders and subtle surface fills convey hierarchy; shadows appear only for the account menu, bottom navigation and the case-sheet overlay. There are no glows, gradient backgrounds or decorative layers.
+The system is flat by default. One-pixel borders and subtle surface fills convey hierarchy; shadows appear only for the account menu, phone drawer, case-sheet and points/referrals dialogs. There are no glows, gradient backgrounds or decorative layers.
 
 ### Shadow Vocabulary
 
-- **Raised** (`0 8px 24px rgba(...)`): Bottom navigation and the new-case button when they float above content.
-- **Overlay** (`0 12px 32px rgba(...)`): Account menu and the native case-sheet dialog.
+- **Raised** (`0 8px 24px rgba(...)`): The new-case button when it floats above content.
+- **Overlay** (`0 12px 32px rgba(...)`): Account menu, phone drawer, and the native case-sheet and points/referrals dialogs.
 
 ### Named Rules
 
@@ -223,8 +223,16 @@ Small radii only: 6px for controls, 8px for surfaces, and 999px for pills and st
 
 ### Navigation
 
-- **Mobile:** Five-item bottom bar with 24px Phosphor icons, 44px targets and `aria-current` for the active view.
-- **Desktop:** Sticky left rail with the same labels, one primary action above it and no floating bar.
+- **One model:** Home, Cases, Agents (importers only) and Profile are defined once and rendered by both the desktop rail and the phone drawer, with `aria-current` for the active view.
+- **Mobile:** Header hamburger opens a left drawer over a scrim. It closes on backdrop click, Escape or a navigation choice, returns focus to the trigger, and uses 44px targets with 20px Phosphor icons.
+- **Desktop:** A quiet sticky left rail replaces the in-page rails. Points & referrals sits at the foot as a ghost link, below the case navigation and its “Structure only · no verified rules yet” note.
+- **Not a basket:** Points & referrals opens a secondary right-side panel, never a purchase/checkout flow.
+
+### Points & Referrals Panel
+
+- **Shape:** Native right-side dialog with a sticky header, scrim, compact fact rows and a short provenance line.
+- **Content:** Versioned rules, an explicit “Not available” balance, empty-ledger copy and a referral structure note. No earning values, redemption rules, expiry, rewards or incentives appear.
+- **States:** Loading, denied (drivers), error and unconfigured use the shared state panels and the same semantic tokens as the rest of the console.
 
 ### State Panels
 
