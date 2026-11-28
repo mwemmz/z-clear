@@ -233,7 +233,7 @@ Small radii only: 6px for controls, 8px for surfaces, and 999px for pills and st
 
 ### Sample Workspace
 
-- **Entry:** Five role buttons on sign-in; no email, password or `@` on the unauthenticated screen.
+- **Entry:** Four demo-role cards and five role buttons on sign-in open synthetic roles directly; no email, password or `@` on the unauthenticated screen.
 - **Chrome:** A persistent “Sample data” badge, role switcher and reset control sit in the header beside the role/case context.
 - **Data:** All records are synthetic and say so; the invoice is an agency service fee, not a ZRA assessment. The estimate still refuses with `no_verified_rule`.
 - **Behaviour:** Sample tokens route the same `api` façade to in-memory state, so real screens, states and transitions stay reachable without a backend.

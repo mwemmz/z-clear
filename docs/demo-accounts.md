@@ -8,10 +8,11 @@ values.
 
 ## Sample workspace (no credentials)
 
-The sign-in guide also offers a **Sample workspace**. Choose a role button to
-open an in-memory workspace immediately; no email, password, account creation
-or network request is involved. Five synthetic roles are available: agency
-owner, clearing agent, importer/client, platform admin and driver. The header
+The sign-in guide also offers a **Sample workspace**. Tap one of the four demo
+role cards or a role button to open an in-memory workspace immediately; no
+email, password, account creation or network request is involved. Five
+synthetic roles are available: agency owner, clearing agent, importer/client,
+platform admin and driver. The header
 shows a “Sample data” badge, a role switcher and a reset control. State carries
 across role switches so an importer query can be answered by the agency, and
 reset restores the seeded cases. Sample identities use `.invalid` addresses
