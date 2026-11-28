@@ -16,7 +16,7 @@ import { PaymentCapture } from './PaymentCapture';
 import { RegistryGuidance } from './RegistryGuidance';
 import { ValuationQuery } from './ValuationQuery';
 import { AgentWorkspace, CaseSheet, ImporterHome, ProfilePanel, type CaseSection } from './screens';
-import { ThemeSwitcher } from './ui';
+import { Button, ThemeSwitcher } from './ui';
 import { updatedLabelFor } from './updatedLabel';
 import {
   SAMPLE_ROLE_LABELS,
@@ -42,6 +42,25 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 const STAFF_ROLES = ['agency_owner', 'agent_staff', 'platform_admin'];
+
+const GUIDE_ROLES = [
+  {
+    role: 'agent_staff',
+    description: 'Reviews the case, asks questions and records invoices and payments.',
+  },
+  {
+    role: 'client_viewer',
+    description: 'Sees only their own case, checklist and approval questions.',
+  },
+  {
+    role: 'platform_admin',
+    description: 'Sets up the demo workspace and checks all tenant workflows.',
+  },
+  {
+    role: 'driver',
+    description: 'Sees an assigned shipment and records one manual check-in.',
+  },
+] as const;
 
 type View = 'home' | 'agents' | 'profile';
 
@@ -570,28 +589,28 @@ export function App() {
           </div>
           <aside className="card login-panel__guide" aria-labelledby="login-guide-heading">
             <h2 id="login-guide-heading">Four demo roles</h2>
-            <p>Each login opens only the work its role is allowed to do.</p>
+            <p>Tap a role to open its sample workspace. Each role sees only its own work.</p>
             <ul className="login-panel__roles">
-              <li>
-                <strong>Clearing agent</strong>
-                <span>Reviews the case, asks questions and records invoices and payments.</span>
-              </li>
-              <li>
-                <strong>Importer / client</strong>
-                <span>Sees only their own case, checklist and approval questions.</span>
-              </li>
-              <li>
-                <strong>Platform admin</strong>
-                <span>Sets up the demo workspace and checks all tenant workflows.</span>
-              </li>
-              <li>
-                <strong>Driver</strong>
-                <span>Sees an assigned shipment and records one manual check-in.</span>
-              </li>
+              {GUIDE_ROLES.map(({ role, description }) => (
+                <li key={role}>
+                  <Button
+                    variant="secondary"
+                    className="login-panel__role-card"
+                    data-testid={`guide-login-${role}`}
+                    disabled={busy}
+                    onClick={() => void handleSampleLogin(role)}
+                  >
+                    <span className="login-panel__role-copy">
+                      <strong>{SAMPLE_ROLE_LABELS[role]}</strong>
+                      <span>{description}</span>
+                    </span>
+                  </Button>
+                </li>
+              ))}
             </ul>
             <div className="sample-entry" aria-labelledby="sample-entry-heading">
-              <strong id="sample-entry-heading">Try the sample workspace</strong>
-              <p>Open a role with synthetic cases. No sign-in, no network, nothing filed.</p>
+              <strong id="sample-entry-heading">More sample roles</strong>
+              <p>Open another synthetic role. No sign-in, no network, nothing filed.</p>
               <div className="sample-entry__roles">
                 {SAMPLE_ROLES.map((role) => (
                   <button
@@ -611,7 +630,7 @@ export function App() {
               <ThemeSwitcher />
             </div>
             <p className="hint">
-              Ask your facilitator for the sample email and password. Customs assessment and release
+              Seeded-account credentials come from your facilitator. Customs assessment and release
               still happen in ASYCUDA World.
             </p>
           </aside>

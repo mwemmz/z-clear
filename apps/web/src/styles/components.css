@@ -536,16 +536,38 @@
 }
 
 .login-panel__roles li {
-  background: var(--surface-2);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-control);
-  padding: var(--space-3);
+  margin: 0;
+  padding: 0;
 }
 
-.login-panel__roles span {
+.login-panel__role-card {
+  align-items: flex-start;
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+  border-radius: var(--radius-control);
+  height: auto;
+  justify-content: flex-start;
+  padding: var(--space-3);
+  text-align: left;
+  white-space: normal;
+  width: 100%;
+}
+
+.login-panel__role-copy {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.login-panel__role-copy strong {
+  color: var(--text);
+  font-size: var(--text-base);
+}
+
+.login-panel__role-copy span {
   color: var(--text-muted);
   display: block;
   font-size: var(--text-sm);
+  line-height: var(--leading-body);
 }
 
 .sample-entry {

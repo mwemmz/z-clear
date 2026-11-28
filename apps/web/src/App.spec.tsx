@@ -385,6 +385,16 @@ describe('App', () => {
     expect(document.body.textContent).not.toContain('@');
   });
 
+  it('opens the sample workspace when a login role card is tapped', async () => {
+    const fetchMock = stubApi();
+    render(<App />);
+    fireEvent.click(screen.getByTestId('guide-login-agent_staff'));
+
+    expect(await screen.findByTestId('role-badge')).toHaveTextContent('Clearing agent');
+    expect(await screen.findByTestId('sample-toolbar')).toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('shows the signed-in role and the case file from the shipment endpoint', async () => {
     stubApi();
     render(<App />);
