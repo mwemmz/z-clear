@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Z Clear screenshot harness</title>
+  </head>
+  <body>
+    <script>
+      var params = new URLSearchParams(window.location.search);
+      var requestedTheme = params.get('theme');
+      if (['light', 'dark', 'cocoa'].indexOf(requestedTheme) >= 0) {
+        try {
+          window.localStorage.setItem('zclear-theme', requestedTheme);
+        } catch (_) {
+          // The screenshot still renders with the system theme.
+        }
+      }
+      var target = '/';
+      try {
+        var parsed = new URL(params.get('target') || '/', window.location.href);
+        if (parsed.origin === window.location.origin) {
+          target = parsed.pathname + parsed.search + parsed.hash;
+        }
+      } catch (_) {
+        // An invalid target falls back to the app home page.
+      }
+      window.location.replace(target);
+    </script>
+  </body>
+</html>

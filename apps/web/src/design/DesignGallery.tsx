@@ -88,7 +88,6 @@ function ScreenPreview({ screen, state }: { screen: PreviewScreen; state?: State
           stale={state === 'stale'}
           onQuery={() => undefined}
           onApprove={() => undefined}
-          onClearPoints={() => undefined}
         />
       );
     case 'agents':
@@ -179,7 +178,6 @@ export function DesignGallery({ screen, state }: Props = {}) {
               message="The draft value may not match your records. Check before you approve."
               onQuery={() => undefined}
               onApprove={() => undefined}
-              onClearPoints={() => undefined}
             />
 
             <AgentDirectoryMock />
