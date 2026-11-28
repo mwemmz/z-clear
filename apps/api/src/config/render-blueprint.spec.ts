@@ -41,14 +41,15 @@ describe('Render blueprint', () => {
     expect(blueprint).not.toContain('preDeployCommand:');
   });
 
-  it('runs the hosted seed at startup behind an explicit flag', () => {
+  it('runs the hosted seed only when its flag and password are both ready', () => {
     expect(blueprint).toContain('HOSTED_DEMO_SEED_ONCE');
     expect(blueprint).toMatch(/- key: HOSTED_DEMO_SEED_ONCE\s+value: 'true'/);
     expect(blueprint).toContain('db:seed:hosted');
     const conditionalSeed = blueprint.match(
-      /if \[ "\$HOSTED_DEMO_SEED_ONCE" = "true" \]; then[\s\S]*?db:seed:hosted[\s\S]*?fi/,
+      /if \[ "\$HOSTED_DEMO_SEED_ONCE" = "true" \] && \[ -n "\$HOSTED_DEMO_PASSWORD" \] && \[ "\$\{#HOSTED_DEMO_PASSWORD\}" -ge 12 \]; then[\s\S]*?db:seed:hosted[\s\S]*?fi/,
     );
     expect(conditionalSeed).not.toBeNull();
+    expect(blueprint).toContain('Hosted demo seed skipped');
     expect(apiPackage.scripts?.['db:seed:hosted']).toBe(
       'node dist/scripts/seed-review-demo.js --hosted',
     );

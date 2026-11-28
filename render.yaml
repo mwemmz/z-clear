@@ -28,7 +28,11 @@ services:
     startCommand: >-
       corepack pnpm --filter @zclear/api db:migrate &&
       corepack pnpm --filter @zclear/api db:grant &&
-      if [ "$HOSTED_DEMO_SEED_ONCE" = "true" ]; then corepack pnpm --filter @zclear/api db:seed:hosted; fi &&
+      if [ "$HOSTED_DEMO_SEED_ONCE" = "true" ] && [ -n "$HOSTED_DEMO_PASSWORD" ] && [ "${#HOSTED_DEMO_PASSWORD}" -ge 12 ]; then
+        corepack pnpm --filter @zclear/api db:seed:hosted;
+      else
+        echo "Hosted demo seed skipped: set HOSTED_DEMO_PASSWORD (>=12 chars) to enable it.";
+      fi &&
       API_PORT="$PORT" corepack pnpm --filter @zclear/api start
     healthCheckPath: /api/v1/health
     envVars:

@@ -120,13 +120,6 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): AppEnv {
     if (!env.DATABASE_URL) {
       problems.push('DATABASE_URL is required in production.');
     }
-    if (env.HOSTED_DEMO_SEED_ONCE) {
-      if (!env.HOSTED_DEMO_PASSWORD || env.HOSTED_DEMO_PASSWORD.length < 12) {
-        problems.push(
-          'HOSTED_DEMO_PASSWORD must be at least 12 characters when HOSTED_DEMO_SEED_ONCE=true.',
-        );
-      }
-    }
     if (env.STORAGE_DRIVER === 's3') {
       if (!env.S3_BUCKET) problems.push('S3_BUCKET is required when STORAGE_DRIVER=s3.');
       if (!env.S3_ACCESS_KEY_ID) {

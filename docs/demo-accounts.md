@@ -20,15 +20,16 @@ refuses to run when `NODE_ENV=production`; hosted seeding uses the explicit
 
 ## Hosted demo login (seeded once on first deploy)
 
-The same four synthetic logins are created on Render by the first deployment:
+The same four synthetic logins are created on Render after the password is set:
 
 1. Set `HOSTED_DEMO_PASSWORD` (at least 12 characters) in
    **Render → zclear-api → Environment**. Never reuse a real password.
    `HOSTED_DEMO_SEED_ONCE=true` is already in `render.yaml`, so no shell or
    one-off job is needed.
-2. Push to `master`. The API starts with `db:migrate → db:grant → hosted seed`,
-   then serves requests. The first boot creates the synthetic tenant, users,
-   shipment and invoice.
+2. Restart the API (or push to `master`). The API starts with
+   `db:migrate → db:grant → hosted seed`, then serves requests. The first
+   seeded boot creates the synthetic tenant, users, shipment and invoice. If
+   the password is missing, the seed is skipped and the API still boots.
 3. Sign in at the Render web URL with the same emails listed above and the
    `HOSTED_DEMO_PASSWORD` value.
 
