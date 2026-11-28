@@ -26,11 +26,13 @@ World.
 | Manual invoice payment capture | **Real** | `PaymentCapture.tsx` over `GET/POST /invoices`; off-platform observation only, no provider or money movement; importer-scoped billing reads; `docs/api/invoice-payment.json` |
 | Compliance assistant + illustrative estimator | **Real, estimator refuses by default** | Agency-owned prompts with provenance; only external `VERIFIED` rules produce a figure, `SAMPLE` mode labelled do-not-pay-or-file; `docs/ai-safety.md` |
 | Credential-free Sample workspace with four login role cards, five synthetic roles, in-memory cases, one-tap stage changes, review query/approve/revise, payments and reset | **Real, simulated** | `apps/web/src/simulation.ts`, `api.ts` sample-token routing, `App.tsx`; no network requests, state persists across role switches, all records labelled sample |
+| Points/referrals structure: versioned config tables, append-only ledger/records, three read-only endpoints, side panel and shared rail/drawer navigation | **Real, inert** | `1738300000000_loyalty.js`, `apps/api/src/modules/loyalty`, `packages/shared/src/loyalty.ts`, `ShellChrome.tsx`, `LoyaltyPanel.tsx`, `docs/api/loyalty.json`; no rules, values, rewards or incentives are supplied |
 | Static labelled mock screens behind a demo toggle, with disabled layout-only actions | **Mocked** | `apps/web/src/mockups/` — `MOCK` badge, sample data only, no network requests or fake check-in/payment state |
 | Zamtel screens | **Mocked** | Static screens with disabled action buttons; no live provider or real SIM check |
 | One-way handoff artifact + PDF snapshot + notification outbox + requirements API | **Real** | Phase 5 slices added in this handoff (tests below) |
 | ClamAV INSTREAM provider behind config | **Real seam, external daemon required** | `SCAN_PROVIDER=clamav`; default `noop` reports `skipped` |
 | Roadmap items (polished handoff file/UI, Cross, tracking, Deliver, etc.) | **Roadmap, not built** | `docs/roadmap.md` |
+| Owner point values, earning events, redemption/expiry rules and referral states | **Blocked** | Needed before the inert loyalty structure can do anything; keep `NEEDS_VERIFICATION` and balances `null` until supplied and checked |
 | Workload plan with a "Real" column and the MOCKS section | **Blocked** | Owner said they will provide the file; sections 7-10 are held |
 | Audit-log read endpoint | **Absent by decision** | `AuditModule` is write-only; UI shows the stage timeline instead |
 | Render deployment blueprint + guide | **Real, not deployed** | `render.yaml`, `docs/render-deploy.md`; dashboard secrets and service creation still pending |
