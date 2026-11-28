@@ -65,11 +65,13 @@ describe('notification providers', () => {
       payload = body;
       auth = authorization;
     });
+    // Generous timeout: `pnpm verify` runs this alongside other suites, and a
+    // short local-webhook timeout flakes under that CPU load.
     const provider = new EmailWebhookNotificationProvider(
       'sender@example.com',
       url,
       'test-token',
-      2_000,
+      10_000,
     );
     const result = await provider.send({
       to: 'recipient@example.com',
@@ -92,7 +94,7 @@ describe('notification providers', () => {
       'sender@example.com',
       url,
       undefined,
-      2_000,
+      10_000,
     );
     const result = await provider.send({
       to: 'recipient@example.com',
