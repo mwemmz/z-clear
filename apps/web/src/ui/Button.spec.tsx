@@ -54,4 +54,17 @@ describe('Button', () => {
     fireEvent.click(screen.getByRole('button'));
     expect(onClick).not.toHaveBeenCalled();
   });
+
+  it('does not fire when explicitly disabled', () => {
+    const onClick = vi.fn();
+    render(
+      <Button disabled onClick={onClick}>
+        Approve
+      </Button>,
+    );
+    const button = screen.getByRole('button', { name: 'Approve' });
+    expect(button).toBeDisabled();
+    fireEvent.click(button);
+    expect(onClick).not.toHaveBeenCalled();
+  });
 });

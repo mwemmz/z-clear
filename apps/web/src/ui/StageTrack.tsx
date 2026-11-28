@@ -49,9 +49,9 @@ export function StageTrack({ stage, updatedLabel }: Props) {
               aria-current={state === 'current' ? 'step' : undefined}
             >
               <span className="stage-track__node" aria-hidden="true">
-                {state === 'done' ? <Check size={12} weight="bold" /> : null}
+                {state === 'done' ? <Check size={16} weight="bold" /> : null}
                 {state === 'current' && stage === 'on_hold' ? (
-                  <WarningCircle size={12} weight="bold" />
+                  <WarningCircle size={16} weight="bold" />
                 ) : null}
               </span>
               <span className="stage-track__label">{SHIPMENT_STATUS_LABELS[step]}</span>

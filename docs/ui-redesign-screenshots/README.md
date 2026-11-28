@@ -13,6 +13,6 @@ time. The final pass reports zero horizontal overflow, zero undersized tap
 targets, zero unlabelled icon buttons and zero clipped text on every screen.
 
 The stage-track animation was sampled with Chrome's CPU throttling set to 4x:
-33 frames in 500 ms, 17 ms average and maximum frame gap. With
+31 frames in 500 ms, 18 ms average gap and 33 ms maximum gap. With
 `prefers-reduced-motion: reduce`, the animation duration is effectively zero and
 no animations are active.

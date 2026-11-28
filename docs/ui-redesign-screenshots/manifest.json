@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-28T06:37:02.031Z",
+  "generatedAt": "2026-11-28T07:02:14.412Z",
   "base": "http://127.0.0.1:3000",
   "screenshots": [
     {
@@ -642,9 +642,9 @@
   ],
   "motion": {
     "throttled": {
-      "frames": 33,
-      "maxGap": 17,
-      "avgGap": 17,
+      "frames": 31,
+      "maxGap": 33,
+      "avgGap": 18,
       "startedAnimations": [
         {
           "name": "stage-advance",

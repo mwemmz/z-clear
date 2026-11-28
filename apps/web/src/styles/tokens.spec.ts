@@ -3,6 +3,8 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const css = readFileSync(resolve(process.cwd(), 'src/styles/tokens.css'), 'utf8');
+const baseCss = readFileSync(resolve(process.cwd(), 'src/styles/base.css'), 'utf8');
+const componentsCss = readFileSync(resolve(process.cwd(), 'src/styles/components.css'), 'utf8');
 const themes = ['light', 'dark', 'cocoa'] as const;
 
 const SEMANTIC_TOKENS = [
@@ -85,6 +87,17 @@ describe('semantic colour tokens', () => {
       ).toBeGreaterThanOrEqual(4.5);
     }
     expect(contrast(required(token, 'border-strong'), surface)).toBeGreaterThanOrEqual(3);
+  });
+
+  it('defines rest, hover, pressed, focus, disabled, loading and success states', () => {
+    expect(baseCss).toMatch(/button:hover:not\(:disabled\)/);
+    expect(baseCss).toMatch(/button:active:not\(:disabled\)/);
+    expect(baseCss).toMatch(/button:focus-visible/);
+    expect(baseCss).toMatch(/button:disabled/);
+    expect(baseCss).toMatch(/@media \(hover: hover\) and \(pointer: fine\)/);
+    expect(componentsCss).toMatch(/\.zc-button\[data-loading\]/);
+    expect(componentsCss).toMatch(/\.zc-button\[data-success\]/);
+    expect(baseCss).toMatch(/@media \(prefers-reduced-motion: reduce\)/);
   });
 
   it('keeps raw colour values inside the token file', () => {
