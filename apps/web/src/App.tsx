@@ -169,7 +169,7 @@ export function App() {
   }
 
   return (
-    <main className="shell">
+    <main className={token ? 'shell' : 'shell shell--login'}>
       <header className="shell__header">
         <div className="shell__titlerow">
           <h1>Z Clear</h1>

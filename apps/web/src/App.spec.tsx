@@ -358,11 +358,15 @@ describe('App', () => {
 
   it('shows the sign-in form when no token is present', () => {
     stubApi();
-    render(<App />);
+    const { container } = render(<App />);
     expect(screen.getByRole('heading', { name: 'Z Clear' })).toBeInTheDocument();
     expect(screen.getByLabelText('Email')).toBeInTheDocument();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
     expect(screen.queryByTestId('role-badge')).not.toBeInTheDocument();
+    // Both panels are layout hooks for the equal-size, mobile-first login cards.
+    expect(container.querySelector('.shell--login')).toBeInTheDocument();
+    expect(container.querySelector('.login-panel__form')).toBeInTheDocument();
+    expect(container.querySelector('.login-panel__guide')).toBeInTheDocument();
   });
 
   it('shows a four-role sign-in guide without embedding credentials', () => {
