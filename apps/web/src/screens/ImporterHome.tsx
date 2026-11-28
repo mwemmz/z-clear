@@ -1,4 +1,4 @@
-import { CaretRight, House, Plus, UserCircle, UsersThree, Cards } from '@phosphor-icons/react';
+import { Cards, House, Plus, UserCircle, UsersThree } from '@phosphor-icons/react';
 import type { ReactNode } from 'react';
 import { SHIPMENT_STATUS_LABELS, type ShipmentStatus } from '@zclear/shared';
 import { Button, StageTrack, StatePanel, StatusPill, type StateVariant } from '../ui';
@@ -7,6 +7,8 @@ export interface RecentCase {
   reference: string;
   stage: ShipmentStatus;
 }
+
+export type ImporterView = 'home' | 'agents' | 'profile';
 
 interface Props {
   reference: string;
@@ -19,11 +21,13 @@ interface Props {
   onNewCase: () => void;
   onAgents: () => void;
   onProfile: () => void;
+  view?: ImporterView;
+  onHome?: () => void;
   state?: StateVariant;
   children?: ReactNode;
 }
 
-/** Importer phone home: one current case, one action, then quiet history. */
+/** Importer console: one case, one dominant action, and a quiet case index. */
 export function ImporterHome({
   reference,
   clientName,
@@ -35,6 +39,8 @@ export function ImporterHome({
   onNewCase,
   onAgents,
   onProfile,
+  view = 'home',
+  onHome,
   state,
   children,
 }: Props) {
@@ -48,60 +54,87 @@ export function ImporterHome({
 
   return (
     <section className="home" data-testid="importer-home" aria-label="Importer home">
-      <div className="home__greeting">
-        <div>
-          <h2>Your case today</h2>
-          <p>One place to see what your agent recorded.</p>
+      <div className="home__content">
+        <div className="home__greeting">
+          <div>
+            <h2>Your case today</h2>
+            <p>One case file. Every stage change is a manual record, not a ZRA status feed.</p>
+          </div>
+          <StatusPill tone={stage === 'on_hold' ? 'warning' : 'info'}>
+            {SHIPMENT_STATUS_LABELS[stage]}
+          </StatusPill>
         </div>
-        <StatusPill tone={stage === 'on_hold' ? 'warning' : 'info'}>
-          {SHIPMENT_STATUS_LABELS[stage]}
-        </StatusPill>
+
+        <article className="card card--current current-case home__current">
+          <div className="current-case__header">
+            <div>
+              <span className="eyebrow">Current case</span>
+              <span className="current-case__id">{reference}</span>
+            </div>
+            <StatusPill tone={stage === 'on_hold' ? 'warning' : 'neutral'}>
+              Manual record
+            </StatusPill>
+          </div>
+          <p className="current-case__client">{clientName}</p>
+          <StageTrack stage={stage} updatedLabel={updatedLabel} />
+          <div className="case-facts">
+            <div>
+              <span>Stage source</span>
+              <strong>Manual record</strong>
+            </div>
+            <div>
+              <span>Last update</span>
+              <strong>{updatedLabel ?? 'Not recorded'}</strong>
+            </div>
+            <div>
+              <span>Customs system</span>
+              <strong>ASYCUDA World</strong>
+            </div>
+          </div>
+          <div className="current-case__footer">
+            <span className="provenance">Nothing here is submitted to ZRA by this app.</span>
+            <Button variant="primary" onClick={onOpenCase}>
+              Open case
+            </Button>
+          </div>
+        </article>
+
+        <section className="action-strip home__action" aria-label="Action needed">
+          <span className="action-strip__label">Next action</span>
+          <div className="action-strip__text">
+            <strong>Action needed</strong>
+            <span>{actionText}</span>
+          </div>
+          <p className="provenance">Check the case file before acting. No live ZRA feed.</p>
+        </section>
+
+        {children}
+
+        <section className="home__recent" aria-labelledby="recent-cases-heading">
+          <h2 id="recent-cases-heading">Recent cases</h2>
+          {recentCases.length === 0 ? (
+            <p className="empty">No older cases yet. Your new case will appear here.</p>
+          ) : (
+            <ul className="recent-cases">
+              {recentCases.map((item) => (
+                <li key={item.reference}>
+                  <span className="recent-cases__ref">{item.reference}</span>
+                  <span className="recent-cases__meta">{SHIPMENT_STATUS_LABELS[item.stage]}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </div>
 
-      <article className="card card--current">
-        <div className="current-case__header">
-          <span className="current-case__id">{reference}</span>
-          <span className="recent-cases__meta">{clientName}</span>
-        </div>
-        <StageTrack stage={stage} updatedLabel={updatedLabel} />
-        <div className="current-case__footer">
-          <span className="recent-cases__meta">Manual stage record · updates in ASYCUDA World</span>
-          <Button variant="primary" onClick={onOpenCase}>
-            Open case
-          </Button>
-        </div>
-      </article>
-
-      <section className="action-strip" aria-label="Action needed">
-        <div className="action-strip__text">
-          <strong>Action needed</strong>
-          <span>{actionText}</span>
-        </div>
-        <Button onClick={onOpenCase}>Review</Button>
-      </section>
-
-      {children}
-
-      <section aria-labelledby="recent-cases-heading">
-        <h2 id="recent-cases-heading">Recent cases</h2>
-        {recentCases.length === 0 ? (
-          <p className="empty">No older cases yet. Your new case will appear here.</p>
-        ) : (
-          <ul className="recent-cases">
-            {recentCases.map((item) => (
-              <li key={item.reference}>
-                <span className="recent-cases__ref">{item.reference}</span>
-                <span className="recent-cases__meta">{SHIPMENT_STATUS_LABELS[item.stage]}</span>
-                <CaretRight size={16} aria-hidden="true" />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
       <nav className="bottom-nav" aria-label="Importer navigation">
-        <button type="button" className="bottom-nav__item" aria-current="page">
-          <House size={24} weight="fill" aria-hidden="true" />
+        <button
+          type="button"
+          className="bottom-nav__item"
+          aria-current={view === 'home' ? 'page' : undefined}
+          onClick={onHome}
+        >
+          <House size={24} weight={view === 'home' ? 'fill' : undefined} aria-hidden="true" />
           Home
         </button>
         <button type="button" className="bottom-nav__item" onClick={onOpenCase}>
@@ -112,11 +145,21 @@ export function ImporterHome({
           <Plus size={24} weight="bold" aria-hidden="true" />
           <span className="sr-only">New case</span>
         </Button>
-        <button type="button" className="bottom-nav__item" onClick={onAgents}>
+        <button
+          type="button"
+          className="bottom-nav__item"
+          aria-current={view === 'agents' ? 'page' : undefined}
+          onClick={onAgents}
+        >
           <UsersThree size={24} aria-hidden="true" />
           Agents
         </button>
-        <button type="button" className="bottom-nav__item" onClick={onProfile}>
+        <button
+          type="button"
+          className="bottom-nav__item"
+          aria-current={view === 'profile' ? 'page' : undefined}
+          onClick={onProfile}
+        >
           <UserCircle size={24} aria-hidden="true" />
           Profile
         </button>

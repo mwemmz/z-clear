@@ -12,10 +12,13 @@ interface Props {
   updatedLabel?: string;
 }
 
+const ADVANCE_MS = 280;
+
 /** The one orchestrated motion moment: progress advances when a stage changes. */
 export function StageTrack({ stage, updatedLabel }: Props) {
-  const progress = Math.max(stageProgress(stage), 0);
-  const ratio = progress / (SHIPMENT_STAGES.length - 1);
+  const stageIndex = stageProgress(stage);
+  const progress = Math.max(stageIndex, 0);
+  const ratio = stageIndex < 0 ? 0 : progress / (SHIPMENT_STAGES.length - 1);
   const previous = useRef(stage);
   const [animate, setAnimate] = useState(false);
 
@@ -23,7 +26,7 @@ export function StageTrack({ stage, updatedLabel }: Props) {
     if (previous.current === stage) return;
     previous.current = stage;
     setAnimate(true);
-    const timer = window.setTimeout(() => setAnimate(false), 420);
+    const timer = window.setTimeout(() => setAnimate(false), ADVANCE_MS);
     return () => window.clearTimeout(timer);
   }, [stage]);
 
@@ -40,7 +43,14 @@ export function StageTrack({ stage, updatedLabel }: Props) {
       </div>
       <ol className="stage-track__steps">
         {SHIPMENT_STAGES.map((step, index) => {
-          const state = index < progress ? 'done' : index === progress ? 'current' : 'next';
+          const state =
+            stageIndex < 0
+              ? 'next'
+              : index < stageIndex
+                ? 'done'
+                : index === stageIndex
+                  ? 'current'
+                  : 'next';
           return (
             <li
               key={step}

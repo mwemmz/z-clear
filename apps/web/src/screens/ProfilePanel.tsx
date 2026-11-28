@@ -16,6 +16,9 @@ export function ProfilePanel({ email, roleLabel, onSignOut, state }: Props) {
         data-testid="profile-panel"
         aria-labelledby="profile-heading"
       >
+        <h2 className="sr-only" id="profile-heading">
+          Profile
+        </h2>
         <StatePanel variant={state} />
       </section>
     );
@@ -27,12 +30,13 @@ export function ProfilePanel({ email, roleLabel, onSignOut, state }: Props) {
       data-testid="profile-panel"
       aria-labelledby="profile-heading"
     >
-      <div>
+      <div className="profile-panel__section">
+        <span className="eyebrow">Account</span>
         <h2 id="profile-heading">Profile</h2>
         <p className="recent-cases__meta">{email}</p>
         <p>{roleLabel}</p>
       </div>
-      <div>
+      <div className="profile-panel__section">
         <strong>Colour theme</strong>
         <p className="recent-cases__meta">
           Saved on this phone. English first; Bemba and Nyanja strings next.

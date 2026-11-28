@@ -31,5 +31,6 @@ describe('StageTrack', () => {
     const { container } = render(<StageTrack stage="on_hold" />);
     expect(container.querySelector('.stage-track')).toHaveAttribute('data-held');
     expect(container.querySelector('.stage-track__caption')).toHaveTextContent('On hold');
+    expect(container.querySelector('[aria-current="step"]')).not.toBeInTheDocument();
   });
 });

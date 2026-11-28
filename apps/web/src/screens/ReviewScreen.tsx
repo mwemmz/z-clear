@@ -11,7 +11,6 @@ interface Props {
   state?: StateVariant;
   onQuery: () => void;
   onApprove: () => void;
-  onClearPoints: () => void;
 }
 
 /** Importer review: draft versus source in plain language, then two clear actions. */
@@ -25,11 +24,13 @@ export function ReviewScreen({
   state,
   onQuery,
   onApprove,
-  onClearPoints,
 }: Props) {
   if (state) {
     return (
       <section className="card" data-testid="review-screen" aria-labelledby="review-heading">
+        <h2 className="sr-only" id="review-heading">
+          Review draft
+        </h2>
         <StatePanel variant={state} />
       </section>
     );
@@ -39,6 +40,7 @@ export function ReviewScreen({
     <section className="card" data-testid="review-screen" aria-labelledby="review-heading">
       <div className="current-case__header">
         <div>
+          <span className="eyebrow">Draft comparison</span>
           <h2 id="review-heading">Review draft</h2>
           <p className="recent-cases__meta">Revision {revision}</p>
         </div>
@@ -62,6 +64,9 @@ export function ReviewScreen({
           </div>
         </div>
         <p>{message}</p>
+        <p className="provenance">
+          Values shown for review only. No filing or assessment happens here.
+        </p>
       </div>
 
       <div className="review-actions">
@@ -75,9 +80,6 @@ export function ReviewScreen({
           aria-label="Approve this draft"
         >
           <CheckCircle size={20} aria-hidden="true" /> Approve
-        </Button>
-        <Button variant="ghost" onClick={onClearPoints}>
-          Clear Points
         </Button>
       </div>
     </section>

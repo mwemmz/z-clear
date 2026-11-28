@@ -1,9 +1,10 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DesignGallery } from '../design/DesignGallery';
 import {
   AgentDirectoryMock,
   AgentWorkspace,
+  CaseSheet,
   ImporterHome,
   ProfilePanel,
   ReviewScreen,
@@ -25,6 +26,7 @@ const importerProps = {
 
 describe('redesigned role screens', () => {
   afterEach(() => {
+    vi.useRealTimers();
     window.localStorage.clear();
     document.documentElement.removeAttribute('data-theme');
   });
@@ -57,6 +59,63 @@ describe('redesigned role screens', () => {
     expect(screen.getByText('Case detail')).toBeInTheDocument();
   });
 
+  it('switches case-sheet sections and keeps the sheet mounted until the exit finishes', () => {
+    vi.useFakeTimers();
+    const onClose = vi.fn();
+    render(
+      <CaseSheet
+        open
+        onClose={onClose}
+        reference="ZCLR-2041"
+        route="Ndola → Kasumbalesa"
+        stage="submitted"
+        documentsReady={0}
+        documentsTotal={0}
+      >
+        <p>Case facts</p>
+      </CaseSheet>,
+    );
+
+    expect(screen.getByText('Case facts')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'Documents' }));
+    expect(screen.queryByText('Case facts')).not.toBeInTheDocument();
+    expect(screen.getByText(/Document readiness is not included/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close case details' }));
+    expect(onClose).not.toHaveBeenCalled();
+    act(() => vi.advanceTimersByTime(150));
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it('names the case sheet, omits unknown counts, and supports first/last tab keys', () => {
+    render(
+      <CaseSheet
+        open
+        onClose={noop}
+        reference="ZCLR-2041"
+        route="Ndola → Kasumbalesa"
+        stage="submitted"
+        documentsReady={0}
+        documentsTotal={0}
+      >
+        <p>Case facts</p>
+      </CaseSheet>,
+    );
+
+    expect(screen.getByRole('dialog', { name: /Case details.*ZCLR-2041/ })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Document count not available' })).toBeInTheDocument();
+    expect(screen.queryByLabelText('0 of 0 documents ready')).not.toBeInTheDocument();
+
+    const payments = screen.getByRole('tab', { name: 'Payments' });
+    fireEvent.click(payments);
+    fireEvent.keyDown(payments, { key: 'Home' });
+    const info = screen.getByRole('tab', { name: 'Info' });
+    expect(info).toHaveAttribute('aria-selected', 'true');
+    fireEvent.keyDown(info, { key: 'End' });
+    expect(payments).toHaveAttribute('aria-selected', 'true');
+    expect(payments).toHaveAttribute('aria-controls', 'case-panel-current');
+  });
+
   it('keeps the agent directory visibly mock and filterable', () => {
     render(<AgentDirectoryMock />);
     expect(screen.getByText(/Sample, not ZRA figures/)).toBeInTheDocument();
@@ -76,7 +135,6 @@ describe('redesigned role screens', () => {
         stale
         onQuery={noop}
         onApprove={noop}
-        onClearPoints={noop}
       />,
     );
 
@@ -108,7 +166,6 @@ describe('redesigned role screens', () => {
           state="denied"
           onQuery={noop}
           onApprove={noop}
-          onClearPoints={noop}
         />
       </>,
     );
